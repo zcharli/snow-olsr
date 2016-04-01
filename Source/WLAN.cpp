@@ -239,7 +239,7 @@ void WLAN::receive() {
    // buffer for received frame
    char * buff=new char[ifconfig.mtu];
    // length of received frame
-   unsigned int i; // frame length
+   int i; // frame length
    // src address of frame
    struct sockaddr_ll from;
    socklen_t fromlen=sizeof(struct sockaddr_ll);
