@@ -1,6 +1,10 @@
 #include "Headers/SnowClient.h"
 
-SnowClient::SnowClient() {}
+using namespace std;
+
+SnowClient::SnowClient() {
+    mSocketPtr = make_unique<WLAN>(INTERFACE_NAME);
+}
 SnowClient::~SnowClient() {}
 
 int SnowClient::start() {

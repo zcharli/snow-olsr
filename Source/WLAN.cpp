@@ -61,6 +61,7 @@ int WLAN::WLANAddr::str2wlan(char s[]) {
    return 0;
 }
 
+WLAN::~WLAN(){}
 // Constructor
 WLAN::WLAN(string interface) {
   // Set device name

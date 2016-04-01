@@ -1,7 +1,7 @@
 #include <iostream>
-#include "Resources/Constants.h"
+#include "Headers/Resources/Constants.h"
 #include "Headers/SnowClient.h"
-#include "Resources/Helpers.h"
+#include "Headers/Resources/Helpers.h"
 using namespace std;
 
 /**

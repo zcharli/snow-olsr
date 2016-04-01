@@ -5,10 +5,12 @@ using namespace std;
 
 class NeighborNode
 {
+private:
+    bool mTwoHopNeighbor;
 public:
   NeighborNode();
   ~NeighborNode();
-
+  bool isTwoHopNeighbor();
 };
 
 #endif // NEIGHBOR_NODE_H

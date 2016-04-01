@@ -6,14 +6,15 @@ EXTENSION	= cpp
 OBJECT		= Object/
 SOURCE		= Source/
 
+
 CXX			= g++
-LIBRARIES	= 
+LIBRARIES	= -lboost_system -lboost_thread -lpthread
 
 ifeq ($(mode), release)
-	CXXFLAGS = -std=c++0x -Wall -pedantic-errors -O2 -s
+	CXXFLAGS = -std=c++14 -Wall -pedantic-errors -O2 -s
 else
 	mode     = debug
-	CXXFLAGS = -std=c++0x -Wall -pedantic-errors -O0 -g
+	CXXFLAGS = -std=c++14 -Wall -pedantic-errors -O0 -g
 endif
 
 SOURCES		= $(shell find $(SOURCE) -name "*.$(EXTENSION)")
@@ -65,7 +66,7 @@ clear:
 tar: clear clean
 	@echo Creating tar file: $(PROGRAM).tar.gz...
 	$(RM) $(PROGRAM).tar.gz
-	tar czf $(PROGRAM).tar.gz $(OBJECT) $(SOURCE) Makefile Readme 
+	tar czf $(PROGRAM).tar.gz $(OBJECT) $(SOURCE) Makefile Readme
 
 readme: clear
 	@cat Readme
