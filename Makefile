@@ -47,7 +47,7 @@ clean:
 debug: build
 	gdb ./$(PROGRAM)
 
-run: build
+run: rebuild
 	./$(PROGRAM)
 
 leaktest: build
