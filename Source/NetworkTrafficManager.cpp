@@ -10,6 +10,7 @@ NetworkTrafficManager::~NetworkTrafficManager() { }
 
 void NetworkTrafficManager::init() {
     mListener = make_unique<NetworkPacketListener>(mWirelessInterfaceName, *this);
+    mListener->run();
     mSendSocket->init();
     // Only create TC thread if this client is an MPR, lets test anyways
     mTCThread = make_unique<NetworkTCMessageThread>(mSendSocket);
