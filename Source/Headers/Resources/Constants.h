@@ -18,7 +18,7 @@
 /**
  * TIME INTERVALS 18.2, 18.3
  */
-#define T_SECOND 1000 // 1 second
+#define T_SECOND 1 // 1 second
 #define T_HELLO_INTERVAL 2 * T_SECOND
 #define T_REFRESH_INTERVAL 2 * T_SECOND
 #define T_TC_INTERVAL 5 * T_SECOND

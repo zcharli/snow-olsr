@@ -31,7 +31,7 @@ void NetworkHelloMessageThread::startBroadcastHelloMessages() {
         buffer[array_size + 14] = '\0';
         mSocket->send(a, buffer);
         PRINTLN(Sent a hello message)
-        usleep(T_HELLO_INTERVAL);
+        sleep(T_HELLO_INTERVAL);
     }
     PRINTLN(Hello message thread closed down);
 }
