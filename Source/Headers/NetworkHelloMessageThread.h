@@ -13,6 +13,7 @@
 #include <boost/thread/mutex.hpp>
 #include "WLAN.h"
 #include "Resources/Constants.h"
+#include "Resources/Helpers.h"
 #include "HelloMessage.h"
 
 class NetworkHelloMessageThread {

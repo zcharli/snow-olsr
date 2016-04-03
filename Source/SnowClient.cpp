@@ -12,6 +12,9 @@ int SnowClient::start() {
 
     shared_ptr<NetworkTrafficManager> vNetworkManager = make_shared<NetworkTrafficManager>(INTERFACE_NAME);
     vNetworkManager->init();
-
+    while(1) {
+        PRINTLN(Snow client keeping itself alive);
+        sleep(3);
+    }
     return 0;
 }

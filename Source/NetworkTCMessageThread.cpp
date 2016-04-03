@@ -16,5 +16,5 @@ int NetworkTCMessageThread::run() {
 }
 
 void NetworkTCMessageThread::startBroadcastTCMessages() {
-
+    PRINTLN(TC Message thread started);
 }

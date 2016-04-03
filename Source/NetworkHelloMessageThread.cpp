@@ -16,11 +16,12 @@ int NetworkHelloMessageThread::run() {
 }
 
 void NetworkHelloMessageThread::startBroadcastHelloMessages() {
+    PRINTLN(Hello Message thread started)
     //int vPkgSeqNum = 1, vMsgSeqNum = 1; // Commented out cause unused atm.
     while (1) {
         char a[] = "ff:ff:ff:ff:ff:ff";
         //char a[]="1c:bd:b9:7e:b5:d4"; // unicast address
-        char f[] = "Foo yogurt nukkah"; // data
+        char f[] = "Hello!"; // data
 
         int array_size = strlen(f);
         // Make a buffer greater than
@@ -29,6 +30,8 @@ void NetworkHelloMessageThread::startBroadcastHelloMessages() {
         memmove(buffer + 14, f, array_size);
         buffer[array_size + 14] = '\0';
         mSocket->send(a, buffer);
-        sleep(T_HELLO_INTERVAL);
+        PRINTLN(Sent a hello message)
+        usleep(T_HELLO_INTERVAL);
     }
+    PRINTLN(Hello message thread closed down);
 }

@@ -12,6 +12,7 @@
 #include <boost/thread/mutex.hpp>
 #include "WLAN.h"
 #include "Resources/Constants.h"
+#include "Resources/Helpers.h"
 
 class NetworkTCMessageThread {
 public:

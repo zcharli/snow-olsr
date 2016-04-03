@@ -19,12 +19,13 @@ int NetworkPacketListener::run() {
 }
 
 void NetworkPacketListener::listenOnInterface() {
+    PRINTLN(Network Packet Listener thread started);
     while(1){
         mSemProducer->wait(); // Wait for the signal from Manager class
         shared_ptr<Packet> vPacket = make_shared<Packet>();
         mRecvSocket->receive(vPacket);
         // Received a packet.  Now fucking make me a message
-
+        PRINTLN(Received a packet);
         mMtxMonitor.lock();
         if(mMonitor.enqueMsgForProcessing() == 1) {}
         mMtxMonitor.unlock();

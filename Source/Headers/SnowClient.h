@@ -10,6 +10,7 @@
 #include "RoutingTable.h"
 #include "NeighborNode.h"
 #include "Resources/Constants.h"
+#include "Resources/Helpers.h"
 
 using namespace std;
 

@@ -12,6 +12,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/interprocess/sync/interprocess_semaphore.hpp>
+#include "Resources/Helpers.h"
 #include "Handler.h"
 #include "WLAN.h"
 #include "Packet.h"

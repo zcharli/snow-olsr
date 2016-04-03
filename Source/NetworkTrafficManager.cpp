@@ -16,6 +16,7 @@ void NetworkTrafficManager::init() {
     mHelloThread = make_unique<NetworkHelloMessageThread>(mSendSocket);
     mTCThread->run();
     mHelloThread->run();
+    PRINTLN(Traffic manager has been initialized);
 }
 
 int NetworkTrafficManager::sendMsg(OLSRMessage& messageToSend) {
