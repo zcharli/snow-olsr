@@ -8,6 +8,7 @@ NetworkPacketListener::NetworkPacketListener(string interface, NetworkTrafficMan
     : mWirelessInterfaceName(interface), mMonitor(monitor) {
     mRecvSocket = make_unique<WLAN>(mWirelessInterfaceName);
     mRecvSocket->setHandler(this); // This is essentially debugging
+    mRecvSocket->init();
     mSemProducer = new boost::interprocess::interprocess_semaphore(MAX_SEM);
 }
 
