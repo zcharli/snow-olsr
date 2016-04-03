@@ -22,16 +22,21 @@ int NetworkPacketListener::run() {
 void NetworkPacketListener::listenOnInterface() {
     PRINTLN(Network Packet Listener thread started);
     while(1){
+        PRINTLN(Semaphore wait)
         mSemProducer->wait(); // Wait for the signal from Manager class
         shared_ptr<Packet> vPacket = make_shared<Packet>();
         mRecvSocket->receive(vPacket);
         // Received a packet.  Now fucking make me a message
         PRINTLN(Received a packet);
         mMtxMonitor.lock();
-        if(mMonitor.enqueMsgForProcessing() == 1) {}
+        PRINTLN(Inside lock);
+        // The following block must be resolved by the consumer
+        //if(mMonitor.enqueMsgForProcessing() == 1) {} // Forcing a wait when we dont want it
         mMtxMonitor.unlock();
+        PRINTLN(Lock resolved)
         // End of transaction, then tell consume to eat.
         mMonitor.notifyConsumerReady();
+        PRINTLN(Monitor notified);
     }
 
 }

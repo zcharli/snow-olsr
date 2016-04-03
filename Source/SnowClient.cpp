@@ -15,6 +15,7 @@ int SnowClient::start() {
     while(1) {
         PRINTLN(Snow client keeping itself alive);
         sleep(3);
+        vNetworkManager->notifyConsumerReady();
     }
     return 0;
 }
