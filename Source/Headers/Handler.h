@@ -12,6 +12,7 @@ using namespace std;
 // Handler class declaration
 class Handler {
 public:
+
    // Handle message
    virtual void handle(char src[], char dst[], char msg[]);
 };

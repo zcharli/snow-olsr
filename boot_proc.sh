@@ -12,7 +12,7 @@ iwconfig wlan1 channel 3
 # data rate
 # iwconfig wlan1 rate 11MB
 # identity of ad hoc network cell
-iwconfig wlan1cd ap 00:00:00:00:00:01
+iwconfig wlan1 ap 00:00:00:00:00:01
 # put the device up
 ifconfig wlan1 up
 iwconfig wlan1

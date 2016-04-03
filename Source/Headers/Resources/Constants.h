@@ -1,7 +1,10 @@
 
 #define INTERFACE_NAME "wlan0"
-
-
+// Defines the max num threads for waiting on messages
+#define MAX_SEM 25
+#define MIN_SEM 0
+// Defined for max MTU of interface
+#define MAX_BUF 1500
 
 /**
  * Below is OLSR dependent constants

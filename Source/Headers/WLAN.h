@@ -1,3 +1,5 @@
+#ifndef WLAN_H
+#define WLAN_H
 // File: WLAN.h
 // Author: Michel Barbeau
 // Version: January 16, 2016
@@ -20,7 +22,9 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <memory>
 #include "Handler.h"
+#include "Packet.h"
 
 using namespace std;
 
@@ -31,14 +35,14 @@ public:
    WLAN(string interface);
    // Destructor
    ~WLAN();
-   // Initialize 
+   // Initialize
    bool init();
    // Send a frame
    bool send(char address[], char message[]);
    // Set a handler
    void setHandler(Handler* aHandler);
    // Receive a frame
-   void receive();
+   void receive(shared_ptr<Packet>);
 private:
    // Constants
    static const int WLAN_ADDR_LEN = 6;
@@ -95,12 +99,14 @@ private:
    bool createSocket();
    bool fetchInterfaceIndex();
    bool fetchHardwareAddress();
-   bool fetchMTU(); 
-   bool addPromiscuousMode(); 
-   bool bindSocketToInterface(); 
-   // Send helpers  
+   bool fetchMTU();
+   bool addPromiscuousMode();
+   bool bindSocketToInterface();
+   // Send helpers
    void buildHeader(char address[], WLANAddr *daddr);
    void setToAddress(WLANAddr *daddr, struct sockaddr_ll *to);
    // Receive helper
-   void parseReceivedFrame(char buff[]);
+   void parseReceivedFrame(shared_ptr<Packet>);
 };
+
+#endif // WLAN_H

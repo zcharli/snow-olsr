@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <memory>
+#include <list>
 #include "WLAN.h"
 #include "RoutingTable.h"
 #include "NeighborNode.h"
@@ -16,11 +17,10 @@ class SnowClient
 {
 
 private:
-    RoutingTable mRoutingTable;
     //boost::asio::ip::udp::socket mSocket;
-    unique_ptr<WLAN> mSocketPtr;
-    std::vector<NeighborNode> mMprList;
-
+    //shared_ptr<WLAN> mSocketPtr;
+    list<NeighborNode> mMprList;
+    string mWirelessInterfaceName;
 
 public:
     SnowClient();
