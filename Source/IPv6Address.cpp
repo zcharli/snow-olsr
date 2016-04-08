@@ -10,6 +10,13 @@ char* IPv6Address::wlan2asc(char str[]) {
     return str;
 }
 
+char* IPv6Address::wlan2asc(char str[]) const {
+    sprintf(str, "%x:%x:%x:%x:%x:%x",
+            data[0], data[1], data[2], data[3], data[4], data[5]);
+    return str;
+}
+
+
 // Return the address in a human readable form, cred. Michel Barbeau
 int IPv6Address::str2wlan(char s[]) {
     int a[6], i;
@@ -54,7 +61,7 @@ int IPv6Address::sscanf6(char str[], int *a1, int *a2, int *a3, int *a4, int *a5
 
 // Convert a char to a hex digit, cred Michel Barbeau
 int IPv6Address::hexdigit(char a) {
-    if (a >= '0' && a <= '9') return (a - '0');
+    if (a >= '0' && a <= '9') return (a - '0'); 
     if (a >= 'a' && a <= 'f') return (a - 'a' + 10);
     if (a >= 'A' && a <= 'F') return (a - 'A' + 10);
     return -1;

@@ -9,14 +9,14 @@
 //#include "boost/asio/ip/address.hpp"
 //#include "ns3/ipv4-address.h"
 //#include "ns3/nstime.h"
-#include "boost/asio.hpp"
-#include <ctime>
-
+//#include "boost/asio.hpp"
+//#include <ctime>
+#include "../IPv6Address.h"
 /*
     Introduction of Type.h for OLSR
 
     Type Name                   Description                         Data Type
-    MprSet:                     MPR Set type                        std::set<Ipv4Address>
+    MprSet:                     MPR Set type                        std::set<IPv6Address>
     MprSelectorSet:             MPR Selector Set type               std::vector<MprSelectorTuple>
     LinkSet:                    Link Set type                       std::vector<LinkTuple>
     NeighborSet:                Neighbor Set type                   std::vector<NeighborTuple>
@@ -41,14 +41,13 @@
         InterfaceAssociationTuple
 */
 
-#define Ipv4Address char
+//#define IPv6Address char
 
-namespace olsr {
 /// An MPR-Selector Tuple.
 struct MprSelectorTuple
 {
     /// Main address of a node which have selected this node as a MPR.
-    Ipv4Address mainAddr;
+    IPv6Address mainAddr;
     /// Time at which this tuple expires and must be removed.
 };
 
@@ -61,9 +60,9 @@ static inline bool operator == (const MprSelectorTuple &a, const MprSelectorTupl
 struct LinkTuple
 {
     /// Interface address of the local node.
-    Ipv4Address localIfaceAddr;
+    IPv6Address localIfaceAddr;
     /// Interface address of the neighbor node.
-    Ipv4Address neighborIfaceAddr;
+    IPv6Address neighborIfaceAddr;
 };
 
 static inline bool operator == (const LinkTuple &a, const LinkTuple &b)
@@ -71,18 +70,18 @@ static inline bool operator == (const LinkTuple &a, const LinkTuple &b)
     return (a.localIfaceAddr == b.localIfaceAddr && a.neighborIfaceAddr == b.neighborIfaceAddr);
 }
 
-static inline std::ostream& operator << (std::ostream &os, const LinkTuple &tuple)
-{
-    os  << "LinkTuple(localIfaceAddr=" << tuple.localIfaceAddr
-        << ", neighborIfaceAddr=" << tuple.neighborIfaceAddr;
-    return os;
-}
+// static inline std::ostream& operator << (std::ostream &os, const LinkTuple &tuple)
+// {
+//     os  << "LinkTuple(localIfaceAddr=" << tuple.localIfaceAddr
+//         << ", neighborIfaceAddr=" << tuple.neighborIfaceAddr;
+//     return os;
+// }
 
 /// A Neighbor Tuple.
 struct NeighborTuple
 {
     /// Main address of a neighbor node.
-    Ipv4Address neighborMainAddr;
+    IPv6Address neighborMainAddr;
     /// Neighbor Type and Link Type at the four less significative digits.
     enum Status {
         STATUS_NOT_SYM = 0, // "not symmetric"
@@ -99,30 +98,30 @@ static inline bool operator == (const NeighborTuple &a, const NeighborTuple &b)
             a.willingness == b.willingness);
 }
 
-static inline std::ostream& operator << (std::ostream &os, const NeighborTuple &tuple)
-{
-    os  << "NeighborTuple(neighborMainAddr=" << tuple.neighborMainAddr
-        << ", status=" << (tuple.status == NeighborTuple::STATUS_SYM ? "SYM" : "NOT_SYM")
-        << ", willingness=" << (int) tuple.willingness << ")";
-    return os;
-}
+// static inline std::ostream& operator << (std::ostream &os, const NeighborTuple &tuple)
+// {
+//     os  << "NeighborTuple(neighborMainAddr=" << tuple.neighborMainAddr
+//         << ", status=" << (tuple.status == NeighborTuple::STATUS_SYM ? "SYM" : "NOT_SYM")
+//         << ", willingness=" << (int) tuple.willingness << ")";
+//     return os;
+// }
 
 /// A 2-hop Tuple.
 struct TwoHopNeighborTuple
 {
     /// Main address of a neighbor.
-    Ipv4Address neighborMainAddr;
+    IPv6Address neighborMainAddr;
     /// Main address of a 2-hop neighbor with a symmetric link to nb_main_addr.
-    Ipv4Address twoHopNeighborAddr;
+    IPv6Address twoHopNeighborAddr;
 };
 
-static inline std::ostream& operator << (std::ostream &os, const TwoHopNeighborTuple &tuple)
-{
-    os  << "TwoHopNeighborTuple(neighborMainAddr=" << tuple.neighborMainAddr
-        << ", twoHopNeighborAddr=" << tuple.twoHopNeighborAddr
-        << ")";
-    return os;
-}
+// static inline std::ostream& operator << (std::ostream &os, const TwoHopNeighborTuple &tuple)
+// {
+//     os  << "TwoHopNeighborTuple(neighborMainAddr=" << tuple.neighborMainAddr
+//         << ", twoHopNeighborAddr=" << tuple.twoHopNeighborAddr
+//         << ")";
+//     return os;
+// }
 
 static inline bool operator == (const TwoHopNeighborTuple &a, const TwoHopNeighborTuple &b)
 {
@@ -134,9 +133,9 @@ static inline bool operator == (const TwoHopNeighborTuple &a, const TwoHopNeighb
 struct TopologyTuple
 {
     /// Main address of the destination.
-    Ipv4Address destAddr;
+    IPv6Address destAddr;
     /// Main address of a node which is a neighbor of the destination.
-    Ipv4Address lastAddr;
+    IPv6Address lastAddr;
     /// Sequence number.
     uint16_t sequenceNumber;
 };
@@ -148,22 +147,22 @@ static inline bool operator == (const TopologyTuple &a, const TopologyTuple &b)
             a.sequenceNumber == b.sequenceNumber);
 }
 
-static inline std::ostream& operator << (std::ostream &os, const TopologyTuple &tuple)
-{
-    os  << "TopologyTuple(destAddr=" << tuple.destAddr
-        << ", lastAddr=" << tuple.lastAddr
-        << ", sequenceNumber=" << (int) tuple.sequenceNumber
-        << ")";
-    return os;
-}
+// static inline std::ostream& operator << (std::ostream &os, const TopologyTuple &tuple)
+// {
+//     os  << "TopologyTuple(destAddr=" << tuple.destAddr
+//         << ", lastAddr=" << tuple.lastAddr
+//         << ", sequenceNumber=" << (int) tuple.sequenceNumber
+//         << ")";
+//     return os;
+// }
 
 /// An Interface Association Tuple.
 struct InterfaceAssociationTuple
 {
     /// Interface address of a node.
-    Ipv4Address ifaceAddr;
+    IPv6Address ifaceAddr;
     /// Main address of the node.
-    Ipv4Address mainAddr;
+    IPv6Address mainAddr;
 };
 
 static inline bool  operator == (const InterfaceAssociationTuple &a, const InterfaceAssociationTuple &b)
@@ -171,20 +170,20 @@ static inline bool  operator == (const InterfaceAssociationTuple &a, const Inter
     return (a.ifaceAddr == b.ifaceAddr && a.mainAddr == b.mainAddr);
 }
 
-static inline std::ostream& operator << (std::ostream &os, const InterfaceAssociationTuple &tuple)
-{
-    os  << "InterfaceAssociationTuple(ifaceAddr=" << tuple.ifaceAddr
-        << ", mainAddr=" << tuple.mainAddr << ")";
-    return os;
-}
+// static inline std::ostream& operator << (std::ostream &os, const InterfaceAssociationTuple &tuple)
+// {
+//     os  << "InterfaceAssociationTuple(ifaceAddr=" << tuple.ifaceAddr
+//         << ", mainAddr=" << tuple.mainAddr << ")";
+//     return os;
+// }
 
-typedef std::set<Ipv4Address>                       MprSet;                     ///< MPR Set type.
-typedef std::vector<MprSelectorTuple>               MprSelectorSet;             ///< MPR Selector Set type.
-typedef std::vector<LinkTuple>                      LinkSet;                    ///< Link Set type.
-typedef std::vector<NeighborTuple>                  NeighborSet;                ///< Neighbor Set type.
-typedef std::vector<TwoHopNeighborTuple>            TwoHopNeighborSet;          ///< 2-hop Neighbor Set type.
-typedef std::vector<TopologyTuple>                  TopologySet;                ///< Topology Set type.
-typedef std::vector<InterfaceAssociationTuple>      InterfaceAssociationSet;    ///< Interface Association Set type.
-}
+// typedef std::set<IPv6Address>                       MprSet;                     ///< MPR Set type.
+// typedef std::vector<MprSelectorTuple>               MprSelectorSet;             ///< MPR Selector Set type.
+// typedef std::vector<LinkTuple>                      LinkSet;                    ///< Link Set type.
+// typedef std::vector<NeighborTuple>                  NeighborSet;                ///< Neighbor Set type.
+// typedef std::vector<TwoHopNeighborTuple>            TwoHopNeighborSet;          ///< 2-hop Neighbor Set type.
+// typedef std::vector<TopologyTuple>                  TopologySet;                ///< Topology Set type.
+// typedef std::vector<InterfaceAssociationTuple>      InterfaceAssociationSet;    ///< Interface Association Set type.
+
 
 #endif  /* TYPE_H */
