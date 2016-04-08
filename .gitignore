@@ -29,7 +29,7 @@
 
 *.idea
 
-Snow-OLSR 
+Snow-OLSR
 .directory
 CMakeList.txt
 
