@@ -5,6 +5,8 @@
 #define MIN_SEM 0
 // Defined for max MTU of interface
 #define MAX_BUF 1500
+#define WLAN_HEADER_LEN 14
+#define WLAN_ADDR_LEN 6
 
 /**
  * Below is OLSR dependent constants

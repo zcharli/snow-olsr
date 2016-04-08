@@ -25,6 +25,8 @@
 #include <memory>
 #include "Handler.h"
 #include "Packet.h"
+#include "IPv6Address.h"
+#include "Resources/Constants.h"
 
 using namespace std;
 
@@ -45,26 +47,24 @@ public:
    void receive(shared_ptr<Packet>);
 private:
    // Constants
-   static const int WLAN_ADDR_LEN = 6;
-   static const int WLAN_HEADER_LEN = 14;
    static const unsigned short IP_TYPE = 0x3901;
    const string WLAN_BROADCAST = "ff:ff:ff:ff:ff:ff";
    // Structure of a network address
-   struct WLANAddr{
-      // address
-      unsigned char data[WLAN_ADDR_LEN];
-      // return the address in a human readable form
-      char * wlan2asc(char str[]);
-      // define the address from a human readable form
-      int str2wlan(char s[]);
-   };
+   // struct IPv6Address{
+   //    // address
+   //    unsigned char data[WLAN_ADDR_LEN];
+   //    // return the address in a human readable form
+   //    char * wlan2asc(char str[]);
+   //    // define the address from a human readable form
+   //    int str2wlan(char s[]);
+   // };
 
    // Structure of a frame header
    struct WLANHeader{
        // destination address
-       WLANAddr destAddr;
+       IPv6Address destAddr;
        // source address
-       WLANAddr srcAddr;
+       IPv6Address srcAddr;
        // type
        unsigned short type;
    };
@@ -76,19 +76,19 @@ private:
       // interface index
       int ifindex;
       // mac address
-      WLANAddr hwaddr;
+      IPv6Address hwaddr;
       // maximum transmission unit
       int mtu;
    };
    // convert a char to a hex digit
    static int hexdigit(char a);
    // convert an address string to a series of hex digits
-   static int sscanf6(char str[], int *a1, int *a2, int *a3, int *a4, int *a5,
-        int *a6);
+   // static int sscanf6(char str[], int *a1, int *a2, int *a3, int *a4, int *a5,
+   //      int *a6);
    // Network interface label
    char* device;
    // Frame buffer
-   unsigned char * buff;
+   unsigned char* buff;
    // Network interface configuration
    Ifconfig ifconfig;
    // Frame header
@@ -103,8 +103,8 @@ private:
    bool addPromiscuousMode();
    bool bindSocketToInterface();
    // Send helpers
-   void buildHeader(char address[], WLANAddr *daddr);
-   void setToAddress(WLANAddr *daddr, struct sockaddr_ll *to);
+   void buildHeader(char address[], IPv6Address *daddr);
+   void setToAddress(IPv6Address *daddr, struct sockaddr_ll *to);
    // Receive helper
    void parseReceivedFrame(shared_ptr<Packet>);
 };

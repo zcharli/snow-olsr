@@ -5,61 +5,61 @@
 #include "Headers/WLAN.h"
 
 // Return the address in a human readable form
-char * WLAN::WLANAddr::wlan2asc(char str[]) {
-    sprintf(str, "%x:%x:%x:%x:%x:%x",
-            data[0], data[1], data[2], data[3], data[4], data[5]);
-    return str;
-}
+// char * WLAN::IPv6Address::wlan2asc(char str[]) {
+//     sprintf(str, "%x:%x:%x:%x:%x:%x",
+//             data[0], data[1], data[2], data[3], data[4], data[5]);
+//     return str;
+// }
 
-// Convert a char to a hex digit
-int WLAN::hexdigit(char a) {
-    if (a >= '0' && a <= '9') return (a - '0');
-    if (a >= 'a' && a <= 'f') return (a - 'a' + 10);
-    if (a >= 'A' && a <= 'F') return (a - 'A' + 10);
-    return -1;
-}
+// // Convert a char to a hex digit
+// int WLAN::hexdigit(char a) {
+//     if (a >= '0' && a <= '9') return (a - '0');
+//     if (a >= 'a' && a <= 'f') return (a - 'a' + 10);
+//     if (a >= 'A' && a <= 'F') return (a - 'A' + 10);
+//     return -1;
+// }
 
 // convert an address string to a series of hex digits
-int WLAN::sscanf6(char str[], int *a1, int *a2, int *a3, int *a4, int *a5, int *a6) {
-    int n;
-    *a1 = *a2 = *a3 = *a4 = *a5 = *a6 = 0;
-    while ((n = hexdigit(*str)) >= 0)
-        (*a1 = 16 * (*a1) + n, str++);
-    if (*str++ != ':') return 1;
-    while ((n = hexdigit(*str)) >= 0)
-        (*a2 = 16 * (*a2) + n, str++);
-    if (*str++ != ':') return 2;
-    while ((n = hexdigit(*str)) >= 0)
-        (*a3 = 16 * (*a3) + n, str++);
-    if (*str++ != ':') return 3;
-    while ((n = hexdigit(*str)) >= 0)
-        (*a4 = 16 * (*a4) + n, str++);
-    if (*str++ != ':') return 4;
-    while ((n = hexdigit(*str)) >= 0)
-        (*a5 = 16 * (*a5) + n, str++);
-    if (*str++ != ':') return 5;
-    while ((n = hexdigit(*str)) >= 0)
-        (*a6 = 16 * (*a6) + n, str++);
-    return 6;
-}
+// int WLAN::sscanf6(char str[], int *a1, int *a2, int *a3, int *a4, int *a5, int *a6) {
+//     int n;
+//     *a1 = *a2 = *a3 = *a4 = *a5 = *a6 = 0;
+//     while ((n = hexdigit(*str)) >= 0)
+//         (*a1 = 16 * (*a1) + n, str++);
+//     if (*str++ != ':') return 1;
+//     while ((n = hexdigit(*str)) >= 0)
+//         (*a2 = 16 * (*a2) + n, str++);
+//     if (*str++ != ':') return 2;
+//     while ((n = hexdigit(*str)) >= 0)
+//         (*a3 = 16 * (*a3) + n, str++);
+//     if (*str++ != ':') return 3;
+//     while ((n = hexdigit(*str)) >= 0)
+//         (*a4 = 16 * (*a4) + n, str++);
+//     if (*str++ != ':') return 4;
+//     while ((n = hexdigit(*str)) >= 0)
+//         (*a5 = 16 * (*a5) + n, str++);
+//     if (*str++ != ':') return 5;
+//     while ((n = hexdigit(*str)) >= 0)
+//         (*a6 = 16 * (*a6) + n, str++);
+//     return 6;
+// }
 
 // Define the address from a human readable form
-int WLAN::WLANAddr::str2wlan(char s[]) {
-    int a[6], i;
-    // parse the address
-    if (sscanf6(s, a, a + 1, a + 2, a + 3, a + 4, a + 5) < 6) {
-        return -1;
-    }
-    // make sure the value of every component does not exceed on byte
-    for (i = 0; i < 6; i++) {
-        if (a[i] > 0xff) return -1;
-    }
-    // assign the result to the member "data"
-    for (i = 0; i < 6; i++) {
-        data[i] = a[i];
-    }
-    return 0;
-}
+// int WLAN::IPv6Address::str2wlan(char s[]) {
+//     int a[6], i;
+//     // parse the address
+//     if (sscanf6(s, a, a + 1, a + 2, a + 3, a + 4, a + 5) < 6) {
+//         return -1;
+//     }
+//     // make sure the value of every component does not exceed on byte
+//     for (i = 0; i < 6; i++) {
+//         if (a[i] > 0xff) return -1;
+//     }
+//     // assign the result to the member "data"
+//     for (i = 0; i < 6; i++) {
+//         data[i] = a[i];
+//     }
+//     return 0;
+// }
 
 WLAN::~WLAN() {}
 // Constructor
@@ -162,7 +162,7 @@ bool WLAN::init() {
 }
 
 // build a frame header
-void WLAN::buildHeader(char address[], WLANAddr *daddr) {
+void WLAN::buildHeader(char address[], IPv6Address *daddr) {
     // conversion of  destination address from ASCII to binary
     daddr->str2wlan(address);
     // store the destination address
@@ -174,7 +174,7 @@ void WLAN::buildHeader(char address[], WLANAddr *daddr) {
 }
 
 // set the "to address"
-void WLAN::setToAddress(WLANAddr *daddr, struct sockaddr_ll *to) {
+void WLAN::setToAddress(IPv6Address *daddr, struct sockaddr_ll *to) {
     to->sll_family = AF_PACKET;
     to->sll_ifindex = ifconfig.ifindex;
     memmove(&(to->sll_addr), daddr->data, WLAN_ADDR_LEN);
@@ -186,7 +186,7 @@ bool WLAN::send(char address[], char* msg_buffer) {
     // send buffer
     //char buff[WLAN_HEADER_LEN+strlen(message)];
     // destination address
-    WLANAddr daddr;
+    IPv6Address daddr;
     // build the header
     buildHeader(address, &daddr);
     // store the header into the frame
