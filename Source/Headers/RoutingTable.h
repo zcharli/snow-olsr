@@ -12,6 +12,9 @@ using namespace olsr;
  */
 class RoutingTable
 {
+private:
+    bool mIsMPR;
+
 protected:
     MprSet                  mprSet;
     MprSelectorSet          mprSelectorSet;
@@ -24,6 +27,8 @@ protected:
 public:
     RoutingTable() {}
     RoutingTable(RoutingTable const&);
+    void makeMPR();
+
     void operator=(RoutingTable const&);
     static RoutingTable& getInstance();
 

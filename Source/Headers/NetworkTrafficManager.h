@@ -12,13 +12,15 @@
 #include "Resources/Helpers.h"
 #include "OLSRMessage.h"
 #include "NetworkPacketListener.h"
-#include "NetworkTCMessageThread.h"
-#include "NetworkHelloMessageThread.h"
+//#include "NetworkTCMessageThread.h"
+//#include "NetworkHelloMessageThread.h"
 
 
 using namespace std;
 
 class NetworkPacketListener;
+class NetworkTCMessageThread;
+class NetworkHelloMessageThread;
 
 class NetworkTrafficManager
 {
@@ -41,8 +43,32 @@ public:
     int enqueMsgForProcessing();
     void notifyConsumerReady();
     shared_ptr<OLSRMessage> getMessage();
-
-
 };
+
+class NetworkTCMessageThread {
+public:
+    NetworkTCMessageThread(shared_ptr<WLAN> socket);
+    ~NetworkTCMessageThread();
+    int run();
+private:
+    void startBroadcastTCMessages();
+    boost::mutex mSocketMutex;
+    shared_ptr<WLAN> mSocket;
+};
+
+
+class NetworkHelloMessageThread {
+public:
+    NetworkHelloMessageThread(shared_ptr<WLAN> socket);
+    ~NetworkHelloMessageThread();
+    int run();
+private:
+    void startBroadcastHelloMessages();
+    boost::mutex mSocketMutex;
+    shared_ptr<WLAN> mSocket;
+};
+
+
+
 
 #endif // NETWORK_TRAFFIC_MANAGER_H
