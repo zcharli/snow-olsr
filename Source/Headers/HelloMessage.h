@@ -1,6 +1,8 @@
 #ifndef HELLO_MESSAGE_H
 #define HELLO_MESSAGE_H
 
+#include <iostream>
+#include <vector>
 #include "Message.h"
 #include "IPv6Address.h"
 
