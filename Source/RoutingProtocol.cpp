@@ -1,5 +1,33 @@
 #include "Headers/RoutingProtocol.h"
 
+void RoutingProtocol::updateState(shared_ptr<OLSRMessage> message) {
+	// Here we want to hand
+	switch(1){
+		case 1:
+		handleHelloMessage(message);
+		break;
+		case 2:
+		// Handle a TC
+		handleTCMessage(message);
+		break;
+	}
+}
+
+void RoutingProtocol::handleTCMessage(shared_ptr<OLSRMessage> message) {
+
+}
+
+void RoutingProtocol::handleHelloMessage(shared_ptr<OLSRMessage> message) {
+
+}
+
+void RoutingProtocol::determineMPR() {
+	
+}
+
+void RoutingProtocol::setPersonalAddress(const IPv6Address& address) {
+	mPersonalAddress.setAddressData(address.data);
+}
 
 // RoutingProtocol::~RoutingProtocol()
 // {}

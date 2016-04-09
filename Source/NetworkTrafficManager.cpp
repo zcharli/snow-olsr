@@ -47,7 +47,9 @@ shared_ptr<OLSRMessage> NetworkTrafficManager::getMessage() {
     return vMessage;
 }
 
-
+const IPv6Address& NetworkTrafficManager::getPersonalAddress() {
+    return mSendSocket->getPersonalAddress();
+}
 
 
 

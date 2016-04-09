@@ -5,6 +5,8 @@
 #include <map>
 #include <stdint.h>
 #include <string>
+#include <memory>
+#include <iostream>
 #include "Resources/Types.h"
 #include "Resources/Constants.h"
 #include "HelloMessage.h"
@@ -30,13 +32,31 @@ struct RoutingTableEntry
 class RoutingProtocol
 {
 public:
-	static RoutingProtocol& getInstance();
-	void SetMainInterface (uint32_t interface);
+	static RoutingProtocol& getInstance() {
+		static RoutingProtocol instance; // Guaranteed to be destroyed.
+		// Instantiated on first use.
+		return instance;
+	};
+	void updateState(shared_ptr<OLSRMessage> message);
+
+	void setPersonalAddress(const IPv6Address& addr);
+	//void SetMainInterface (uint32_t interface);
 
 private:
 	RoutingProtocol () {};
 	/// Internal state with all needed data structs.
 	OLSRState mState;
+	HelloMessage mHelloStateRep;
+	TCMessage mTCStateRep;
+	IPv6Address mPersonalAddress;
+
+	void handleTCMessage(shared_ptr<OLSRMessage> message);
+	void handleHelloMessage(shared_ptr<OLSRMessage> message);
+
+	void buildHelloMessage();
+	void buildTCMessage();
+
+	void determineMPR();
 
 	// IPv6Address m_mainAddress;
 	// IPv6Address m_routingAgentAddr;
@@ -44,8 +64,8 @@ private:
 	// uint8_t m_willingness;
 
 	// map< Ptr<Socket>, IPv6Address > m_socketAddresses;
-	// map<IPv6Address, RoutingTableEntry> m_table; 
-	
+	// map<IPv6Address, RoutingTableEntry> m_table;
+
 	// void SetIpv6(Ptr<Ipv6> ipv6);
 
 	// uint32_t GetSize () const { return m_table.size (); }
@@ -57,7 +77,7 @@ private:
 	// bool FindSendEntry (const RoutingTableEntry &entry, RoutingTableEntry &outEntry) const;
 	// void AddEntry (const IPv6Address &dest, const IPv6Address &next, uint32_t interface, uint32_t distance);
 	// void RemoveEntry (const IPv6Address &dest);
-	
+
 	// // Routing Table and MPR computation
 	// void MprComputation ();
 	// void RoutingTableComputation ();

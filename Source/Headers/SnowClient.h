@@ -7,7 +7,7 @@
 #include <memory>
 #include <list>
 #include "WLAN.h"
-//#include "RoutingTable.h"
+#include "RoutingProtocol.h"
 #include "NeighborNode.h"
 #include "Resources/Constants.h"
 #include "Resources/Helpers.h"

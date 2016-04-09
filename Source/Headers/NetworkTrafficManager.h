@@ -12,6 +12,7 @@
 #include "Resources/Helpers.h"
 #include "OLSRMessage.h"
 #include "NetworkPacketListener.h"
+#include "IPv6Address.h"
 //#include "NetworkTCMessageThread.h"
 //#include "NetworkHelloMessageThread.h"
 
@@ -43,6 +44,7 @@ public:
     int enqueMsgForProcessing();
     void notifyConsumerReady();
     shared_ptr<OLSRMessage> getMessage();
+    const IPv6Address& getPersonalAddress();
 };
 
 class NetworkTCMessageThread {

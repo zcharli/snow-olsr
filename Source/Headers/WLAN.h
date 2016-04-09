@@ -45,19 +45,12 @@ public:
    void setHandler(Handler* aHandler);
    // Receive a frame
    void receive(shared_ptr<Packet>);
+   // Get the IfConfig
+   const IPv6Address& getPersonalAddress() const;
 private:
    // Constants
    static const unsigned short IP_TYPE = 0x3901;
    const string WLAN_BROADCAST = "ff:ff:ff:ff:ff:ff";
-   // Structure of a network address
-   // struct IPv6Address{
-   //    // address
-   //    unsigned char data[WLAN_ADDR_LEN];
-   //    // return the address in a human readable form
-   //    char * wlan2asc(char str[]);
-   //    // define the address from a human readable form
-   //    int str2wlan(char s[]);
-   // };
 
    // Structure of a frame header
    struct WLANHeader{
@@ -80,11 +73,6 @@ private:
       // maximum transmission unit
       int mtu;
    };
-   // convert a char to a hex digit
-   static int hexdigit(char a);
-   // convert an address string to a series of hex digits
-   // static int sscanf6(char str[], int *a1, int *a2, int *a3, int *a4, int *a5,
-   //      int *a6);
    // Network interface label
    char* device;
    // Frame buffer

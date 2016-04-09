@@ -4,63 +4,6 @@
 
 #include "Headers/WLAN.h"
 
-// Return the address in a human readable form
-// char * WLAN::IPv6Address::wlan2asc(char str[]) {
-//     sprintf(str, "%x:%x:%x:%x:%x:%x",
-//             data[0], data[1], data[2], data[3], data[4], data[5]);
-//     return str;
-// }
-
-// // Convert a char to a hex digit
-// int WLAN::hexdigit(char a) {
-//     if (a >= '0' && a <= '9') return (a - '0');
-//     if (a >= 'a' && a <= 'f') return (a - 'a' + 10);
-//     if (a >= 'A' && a <= 'F') return (a - 'A' + 10);
-//     return -1;
-// }
-
-// convert an address string to a series of hex digits
-// int WLAN::sscanf6(char str[], int *a1, int *a2, int *a3, int *a4, int *a5, int *a6) {
-//     int n;
-//     *a1 = *a2 = *a3 = *a4 = *a5 = *a6 = 0;
-//     while ((n = hexdigit(*str)) >= 0)
-//         (*a1 = 16 * (*a1) + n, str++);
-//     if (*str++ != ':') return 1;
-//     while ((n = hexdigit(*str)) >= 0)
-//         (*a2 = 16 * (*a2) + n, str++);
-//     if (*str++ != ':') return 2;
-//     while ((n = hexdigit(*str)) >= 0)
-//         (*a3 = 16 * (*a3) + n, str++);
-//     if (*str++ != ':') return 3;
-//     while ((n = hexdigit(*str)) >= 0)
-//         (*a4 = 16 * (*a4) + n, str++);
-//     if (*str++ != ':') return 4;
-//     while ((n = hexdigit(*str)) >= 0)
-//         (*a5 = 16 * (*a5) + n, str++);
-//     if (*str++ != ':') return 5;
-//     while ((n = hexdigit(*str)) >= 0)
-//         (*a6 = 16 * (*a6) + n, str++);
-//     return 6;
-// }
-
-// Define the address from a human readable form
-// int WLAN::IPv6Address::str2wlan(char s[]) {
-//     int a[6], i;
-//     // parse the address
-//     if (sscanf6(s, a, a + 1, a + 2, a + 3, a + 4, a + 5) < 6) {
-//         return -1;
-//     }
-//     // make sure the value of every component does not exceed on byte
-//     for (i = 0; i < 6; i++) {
-//         if (a[i] > 0xff) return -1;
-//     }
-//     // assign the result to the member "data"
-//     for (i = 0; i < 6; i++) {
-//         data[i] = a[i];
-//     }
-//     return 0;
-// }
-
 WLAN::~WLAN() {}
 // Constructor
 WLAN::WLAN(string interface) {
@@ -270,65 +213,6 @@ void WLAN::receive(shared_ptr<Packet> inPacket) {
     parseReceivedFrame(inPacket);
 }
 
-// // Parse a received frame
-// void WLAN::parseReceivedFrame(char buff[]) {
-//     // casting to the WLAN header format
-//     WLANHeader * wlanHdr = (WLANHeader *) buff;
-//     // get gestination in ascii
-//     char *dst = new char[32];
-//     wlanHdr->destAddr.wlan2asc(dst);
-//     // get source in ascii
-//     char *src = new char[32];
-//     wlanHdr->srcAddr.wlan2asc(src);
-//     // get my address in ascii
-//     char * myaddress = new char[32];
-//     // check destination
-//     if (strcmp(dst, ifconfig.hwaddr.wlan2asc(myaddress)) == 0 ||
-//             dst == WLAN_BROADCAST) {
-//         // destination address is self or broadcast
-//         if (aHandler != 0) {
-//             // call the handler for processing that frame
-//             //printf("%d\n", strlen(buff));
-//             aHandler->handle(src, dst, buff + sizeof(WLANHeader));
-//         }
-//     } else {
-//         cout << "Destination is not WLAN broadcast" << endl;
-//     }
-//     delete dst;
-//     delete src;
-//     delete myaddress;
-// }
-
-
-
-// // Receive
-// void WLAN::receive() {
-//    // buffer for received frame
-//    char * buff=new char[ifconfig.mtu];
-//    // length of received frame
-//    int i; // frame length
-//    // src address of frame
-//    struct sockaddr_ll from;
-//    socklen_t fromlen=sizeof(struct sockaddr_ll);
-//    // loop and receive frames
-//    while(true) {
-//       // loop until a non-empty frame is received
-//       while(true) {
-//          // clear buffer
-//          memset(buff, 0, ifconfig.mtu);
-//          // wait and receive a frame
-//          fromlen = sizeof(from);
-//          i = recvfrom(ifconfig.sockid, buff, ifconfig.mtu, 0,
-//                 (struct sockaddr *) &from, &fromlen);
-//          if (i == -1) { // error
-//             cerr << "Cannot receive data: " << strerror(errno) << "\n";
-//             // sleep for 10 milliseconds and try again
-//             usleep(10000);
-//          } else { // nor error
-//             break; // exit the loop
-//          }
-//       }
-//       // parse a received frame
-//       parseReceivedFrame(buff);
-//    }
-// }
+const IPv6Address& WLAN::getPersonalAddress() const {
+    return ifconfig.hwaddr;
+}

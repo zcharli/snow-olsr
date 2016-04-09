@@ -1,6 +1,9 @@
 #include "Headers/IPv6Address.h"
 
 IPv6Address::IPv6Address() {}
+IPv6Address::IPv6Address(const IPv6Address& addr) {
+    memcpy ( data, addr.data, WLAN_ADDR_LEN );
+}
 IPv6Address::~IPv6Address() {}
 
 // Return the address in a human readable form, cred. Michel Barbeau
@@ -65,4 +68,8 @@ int IPv6Address::hexdigit(char a) {
     if (a >= 'a' && a <= 'f') return (a - 'a' + 10);
     if (a >= 'A' && a <= 'F') return (a - 'A' + 10);
     return -1;
+}
+
+void IPv6Address::setAddressData(const unsigned char addr[]) {
+    memcpy ( data, addr, WLAN_ADDR_LEN );
 }
