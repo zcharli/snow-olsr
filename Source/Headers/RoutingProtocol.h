@@ -56,7 +56,8 @@ private:
 	void buildHelloMessage();
 	void buildTCMessage();
 
-	void determineMPR();
+	void updateMPRState();
+
 
 	// IPv6Address m_mainAddress;
 	// IPv6Address m_routingAgentAddr;

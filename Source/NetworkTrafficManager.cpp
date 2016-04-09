@@ -51,6 +51,11 @@ const IPv6Address& NetworkTrafficManager::getPersonalAddress() {
     return mSendSocket->getPersonalAddress();
 }
 
+int NetworkTrafficManager::generateRandomJitter() {
+    boost::random::mt19937 vRandomSeed;
+    boost::random::uniform_int_distribution<> vJitterGenerator(0,S_MAXJITTER*1000);
+    return vJitterGenerator(vRandomSeed);
+}
 
 
 
@@ -102,7 +107,7 @@ void NetworkHelloMessageThread::startBroadcastHelloMessages() {
         buffer[array_size + 14] = '\0';
         mSocket->send(a, buffer);
         PRINTLN(Sent a hello message)
-        sleep(T_HELLO_INTERVAL);
+        sleep(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter());
     }
     PRINTLN(Hello message thread closed down);
 }

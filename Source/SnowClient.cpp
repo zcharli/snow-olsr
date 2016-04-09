@@ -6,6 +6,7 @@ using namespace std;
 SnowClient::SnowClient() {
     //mSocketPtr = make_shared<WLAN>(INTERFACE_NAME);
 }
+
 SnowClient::~SnowClient() {}
 
 int SnowClient::start() {
