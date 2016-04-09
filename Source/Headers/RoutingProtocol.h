@@ -13,6 +13,7 @@
 #include "TCMessage.h"
 #include "IPv6Address.h"
 #include "OLSRState.h"
+#include "OLSRMessage.h"
 
 using namespace std;
 

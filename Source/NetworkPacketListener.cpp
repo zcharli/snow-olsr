@@ -31,7 +31,7 @@ void NetworkPacketListener::listenOnInterface() {
         mMtxMonitor.lock();
         //PRINTLN(Inside lock);
         // The following block must be resolved by the consumer
-        //if(mMonitor.enqueMsgForProcessing() == 1) {} // Forcing a wait when we dont want it
+        if(mMonitor.enqueMsgForProcessing(vPacket) == 1) {} // Forcing a wait when we dont want it
         mMtxMonitor.unlock();
         //PRINTLN(Lock resolved)
         // End of transaction, then tell consume to eat.

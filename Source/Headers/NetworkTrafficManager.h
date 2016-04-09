@@ -17,6 +17,7 @@
 #include "OLSRMessage.h"
 #include "NetworkPacketListener.h"
 #include "IPv6Address.h"
+#include "Packet.h"
 //#include "NetworkTCMessageThread.h"
 //#include "NetworkHelloMessageThread.h"
 
@@ -34,7 +35,7 @@ private:
     unique_ptr<NetworkPacketListener> mListener;
     shared_ptr<WLAN> mSendSocket;
     boost::mutex mMtxMessageList, mMtxEnqueue, mMtxGetMessage;
-    queue<shared_ptr<OLSRMessage>> mReceivedMsgsQ;
+    queue<shared_ptr<Packet>> mReceivedMsgsQ;
     string mWirelessInterfaceName;
     unique_ptr<NetworkTCMessageThread> mTCThread;
     unique_ptr<NetworkHelloMessageThread> mHelloThread;
@@ -45,9 +46,9 @@ public:
     ~NetworkTrafficManager();
     int sendMsg(OLSRMessage& message);
     void init();
-    int enqueMsgForProcessing();
+    int enqueMsgForProcessing(shared_ptr<Packet> );
     void notifyConsumerReady();
-    shared_ptr<OLSRMessage> getMessage();
+    shared_ptr<Packet> getMessage();
     const IPv6Address& getPersonalAddress();
     static int generateRandomJitter();
 

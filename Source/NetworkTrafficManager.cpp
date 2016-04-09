@@ -25,10 +25,10 @@ int NetworkTrafficManager::sendMsg(OLSRMessage& messageToSend) {
     return 0;
 }
 
-int NetworkTrafficManager::enqueMsgForProcessing() {
+int NetworkTrafficManager::enqueMsgForProcessing(shared_ptr<Packet> packet) {
     mSemConsumer->wait();
     mMtxEnqueue.lock();
-    //mReceivedMsgsQ.push_back()
+    mReceivedMsgsQ.push(packet);
 
     mListener->notifyProducerReady();
     mMtxEnqueue.unlock();
@@ -39,9 +39,9 @@ void NetworkTrafficManager::notifyConsumerReady() {
     mSemConsumer->post();
 }
 
-shared_ptr<OLSRMessage> NetworkTrafficManager::getMessage() {
+shared_ptr<Packet> NetworkTrafficManager::getMessage() {
     mMtxGetMessage.lock();
-    shared_ptr<OLSRMessage> vMessage = mReceivedMsgsQ.front();
+    shared_ptr<Packet> vMessage = mReceivedMsgsQ.front();
     mReceivedMsgsQ.pop();
     mMtxGetMessage.unlock();
     return vMessage;
