@@ -6,9 +6,8 @@ class Message
 public:
     Message();
     ~Message();
-    
     unsigned char getType();
-    
+
 private:
     unsigned char type;
 };

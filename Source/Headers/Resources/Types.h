@@ -12,6 +12,7 @@
 //#include "boost/asio.hpp"
 //#include <ctime>
 #include "../IPv6Address.h"
+#include <boost/date_time/posix_time/posix_time_types.hpp>
 /*
     Introduction of Type.h for OLSR
 
@@ -49,6 +50,7 @@ struct MprSelectorTuple
     /// Main address of a node which have selected this node as a MPR.
     IPv6Address mainAddr;
     /// Time at which this tuple expires and must be removed.
+    boost::posix_time::ptime expirationTime;
 };
 
 static inline bool operator == (const MprSelectorTuple &a, const MprSelectorTuple &b)
@@ -63,6 +65,12 @@ struct LinkTuple
     IPv6Address localIfaceAddr;
     /// Interface address of the neighbor node.
     IPv6Address neighborIfaceAddr;
+    /// The link is considered bidirectional until this time.
+    boost::posix_time::ptime symTime;
+    /// The link is considered unidirectional until this time.
+    boost::posix_time::ptime asymTime;
+    /// Time at which this tuple expires and must be removed.
+    boost::posix_time::ptime expirationTime;
 };
 
 static inline bool operator == (const LinkTuple &a, const LinkTuple &b)
@@ -89,6 +97,7 @@ struct NeighborTuple
     } status;
     /// A value between 0 and 7 specifying the node's willingness to carry traffic on behalf of other nodes.
     uint8_t willingness;
+    boost::posix_time::ptime expirationTime;
 };
 
 static inline bool operator == (const NeighborTuple &a, const NeighborTuple &b)
@@ -113,6 +122,7 @@ struct TwoHopNeighborTuple
     IPv6Address neighborMainAddr;
     /// Main address of a 2-hop neighbor with a symmetric link to nb_main_addr.
     IPv6Address twoHopNeighborAddr;
+    boost::posix_time::ptime expirationTime;
 };
 
 // static inline std::ostream& operator << (std::ostream &os, const TwoHopNeighborTuple &tuple)
@@ -138,6 +148,7 @@ struct TopologyTuple
     IPv6Address lastAddr;
     /// Sequence number.
     uint16_t sequenceNumber;
+    boost::posix_time::ptime expirationTime;
 };
 
 static inline bool operator == (const TopologyTuple &a, const TopologyTuple &b)

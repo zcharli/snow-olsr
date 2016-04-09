@@ -3,7 +3,13 @@
 // http://www.cs.utexas.edu/users/acharya/Tools/ns3/ns-allinone-3.5/ns-3.5/src/routing/olsr/olsr-routing-protocol.cc
 
 OLSRMessage::OLSRMessage() {}
+OLSRMessage::OLSRMessage(shared_ptr<Packet> packet) {}
+
 OLSRMessage::~OLSRMessage(){}
+
+unsigned char OLSRMessage::getVTime() {
+    return 0;
+}
 
 // char* OLSRMessage::serialize(std::vector<Message> msgs) {
 //     unsigned short packetLength = 4; // 4 bytes is required for packet len and seq num which are required.
