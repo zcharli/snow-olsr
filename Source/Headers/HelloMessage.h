@@ -1,9 +1,9 @@
 #ifndef HELLO_MESSAGE_H
 #define HELLO_MESSAGE_H
 
-using namespace std;
+#include "Message.h"
 
-class HelloMessage
+class HelloMessage : public Message
 {
 public:
   HelloMessage();

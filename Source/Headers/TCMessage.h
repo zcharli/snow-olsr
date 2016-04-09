@@ -1,11 +1,9 @@
 #ifndef TC_MESSAGE_H
 #define TC_MESSAGE_H
 
-#include "OLSRMessage.h"
+#include "Message.h"
 
-using namespace std;
-
-class TCMessage : public OLSRMessage
+class TCMessage : public Message
 {
 public:
 	TCMessage();
