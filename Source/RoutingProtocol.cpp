@@ -21,8 +21,8 @@ void RoutingProtocol::handleHelloMessage(shared_ptr<OLSRMessage> message) {
 
 }
 
-void RoutingProtocol::determineMPR() {
-	
+void RoutingProtocol::updateMPRState() {
+
 }
 
 void RoutingProtocol::setPersonalAddress(const IPv6Address& address) {

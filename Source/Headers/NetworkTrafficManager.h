@@ -7,6 +7,10 @@
 #include <memory>
 #include <boost/thread/mutex.hpp>
 #include <boost/interprocess/sync/interprocess_semaphore.hpp>
+// JITTER GENERATOR
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
+
 #include "WLAN.h"
 #include "Resources/Constants.h"
 #include "Resources/Helpers.h"
@@ -45,6 +49,8 @@ public:
     void notifyConsumerReady();
     shared_ptr<OLSRMessage> getMessage();
     const IPv6Address& getPersonalAddress();
+    static int generateRandomJitter();
+
 };
 
 class NetworkTCMessageThread {
