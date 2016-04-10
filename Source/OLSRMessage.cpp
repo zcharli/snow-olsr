@@ -1,14 +1,12 @@
 #include "Headers/OLSRMessage.h"
 
-OLSRMessage::OLSRMessage() : serialized(false) {}
-OLSRMessage::OLSRMessage(std::shared_ptr<Packet> packet) : serialized(false) {
-    // deserialize!
-}
-OLSRMessage::~OLSRMessage(){ if(serialized) delete data; }
+OLSRMessage::OLSRMessage() {}
+OLSRMessage::OLSRMessage(std::shared_ptr<Packet> packet) {}
+OLSRMessage::~OLSRMessage(){} 
 
 OLSRMessage& OLSRMessage::serialize() {
-    unsigned short packetLength = 4; // 4 bytes is required for packet len and seq num which are required.
-    unsigned short packetSequenceNumber = 4; // temporary default value.
+    int packetLength = 4; // 4 bytes is required for packet len and seq num which are required.
+    int packetSequenceNumber = 4; // temporary default value.
 
     std::vector<Message::MessageHeader> headers;
     for (auto& m : messages) {
@@ -18,29 +16,23 @@ OLSRMessage& OLSRMessage::serialize() {
         packetLength += hdr.messageSize;
     }
 
-    if (serialized) delete data;
 
-    data = new char[packetLength];
-    data[0] = packetLength;
-    data[2] = packetSequenceNumber;
+    data.push_back(packetLength);
+    data.push_back(packetSequenceNumber);
 
-    int offset = 4; // the offset in the output
-    for (int i = 0; i < headers.size(); ++i) {//(auto& hdr : headers) {
+    for (int i = 0; i < headers.size(); ++i) {
 
-    	char* s_hdr = headers[i].serialize();
-    	for (int j = 0; j < headers[i].messageSize; ++j)
-    		data[offset+j] = s_hdr[j];
-        offset += headers[i].messageSize;
-        delete s_hdr;
+    	std::vector<int> s_hdr = headers[i].serialize();
+        for (int j : s_hdr) data.push_back(j);
 
-        char* s_msg = messages[i].serialize();
-        for (int j = 0; j < messages[i].getSize(); ++j)
-        	data[offset+j] = s_msg[j];
-        offset += messages[i].getSize();
-        delete s_msg;
+        std::vector<int> s_msg = messages[i].serialize();
+        for (int j : s_msg) data.push_back(j);
     }
 
-    serialized = true;
     return *this;
 
+}
+
+int* OLSRMessage::getData() {
+        return data.data();
 }

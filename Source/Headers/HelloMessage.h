@@ -19,7 +19,7 @@ public:
     HelloMessage();
     ~HelloMessage();
 
-    char* serialize();
+    std::vector<int> serialize();
     uint8_t getWillingness();
     std::vector<LinkMessage> mLinkMessages;
 	std::vector<LinkMessage> getLinkMessages() const;

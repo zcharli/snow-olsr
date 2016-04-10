@@ -35,7 +35,7 @@ public:
     //const IPv6Address getOriginatorAddress(){ return originatorAddress; }
 
     OLSRMessage& serialize();
-    char* getData();
+    int* getData();
 
     std::vector<Message> messages;
     IPv6Address mSenderHWAddr; // The last hop sender addr from, may NOT be the originating addr
@@ -51,8 +51,7 @@ private:
     //TCMessage tcMessage;
     //HelloMessage helloMessage;
 
-    char* data;
-    bool serialized;
+    std::vector<int> data;
 
     // Unique OLSRPacket Attributes
     uint16_t mPacketLength;
