@@ -7,6 +7,7 @@
 #include <string>
 #include <memory>
 #include <iostream>
+#include <boost/thread/mutex.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "Resources/Types.h"
 #include "Resources/Constants.h"
@@ -57,9 +58,9 @@ private:
 	TCMessage mTCStateRep;
 	IPv6Address mPersonalAddress;
 
-	//void handleTCMessage(TCMessage&, IPv6Address&);
-	//void handleHelloMessage(HelloMessage&, const IPv6Address&, unsigned char);
-	void handleHelloMessage(std::shared_ptr<OLSRMessage> message);
+	void handleTCMessage(TCMessage&, IPv6Address&);
+	void handleHelloMessage(HelloMessage&, const IPv6Address&, unsigned char);
+	// void handleHelloMessage(std::shared_ptr<OLSRMessage> message);
 	void handleTCMessage(std::shared_ptr<OLSRMessage> message);
 
 
@@ -68,6 +69,9 @@ private:
 
 	void updateMPRState();
 	void populateTwoHopNeighborSet (const std::shared_ptr<OLSRMessage> &message, const HelloMessage &hello);
+
+    boost::mutex mMtxState;
+
 
 	// IPv6Address m_mainAddress;
 	// IPv6Address m_routingAgentAddr;

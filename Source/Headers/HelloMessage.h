@@ -7,7 +7,6 @@
 #include <memory>
 #include "IPv6Address.h"
 #include "Message.h"
-#include "IPv6Address.h"
 
 class HelloMessage : public Message
 {
@@ -19,18 +18,11 @@ public:
     };
     HelloMessage();
     ~HelloMessage();
+    uint8_t getWillingness();
     std::vector<LinkMessage> mLinkMessages;
-
-	uint8_t getWillingness(){
-		return willingness;
-	}
-
-	std::vector<LinkMessage> getLinkMessages() const{
-		return linkMessages;
-	}
+	std::vector<LinkMessage> getLinkMessages() const;
 private:
 	uint8_t willingness;
-	std::vector<LinkMessage> linkMessages;
 };
 
 #endif // HELLO_MESSAGE_H
