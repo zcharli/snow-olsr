@@ -7,9 +7,12 @@ public:
     Message();
     ~Message();
     unsigned char getType();
+    virtual char* serialize();
+    
 
 private:
     unsigned char type;
+    int size;
 };
 
 #endif // MESSAGE_H
