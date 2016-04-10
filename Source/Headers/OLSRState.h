@@ -25,13 +25,13 @@ public:
     OLSRState();
     bool mIsMPR;
 
-    set<IPv6Address>                       mMprSet;                     ///< MPR Set type.
-    vector<MprSelectorTuple>               mMprSelectorSet;             ///< MPR Selector Set type.
-    vector<LinkTuple>                      mLinkSet;                    ///< Link Set type.
-    vector<NeighborTuple>                  mNeighborSet;                ///< Neighbor Set type.
-    vector<TwoHopNeighborTuple>            mTwoHopNeighborSet;          ///< 2-hop Neighbor Set type.
-    vector<TopologyTuple>                  mTopologySet;                ///< Topology Set type.
-    vector<InterfaceAssociationTuple>      mInterfaceAssociationSet;    ///< Interface Association Set type.
+    std::set<IPv6Address>                       mMprSet;                     ///< MPR Set type.
+    std::vector<MprSelectorTuple>               mMprSelectorSet;             ///< MPR Selector Set type.
+    std::vector<LinkTuple>                      mLinkSet;                    ///< Link Set type.
+    std::vector<NeighborTuple>                  mNeighborSet;                ///< Neighbor Set type.
+    std::vector<TwoHopNeighborTuple>            mTwoHopNeighborSet;          ///< 2-hop Neighbor Set type.
+    std::vector<TopologyTuple>                  mTopologySet;                ///< Topology Set type.
+    std::vector<InterfaceAssociationTuple>      mInterfaceAssociationSet;    ///< Interface Association Set type.
     
     //RoutingTable(RoutingTable&);
     void makeMPR();
@@ -40,23 +40,23 @@ public:
     
 
     // getter:
-    vector<MprSelectorTuple>& getMprSelectors ()             { return mMprSelectorSet;            }
-    vector<LinkTuple>& getLinks ()                           { return mLinkSet;                   }
-    vector<NeighborTuple>& getNeighbors ()                   { return mNeighborSet;               }
-    vector<TwoHopNeighborTuple>& getTwoHopNeighbors ()       { return mTwoHopNeighborSet;         }
-    vector<TopologyTuple>& getTopologySet ()                 { return mTopologySet;               }
-    vector<InterfaceAssociationTuple>& getIfaceAssocSet ()   { return mInterfaceAssociationSet;   }
+    std::vector<MprSelectorTuple>& getMprSelectors ()             { return mMprSelectorSet;            }
+    std::vector<LinkTuple>& getLinks ()                           { return mLinkSet;                   }
+    std::vector<NeighborTuple>& getNeighbors ()                   { return mNeighborSet;               }
+    std::vector<TwoHopNeighborTuple>& getTwoHopNeighbors ()       { return mTwoHopNeighborSet;         }
+    std::vector<TopologyTuple>& getTopologySet ()                 { return mTopologySet;               }
+    std::vector<InterfaceAssociationTuple>& getIfaceAssocSet ()   { return mInterfaceAssociationSet;   }
 
     // MPR
     bool findMprAddress (const IPv6Address  &address);
-    void setMprSet (set<IPv6Address> mprSet);
+    void setMprSet (std::set<IPv6Address> mprSet);
 
     // MPR selector
     MprSelectorTuple* findMprSelectorTuple (IPv6Address &mainAddr);
     void cleanMprSelectorTuple (MprSelectorTuple &tuple);
     void cleanMprSelectorTuples (const IPv6Address &mainAddr);
     void insertMprSelectorTuple (const MprSelectorTuple &tuple);
-    string printMprSelectorSet () const;
+    std::string printMprSelectorSet () const;
 
     // Link
     LinkTuple* findLinkTuple (const IPv6Address &ifaceAddr);
@@ -92,9 +92,9 @@ public:
     void cleanInterfaceAssociationTuple (const InterfaceAssociationTuple &tuple);
     void insertInterfaceAssociationTuple (const InterfaceAssociationTuple &tuple);
 
-    // Returns a vector of all interfaces of a given neighbor, with the
+    // Returns a std::vector of all interfaces of a given neighbor, with the
     // exception of the "main" one.
-    vector<IPv6Address> findNeighborInterfaces (const IPv6Address &neighborMainAddr) const;
+    std::vector<IPv6Address> findNeighborInterfaces (const IPv6Address &neighborMainAddr) const;
 };
 
 #endif // OLSR_STATE_H

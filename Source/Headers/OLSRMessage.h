@@ -3,30 +3,19 @@
 
 #include <stdint.h>
 #include <vector>
-<<<<<<< HEAD
 #include <algorithm>
 #include <memory>
-
-#include "IPv6Address.h"
 #include "Resources/Constants.h"
 #include "Message.h"
 #include "Packet.h"
-=======
 #include "TCMessage.h"
 #include "HelloMessage.h"
 #include "IPv6Address.h"
-#include "Resources/Constants.h"
->>>>>>> RoutingProtocol Update
 
 class OLSRMessage
 {
 public:
-<<<<<<< HEAD
-	OLSRMessage();
-    OLSRMessage(shared_ptr<Packet>);
-	~OLSRMessage();
-=======
-
+    OLSRMessage(std::shared_ptr<Packet> message);
     enum MessageType {
         HELLO_MESSAGE = M_HELLO_MESSAGE,
         TC_MESSAGE    = M_TC_MESSAGE,
@@ -42,7 +31,6 @@ public:
     HelloMessage& getHelloMessage() { return helloMessage; }
     TCMessage& getTCMessage(){ return tcMessage; }
     const IPv6Address getOriginatorAddress(){ return originatorAddress; }
->>>>>>> RoutingProtocol Update
 
     OLSRMessage& serialize();
     char* getData();

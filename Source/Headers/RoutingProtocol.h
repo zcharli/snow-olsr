@@ -43,14 +43,10 @@ public:
 		// Instantiated on first use.
 		return instance;
 	};
-	void updateState(shared_ptr<OLSRMessage>);
+	void updateState(std::shared_ptr<OLSRMessage> message);
 
-<<<<<<< HEAD
-	void setPersonalAddress(const IPv6Address&);
-=======
 	void setPersonalAddress(const IPv6Address& addr);
 	IPv6Address getPersonalAddress(IPv6Address addr) const;
->>>>>>> RoutingProtocol Update
 	//void SetMainInterface (uint32_t interface);
 
 private:
@@ -61,14 +57,17 @@ private:
 	TCMessage mTCStateRep;
 	IPv6Address mPersonalAddress;
 
-	void handleTCMessage(TCMessage&, IPv6Address&);
-	void handleHelloMessage(HelloMessage&, const IPv6Address&, unsigned char);
+	//void handleTCMessage(TCMessage&, IPv6Address&);
+	//void handleHelloMessage(HelloMessage&, const IPv6Address&, unsigned char);
+	void handleHelloMessage(std::shared_ptr<OLSRMessage> message);
+	void handleTCMessage(std::shared_ptr<OLSRMessage> message);
+
 
 	void buildHelloMessage();
 	void buildTCMessage();
 
 	void updateMPRState();
-	void populateTwoHopNeighborSet (const shared_ptr<OLSRMessage> &message, const HelloMessage &hello);
+	void populateTwoHopNeighborSet (const std::shared_ptr<OLSRMessage> &message, const HelloMessage &hello);
 
 	// IPv6Address m_mainAddress;
 	// IPv6Address m_routingAgentAddr;

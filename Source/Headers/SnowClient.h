@@ -24,8 +24,8 @@ class SnowClient
 private:
     //boost::asio::ip::udp::socket mSocket;
     //shared_ptr<WLAN> mSocketPtr;
-    list<NeighborNode> mMprList;
-    string mWirelessInterfaceName;
+    std::list<NeighborNode> mMprList;
+    std::string mWirelessInterfaceName;
 
 public:
     SnowClient();

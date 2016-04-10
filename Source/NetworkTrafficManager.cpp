@@ -1,20 +1,20 @@
 #include "Headers/NetworkTrafficManager.h"
 
-NetworkTrafficManager::NetworkTrafficManager(string interface)
+NetworkTrafficManager::NetworkTrafficManager(std::string interface)
     : mWirelessInterfaceName(interface) {
     mSemConsumer = new boost::interprocess::interprocess_semaphore(MIN_SEM);
-    mSendSocket = make_shared<WLAN>(mWirelessInterfaceName);
+    mSendSocket = std::make_shared<WLAN>(mWirelessInterfaceName);
 
 }
 NetworkTrafficManager::~NetworkTrafficManager() { }
 
 void NetworkTrafficManager::init() {
-    mListener = make_unique<NetworkPacketListener>(mWirelessInterfaceName, *this);
+    mListener = std::make_unique<NetworkPacketListener>(mWirelessInterfaceName, *this);
     mListener->run();
     mSendSocket->init();
     // Only create TC thread if this client is an MPR, lets test anyways
-    mTCThread = make_unique<NetworkTCMessageThread>(mSendSocket);
-    mHelloThread = make_unique<NetworkHelloMessageThread>(mSendSocket);
+    mTCThread = std::make_unique<NetworkTCMessageThread>(mSendSocket);
+    mHelloThread = std::make_unique<NetworkHelloMessageThread>(mSendSocket);
     mTCThread->run();
     mHelloThread->run();
     PRINTLN(Traffic manager has been initialized);
@@ -25,7 +25,7 @@ int NetworkTrafficManager::sendMsg(OLSRMessage& messageToSend) {
     return 0;
 }
 
-int NetworkTrafficManager::enqueMsgForProcessing(shared_ptr<Packet> packet) {
+int NetworkTrafficManager::enqueMsgForProcessing(std::shared_ptr<Packet> packet) {
     mSemConsumer->wait();
     mMtxEnqueue.lock();
     mReceivedMsgsQ.push(packet);
@@ -39,9 +39,9 @@ void NetworkTrafficManager::notifyConsumerReady() {
     mSemConsumer->post();
 }
 
-shared_ptr<Packet> NetworkTrafficManager::getMessage() {
+std::shared_ptr<Packet> NetworkTrafficManager::getMessage() {
     mMtxGetMessage.lock();
-    shared_ptr<Packet> vMessage = mReceivedMsgsQ.front();
+    std::shared_ptr<Packet> vMessage = mReceivedMsgsQ.front();
     mReceivedMsgsQ.pop();
     mMtxGetMessage.unlock();
     return vMessage;
@@ -63,7 +63,7 @@ int NetworkTrafficManager::generateRandomJitter() {
  * Message threads
  */
 
-NetworkTCMessageThread::NetworkTCMessageThread(shared_ptr<WLAN> socket) : mSocket(socket) {
+NetworkTCMessageThread::NetworkTCMessageThread(std::shared_ptr<WLAN> socket) : mSocket(socket) {
 
 }
 
@@ -80,7 +80,7 @@ void NetworkTCMessageThread::startBroadcastTCMessages() {
 
 
 
-NetworkHelloMessageThread::NetworkHelloMessageThread(shared_ptr<WLAN> socket) : mSocket(socket) {
+NetworkHelloMessageThread::NetworkHelloMessageThread(std::shared_ptr<WLAN> socket) : mSocket(socket) {
 
 }
 

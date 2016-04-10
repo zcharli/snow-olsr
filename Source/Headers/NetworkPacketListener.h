@@ -22,8 +22,8 @@ class NetworkTrafficManager;
 
 class NetworkPacketListener : public Handler {
 private:
-    unique_ptr<WLAN> mRecvSocket;
-    string mWirelessInterfaceName;
+    std::unique_ptr<WLAN> mRecvSocket;
+    std::string mWirelessInterfaceName;
     NetworkTrafficManager& mMonitor;
     boost::mutex mMtxMonitor;
     boost::interprocess::interprocess_semaphore *mSemProducer;
@@ -31,7 +31,7 @@ private:
     void waitProducer();
 
 public:
-    NetworkPacketListener(string interface, NetworkTrafficManager& monitor);
+    NetworkPacketListener(std::string interface, NetworkTrafficManager& monitor);
     ~NetworkPacketListener();
     int run();
     virtual void handle(char src[], char dst[], char msg[]);

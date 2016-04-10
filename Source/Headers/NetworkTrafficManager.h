@@ -32,23 +32,23 @@ class NetworkTrafficManager
 {
 private:
     void send();
-    unique_ptr<NetworkPacketListener> mListener;
-    shared_ptr<WLAN> mSendSocket;
+    std::unique_ptr<NetworkPacketListener> mListener;
+    std::shared_ptr<WLAN> mSendSocket;
     boost::mutex mMtxMessageList, mMtxEnqueue, mMtxGetMessage;
-    queue<shared_ptr<Packet>> mReceivedMsgsQ;
-    string mWirelessInterfaceName;
-    unique_ptr<NetworkTCMessageThread> mTCThread;
-    unique_ptr<NetworkHelloMessageThread> mHelloThread;
+    std::queue<std::shared_ptr<Packet>> mReceivedMsgsQ;
+    std::string mWirelessInterfaceName;
+    std::unique_ptr<NetworkTCMessageThread> mTCThread;
+    std::unique_ptr<NetworkHelloMessageThread> mHelloThread;
     boost::interprocess::interprocess_semaphore *mSemConsumer;
 
 public:
-    NetworkTrafficManager(string interface);
+    NetworkTrafficManager(std::string interface);
     ~NetworkTrafficManager();
     int sendMsg(OLSRMessage& message);
     void init();
-    int enqueMsgForProcessing(shared_ptr<Packet> );
+    int enqueMsgForProcessing(std::shared_ptr<Packet> );
     void notifyConsumerReady();
-    shared_ptr<Packet> getMessage();
+    std::shared_ptr<Packet> getMessage();
     const IPv6Address& getPersonalAddress();
     static int generateRandomJitter();
 
@@ -56,25 +56,25 @@ public:
 
 class NetworkTCMessageThread {
 public:
-    NetworkTCMessageThread(shared_ptr<WLAN> socket);
+    NetworkTCMessageThread(std::shared_ptr<WLAN> socket);
     ~NetworkTCMessageThread();
     int run();
 private:
     void startBroadcastTCMessages();
     boost::mutex mSocketMutex;
-    shared_ptr<WLAN> mSocket;
+    std::shared_ptr<WLAN> mSocket;
 };
 
 
 class NetworkHelloMessageThread {
 public:
-    NetworkHelloMessageThread(shared_ptr<WLAN> socket);
+    NetworkHelloMessageThread(std::shared_ptr<WLAN> socket);
     ~NetworkHelloMessageThread();
     int run();
 private:
     void startBroadcastHelloMessages();
     boost::mutex mSocketMutex;
-    shared_ptr<WLAN> mSocket;
+    std::shared_ptr<WLAN> mSocket;
 };
 
 

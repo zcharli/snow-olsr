@@ -3,7 +3,7 @@
 // http://www.cs.utexas.edu/users/acharya/Tools/ns3/ns-allinone-3.5/ns-3.5/src/routing/olsr/olsr-routing-protocol.cc
 
 OLSRMessage::OLSRMessage() : serialized(false) {}
-OLSRMessage::OLSRMessage(shared_ptr<Packet> packet) : serialized(false) {
+OLSRMessage::OLSRMessage(std::shared_ptr<Packet> packet) : serialized(false) {
     // deserialize!
 }
 OLSRMessage::~OLSRMessage(){ if(serialized) delete data; }

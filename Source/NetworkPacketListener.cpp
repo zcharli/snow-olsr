@@ -4,9 +4,9 @@
 
 #include "Headers/NetworkPacketListener.h"
 
-NetworkPacketListener::NetworkPacketListener(string interface, NetworkTrafficManager& monitor)
+NetworkPacketListener::NetworkPacketListener(std::string interface, NetworkTrafficManager& monitor)
     : mWirelessInterfaceName(interface), mMonitor(monitor) {
-    mRecvSocket = make_unique<WLAN>(mWirelessInterfaceName);
+    mRecvSocket = std::make_unique<WLAN>(mWirelessInterfaceName);
     mRecvSocket->setHandler(this); // This is essentially debugging
     mRecvSocket->init();
     mSemProducer = new boost::interprocess::interprocess_semaphore(MAX_SEM);
@@ -24,7 +24,7 @@ void NetworkPacketListener::listenOnInterface() {
     while(1){
         //PRINTLN(Semaphore wait)
         mSemProducer->wait(); // Wait for the signal from Manager class
-        shared_ptr<Packet> vPacket = make_shared<Packet>();
+        std::shared_ptr<Packet> vPacket = std::make_shared<Packet>();
         mRecvSocket->receive(vPacket);
         // Received a packet.  Now fucking make me a message
         //PRINTLN(Received a packet);
@@ -43,7 +43,7 @@ void NetworkPacketListener::listenOnInterface() {
 
 void NetworkPacketListener::handle(char src[], char dst[], char msg[]) {
     //PRINTLN(from  << src << to  << dst << :  << msg)
-    cout << "from " << src << " to " << dst << ": " << msg << "\n";
+    std::cout << "from " << src << " to " << dst << ": " << msg << "\n";
 
 }
 void NetworkPacketListener::notifyProducerReady() {

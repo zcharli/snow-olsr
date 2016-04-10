@@ -34,7 +34,7 @@
 class WLAN {
 public:
    // Constructor
-   WLAN(string interface);
+   WLAN(std::string interface);
    // Destructor
    ~WLAN();
    // Initialize
@@ -44,13 +44,13 @@ public:
    // Set a handler
    void setHandler(Handler* aHandler);
    // Receive a frame
-   void receive(shared_ptr<Packet>);
+   void receive(std::shared_ptr<Packet>);
    // Get the IfConfig
    const IPv6Address& getPersonalAddress() const;
 private:
    // Constants
    static const unsigned short IP_TYPE = 0x3901;
-   const string WLAN_BROADCAST = "ff:ff:ff:ff:ff:ff";
+   const std::string WLAN_BROADCAST = "ff:ff:ff:ff:ff:ff";
 
    // Structure of a frame header
    struct WLANHeader{
@@ -94,7 +94,7 @@ private:
    void buildHeader(char address[], IPv6Address *daddr);
    void setToAddress(IPv6Address *daddr, struct sockaddr_ll *to);
    // Receive helper
-   void parseReceivedFrame(shared_ptr<Packet>);
+   void parseReceivedFrame(std::shared_ptr<Packet>);
 };
 
 #endif // WLAN_H

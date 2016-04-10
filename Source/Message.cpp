@@ -6,7 +6,7 @@ Message::Message() {
 
 Message::~Message() {}
 
-char* Message::serialize() {}
+//char* Message::serialize() {}
 
 unsigned char Message::getType() {
     return type;

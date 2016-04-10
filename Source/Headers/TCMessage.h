@@ -18,13 +18,13 @@ public:
         return ansn;
     }
 
-    vector<IPv6Address>& getNeighborAddresses(){
+    std::vector<IPv6Address>& getNeighborAddresses(){
     	return neighborAddresses;
     }
 
 private:
 	uint16_t ansn;
-	vector<IPv6Address> neighborAddresses;
+	std::vector<IPv6Address> neighborAddresses;
 };
 
 #endif // TC_MESSAGE_H
