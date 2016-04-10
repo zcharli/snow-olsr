@@ -16,8 +16,9 @@
 #include "IPv6Address.h"
 #include "OLSRState.h"
 #include "OLSRMessage.h"
+#include "IPv6Address.h"
 
-using namespace std;
+//using namespace std;
 
 namespace pt = boost::posix_time;
 
@@ -44,7 +45,12 @@ public:
 	};
 	void updateState(shared_ptr<OLSRMessage>);
 
+<<<<<<< HEAD
 	void setPersonalAddress(const IPv6Address&);
+=======
+	void setPersonalAddress(const IPv6Address& addr);
+	IPv6Address getPersonalAddress(IPv6Address addr) const;
+>>>>>>> RoutingProtocol Update
 	//void SetMainInterface (uint32_t interface);
 
 private:
@@ -62,7 +68,7 @@ private:
 	void buildTCMessage();
 
 	void updateMPRState();
-
+	void populateTwoHopNeighborSet (const shared_ptr<OLSRMessage> &message, const HelloMessage &hello);
 
 	// IPv6Address m_mainAddress;
 	// IPv6Address m_routingAgentAddr;

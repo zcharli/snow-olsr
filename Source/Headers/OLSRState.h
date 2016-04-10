@@ -10,7 +10,7 @@
 #include "Resources/Types.h"
 #include "IPv6Address.h"
 
-using namespace std;
+//using namespace std;
 
 /*
  * State inspired from NS3 OLSR Routing

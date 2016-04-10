@@ -28,7 +28,7 @@
 #include "IPv6Address.h"
 #include "Resources/Constants.h"
 
-using namespace std;
+//using namespace std;
 
 // WLAN Class Definition
 class WLAN {

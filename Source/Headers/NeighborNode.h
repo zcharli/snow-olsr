@@ -1,7 +1,7 @@
 #ifndef NEIGHBOR_NODE_H
 #define NEIGHBOR_NODE_H
 
-using namespace std;
+//using namespace std;
 
 class NeighborNode
 {

@@ -12,7 +12,7 @@
 
 #define ADDRESS_SIZE 32
 
-using namespace std;
+//using namespace std;
 
 class Packet {
 public:

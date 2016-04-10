@@ -16,7 +16,7 @@
 #include "Resources/Helpers.h"
 
 
-using namespace std;
+//using namespace std;
 
 class SnowClient
 {

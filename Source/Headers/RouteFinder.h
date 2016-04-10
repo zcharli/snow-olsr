@@ -1,7 +1,7 @@
 #ifndef ROUTE_FINDER_H
 #define ROUTE_FINDER_H
 
-using namespace std;
+//using namespace std;
 
 class RouteFinder
 {

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <vector>
+<<<<<<< HEAD
 #include <algorithm>
 #include <memory>
 
@@ -10,13 +11,38 @@
 #include "Resources/Constants.h"
 #include "Message.h"
 #include "Packet.h"
+=======
+#include "TCMessage.h"
+#include "HelloMessage.h"
+#include "IPv6Address.h"
+#include "Resources/Constants.h"
+>>>>>>> RoutingProtocol Update
 
 class OLSRMessage
 {
 public:
+<<<<<<< HEAD
 	OLSRMessage();
     OLSRMessage(shared_ptr<Packet>);
 	~OLSRMessage();
+=======
+
+    enum MessageType {
+        HELLO_MESSAGE = M_HELLO_MESSAGE,
+        TC_MESSAGE    = M_TC_MESSAGE,
+    };
+
+    OLSRMessage();
+    ~OLSRMessage();
+
+    void setMessageType(MessageType messageType) { m_messageType = messageType; }
+    MessageType getMessageType() { return m_messageType; }
+    IPv6Address getSender() { return sender; }
+    IPv6Address getReceiver() { return receiver; }
+    HelloMessage& getHelloMessage() { return helloMessage; }
+    TCMessage& getTCMessage(){ return tcMessage; }
+    const IPv6Address getOriginatorAddress(){ return originatorAddress; }
+>>>>>>> RoutingProtocol Update
 
     OLSRMessage& serialize();
     char* getData();
@@ -27,6 +53,13 @@ public:
     uint8_t getVTime();
 
 private:
+    MessageType m_messageType;
+    IPv6Address sender;
+    IPv6Address receiver;
+    const IPv6Address originatorAddress;
+
+    TCMessage tcMessage;
+    HelloMessage helloMessage;
 
     class MessageHeader
     {

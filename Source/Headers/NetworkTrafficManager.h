@@ -22,7 +22,7 @@
 //#include "NetworkHelloMessageThread.h"
 
 
-using namespace std;
+//using namespace std;
 
 class NetworkPacketListener;
 class NetworkTCMessageThread;
