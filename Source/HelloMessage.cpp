@@ -11,3 +11,5 @@ uint8_t HelloMessage::getWillingness() {
 std::vector<HelloMessage::LinkMessage> HelloMessage::getLinkMessages() const {
     return mLinkMessages;
 }
+
+

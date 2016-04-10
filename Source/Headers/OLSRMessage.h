@@ -16,6 +16,8 @@ class Message;
 // class HelloMessage;
 // class TCMessage;
 
+class Message;
+
 class OLSRMessage
 {
 public:

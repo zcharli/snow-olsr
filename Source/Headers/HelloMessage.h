@@ -21,6 +21,7 @@ public:
     uint8_t getWillingness();
     std::vector<LinkMessage> mLinkMessages;
 	std::vector<LinkMessage> getLinkMessages() const;
+
 private:
 	uint8_t willingness;
 };
