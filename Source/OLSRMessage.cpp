@@ -3,6 +3,9 @@
 // http://www.cs.utexas.edu/users/acharya/Tools/ns3/ns-allinone-3.5/ns-3.5/src/routing/olsr/olsr-routing-protocol.cc
 
 OLSRMessage::OLSRMessage() : serialized(false) {}
+OLSRMessage::OLSRMessage(shared_ptr<Packet> packet) : serialized(false) {
+    // deserialize!
+}
 OLSRMessage::~OLSRMessage(){ if(serialized) delete data; }
 
 OLSRMessage& OLSRMessage::serialize() {
@@ -36,13 +39,18 @@ OLSRMessage& OLSRMessage::serialize() {
 
 }
 
+uint8_t OLSRMessage::getVTime() {
+    // temporary function, in fact we need away to extract vtime from msg header
+    return 0;
+}
+
 
 OLSRMessage::MessageHeader::MessageHeader(Message& msg) {
     message = msg.serialize();
 
-    type = msg.type;
+    type = msg.getType();
     vtime = 2; // default value for now.
-    messageSize = 12 + msg.size;
+    messageSize = 12 + msg.getSize();
     // originatorAddress;
     // timeToLive;
     // hopCount;

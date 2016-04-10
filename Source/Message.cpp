@@ -11,3 +11,7 @@ char* Message::serialize() {}
 unsigned char Message::getType() {
     return type;
 }
+
+int Message::getSize(){
+    return size;
+}

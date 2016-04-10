@@ -3,8 +3,8 @@
 void RoutingProtocol::updateState(shared_ptr<OLSRMessage> message) {
     // Here we want to hand
 
-    for(std::vector<Message>::iterator it = message->mOLSRMessages.begin();
-            it != message->mOLSRMessages.end(); it++) {
+    for(std::vector<Message>::iterator it = message->messages.begin();
+            it != message->messages.end(); it++) {
         switch (it->getType()) {
         case M_HELLO_MESSAGE :
             // Dereferenced HelloMsg from the address of the dereference iterator msg
