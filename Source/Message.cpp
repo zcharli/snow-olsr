@@ -5,3 +5,6 @@ Message::Message() {
 }
 
 Message::~Message() {}
+
+
+char* Message::serialize() {}
