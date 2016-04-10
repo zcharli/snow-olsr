@@ -35,7 +35,7 @@ int Message::MessageHeader::copyConstructor(Message& msg) {
 
     type = msg.getType();
     vtime = 2; // default value for now.
-    messageSize = 12 + msg.getSize();
+    messageSize = 20 + msg.getSize();
     /*  BTW, originatorAddress is 14 bytes, WLAN_ADDR_LEN */
 
     // originatorAddress;
@@ -50,11 +50,10 @@ char* Message::MessageHeader::serialize() {
     output[0] = type;
     output[1] = vtime;
     output[2] = messageSize;
-    /*  BTW, originatorAddress is 14 bytes, WLAN_ADDR_LEN */
     output[4] = originatorAddress;
-    output[8] = timeToLive;
-    output[9] = hopCount;
-    output[10] = messageSequenceNumber;
+    output[18] = timeToLive;
+    output[19] = hopCount;
+    output[20] = messageSequenceNumber;
 
     return output;
 }

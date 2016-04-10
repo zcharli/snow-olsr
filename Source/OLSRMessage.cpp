@@ -25,12 +25,19 @@ OLSRMessage& OLSRMessage::serialize() {
     data[2] = packetSequenceNumber;
 
     int offset = 4; // the offset in the output
-    for (auto& hdr : headers) {
-    	char* s_hdr = hdr.serialize();
-    	for (int i = 0; i < hdr.messageSize; ++i)
-    		data[offset+i] = s_hdr[i];
-        offset += hdr.messageSize;
+    for (int i = 0; i < headers.size(); ++i) {//(auto& hdr : headers) {
+
+    	char* s_hdr = headers[i].serialize();
+    	for (int j = 0; j < headers[i].messageSize; ++j)
+    		data[offset+j] = s_hdr[j];
+        offset += headers[i].messageSize;
         delete s_hdr;
+
+        char* s_msg = messages[i].serialize();
+        for (int j = 0; j < messages[i].getSize(); ++j)
+        	data[offset+j] = s_msg[j];
+        offset += messages[i].getSize();
+        delete s_msg;
     }
 
     serialized = true;

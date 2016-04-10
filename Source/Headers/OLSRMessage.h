@@ -8,13 +8,7 @@
 #include "Resources/Constants.h"
 #include "Message.h"
 #include "Packet.h"
-// #include "TCMessage.h"
-// #include "HelloMessage.h"
 #include "IPv6Address.h"
-
-class Message;
-// class HelloMessage;
-// class TCMessage;
 
 class Message;
 

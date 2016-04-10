@@ -72,8 +72,6 @@ private:
 
     boost::mutex mMtxState;
 
-    boost::mutex mMtxState;
-
 	// IPv6Address m_mainAddress;
 	// IPv6Address m_routingAgentAddr;
 	// uint16_t m_ansn;
