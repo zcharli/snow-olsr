@@ -186,7 +186,7 @@ void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio
         if (vNeighbor == NULL) {
             updateLinkTuple(vLinkTuple, W_WILL_ALWAYS);
             mMtxLinkExpire.lock();
-            mState.cleanTwoHopNeighborTuple(vLinkTuple->neighborIfaceAddr);
+            mState.cleanTwoHopNeighborTuples(vLinkTuple->neighborIfaceAddr);
             mState.cleanMprSelectorTuples(vLinkTuple->neighborIfaceAddr);
             mMtxLinkExpire.unlock();
             // COMPUTE MPR HERE
