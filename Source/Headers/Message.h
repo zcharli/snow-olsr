@@ -26,8 +26,8 @@ public:
         unsigned char timeToLive;
         unsigned char hopCount;
         unsigned short messageSequenceNumber;
-        char* message;
-        char* serialize();
+        std::vector<int> message;
+        std::vector<int> serialize();
     };
 
 
@@ -36,7 +36,7 @@ public:
     unsigned char getType();
     int getSize();
     uint8_t getVTime();
-    virtual char* serialize();
+    virtual std::vector<int> serialize();
     MessageHeader mMessageHeader;
     std::shared_ptr<IPv6Address> getOriginatorAddress();
 

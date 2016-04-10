@@ -15,7 +15,7 @@ public:
 	TCMessage();
 	~TCMessage();
 
-	char* serialize();
+	std::vector<int> serialize();
 
 private:
 	uint16_t ansn;

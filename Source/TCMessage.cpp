@@ -3,16 +3,13 @@
 TCMessage::TCMessage() {}
 TCMessage::~TCMessage() {}
 
-char* TCMessage::serialize() {
-	char* output = new char[4+14*mNeighborAddresses.size()];
-	output[0] = ansn;
+std::vector<int> TCMessage::serialize() {
+	std::vector<int> output;
+	output.push_back(ansn);
 
-	int offset = 4;
-	for (auto& na : mNeighborAddresses) {
+	for (auto& na : mNeighborAddresses)
 		for (int i = 0; i < 14; ++i)
-			output[offset+i] = na.data[i];
-		offset += 14;
-	}
+			output.push_back((int) na.data[i]);
 
 	return output;
 }
