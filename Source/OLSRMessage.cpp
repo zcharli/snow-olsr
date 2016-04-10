@@ -12,9 +12,10 @@ OLSRMessage& OLSRMessage::serialize() {
     unsigned short packetLength = 4; // 4 bytes is required for packet len and seq num which are required.
     unsigned short packetSequenceNumber = 4; // temporary default value.
 
-    std::vector<MessageHeader> headers;
+    std::vector<Message::MessageHeader> headers;
     for (auto& m : messages) {
-        MessageHeader hdr(m);
+        Message::MessageHeader hdr;
+        hdr.copyConstructor(m);
         headers.push_back(hdr);
         packetLength += hdr.messageSize;
     }
@@ -39,35 +40,3 @@ OLSRMessage& OLSRMessage::serialize() {
 
 }
 
-uint8_t OLSRMessage::getVTime() {
-    // temporary function, in fact we need away to extract vtime from msg header
-    return 0;
-}
-
-
-OLSRMessage::MessageHeader::MessageHeader(Message& msg) {
-    message = msg.serialize();
-
-    type = msg.getType();
-    vtime = 2; // default value for now.
-    messageSize = 12 + msg.getSize();
-    // originatorAddress;
-    // timeToLive;
-    // hopCount;
-    // messageSequenceNumber;
-
-}
-
-
-char* OLSRMessage::MessageHeader::serialize() {
-    char* output = new char[messageSize];
-    output[0] = type;
-    output[1] = vtime;
-    output[2] = messageSize;
-    output[4] = originatorAddress;
-    output[8] = timeToLive;
-    output[9] = hopCount;
-    output[10] = messageSequenceNumber;
-
-    return output;
-}

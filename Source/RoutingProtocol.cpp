@@ -1,15 +1,13 @@
 #include "Headers/RoutingProtocol.h"
 
 void RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> message) {
-/*
     // Here we want to hand
-
-    for(std::std::vector<Message>::iterator it = message->messages.begin();
+    for(std::vector<Message>::iterator it = message->messages.begin();
             it != message->messages.end(); it++) {
         switch (it->getType()) {
         case M_HELLO_MESSAGE :
             // Dereferenced HelloMsg from the address of the dereference iterator msg
-            handleHelloMessage(*((HelloMessage*)&(*it)), message->mSenderHWAddr, message->getVTime());
+            handleHelloMessage(*((HelloMessage*)&(*it)), message->mSenderHWAddr, it->getVTime());
             break;
         case M_TC_MESSAGE:
             // Handle a TC
@@ -23,12 +21,12 @@ void RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> message) {
             break;
         }
     }
-
-
 }
 
 void RoutingProtocol::handleHelloMessage(HelloMessage& message, const IPv6Address& senderHWAddr, unsigned char vtime) {
+    mMtxState.lock();
     LinkTuple* vLinkEdge = mState.findLinkTuple(senderHWAddr);
+    mMtxState.unlock();
     bool create = false;
     bool update = false;
     if(vLinkEdge == NULL) {
@@ -39,18 +37,30 @@ void RoutingProtocol::handleHelloMessage(HelloMessage& message, const IPv6Addres
         newNeighbor.localIfaceAddr = mPersonalAddress;
         newNeighbor.symTime = now - pt::seconds(1);
         newNeighbor.expirationTime = now + pt::seconds(vtime);
+        mMtxState.lock();
         vLinkEdge = &mState.insertLinkTuple(newNeighbor);
+        mMtxState.unlock();
         create = true;
     } else {
         PRINTLN(Recv a hello from an existing neighbor)
         update = true;
     }
 
-    for(std::std::vector<HelloMessage::LinkMessage>::iterator linkNeighbrs = message.mLinkMessages.begin();
+    // This step is unessary, but will do anyways 8.1.1 (processing willingness)
+    mMtxState.lock();
+    NeighborTuple *neighbor = mState.findNeighborTuple(*(message.getOriginatorAddress()));
+    mMtxState.unlock();
+    if (neighbor != NULL)
+    {
+      neighbor->willingness = message.getWillingness();
+    }
+
+    // Being computing MPR and bunch of other stuff
+    for(std::vector<HelloMessage::LinkMessage>::iterator linkNeighbrs = message.mLinkMessages.begin();
         linkNeighbrs != message.mLinkMessages.end(); linkNeighbrs++ ) {
         int linkType = linkNeighbrs->linkCode & 0x03; // ^C Terminiation
         int neighborType = (linkNeighbrs->linkCode >> 2) & 0x03;
-        std::cout << "Hello msg with Link Type: " << linkType << " and Neighbor Type: " << neighborType << endl;
+        std::cout << "Hello msg with Link Type: " << linkType << " and Neighbor Type: " << neighborType << std::endl;
         // Skip invalid link and neightbor codes RFC 6.1.1
         if ((linkType == L_SYM_LINK && neighborType == N_NOT_NEIGH) ||
           (neighborType != N_SYM_NEIGH && neighborType != N_MPR_NEIGH
@@ -59,7 +69,7 @@ void RoutingProtocol::handleHelloMessage(HelloMessage& message, const IPv6Addres
           PRINTLN(Found invalid link type and skipping)
           continue;
         }
-        for(std::std::vector<IPv6Address>::iterator it = linkNeighbrs->neighborIfAddr.begin();
+        for(std::vector<IPv6Address>::iterator it = linkNeighbrs->neighborIfAddr.begin();
             it != linkNeighbrs->neighborIfAddr.end(); it++) {
             if(*it == mPersonalAddress) {
                 if(linkType == L_LOST_LINK) {
@@ -74,140 +84,46 @@ void RoutingProtocol::handleHelloMessage(HelloMessage& message, const IPv6Addres
                 PRINTLN(Found a address in hello msg that was not supposed to be for us)
             }
         }
-    }*/
-	// Here we want to hand
-	switch(message.get()->getMessageType()){
-		case M_HELLO_MESSAGE:
-			handleHelloMessage(message);	// Handle a TC
-			break;
-		case M_TC_MESSAGE:
-			handleTCMessage(message);		// Handle a TC
-			break;
-	}
+    }
 }
 
-void RoutingProtocol::handleHelloMessage(std::shared_ptr<OLSRMessage> message) {
-	IPv6Address receiver = message.get()->getReceiver();
-	IPv6Address sender 	= message.get()->getSender();
-	HelloMessage hello 	= message.get()->getHelloMessage();
-	// LinkSensing (msg, hello, receiverIface, senderIface);
-
-	// We may dont need it. Delete it later or move it to generateHelloMessage or readHelloMessage
-	const std::vector<LinkTuple> &links = mState.getLinks();
-	for (std::vector<LinkTuple>::const_iterator link = links.begin(); link != links.end(); link++)
-	{}
-
-	// We may dont need it. Delete it later or move it to generateHelloMessage or readHelloMessage
-	const std::vector<NeighborTuple> &neighbors = mState.getNeighbors();
-	for (std::vector<NeighborTuple>::const_iterator neighbor = neighbors.begin(); neighbor != neighbors.end(); neighbor++)
-	{}
-
-	// PopulateNeighborSet(message, hello);
-	NeighborTuple *neighbourTuple = mState.findNeighborTuple (message.get()->getOriginatorAddress());
-	if (neighbourTuple != NULL)
-	{
-      neighbourTuple->willingness = hello.getWillingness();
-	}
-	populateTwoHopNeighborSet(message, hello);
-
-	// We may dont need it. Delete it later or move it to generateHelloMessage or readHelloMessage
-	const std::vector<TwoHopNeighborTuple> &twoHopNeighbors = mState.getTwoHopNeighbors();
-	for (std::vector<TwoHopNeighborTuple>::const_iterator tuple = twoHopNeighbors.begin(); tuple != twoHopNeighbors.end(); tuple++)
-	{}
-
-	// TODO
-	// MPRComupation();
-	// PopulateMPRSelectorSet(message, hello);
-}
-
-IPv6Address RoutingProtocol::getPersonalAddress(IPv6Address iface_addr) const
-{
-	const InterfaceAssociationTuple *tuple = mState.findInterfaceAssociationTuple(iface_addr);
-	if (tuple != NULL)
-		return tuple->mainAddr;
-	else
-		return iface_addr;
-}
-
-void RoutingProtocol::populateTwoHopNeighborSet (const std::shared_ptr<OLSRMessage> &message, const HelloMessage &hello)
-{
-	const std::vector<LinkTuple> &links = mState.getLinks();
-	for (std::vector<LinkTuple>::const_iterator link = links.begin(); link != links.end(); link++)
-	{
-		if (getPersonalAddress(link->neighborIfaceAddr) != message.get()->getOriginatorAddress()){ continue; }
-		// Link Tuple Time Expired and Ignore to continue 
-		// if (linkTuple->symTime < now) { continue; }
-
-		std::vector<HelloMessage::LinkMessage> linkMessages = hello.getLinkMessages();
-		for (std::vector<HelloMessage::LinkMessage>::const_iterator linkMessage = linkMessages.begin ();
-			linkMessage != linkMessages.end (); linkMessage++)
-		{
-			int neighborType= 0; // = (linkMessage->linkCode >> 2) & 0x3;
-			for (std::vector<IPv6Address>::const_iterator nb2hopAddr_iter = linkMessage->neighborIfAddr.begin();
-				nb2hopAddr_iter != linkMessage->neighborIfAddr.end(); nb2hopAddr_iter++)
-			{
-				IPv6Address neigbour2HopAddr = getPersonalAddress(*nb2hopAddr_iter);
-				if (neighborType == N_SYM_NEIGH || neighborType == N_MPR_NEIGH)
-				{
-					// Check Neighbour Two Hop Addr and Routing Agent Addr
-					// if (neigbour2HopAddr == m_routingAgentAddr) { continue; }
-
-					TwoHopNeighborTuple *nb2hop_tuple = mState.findTwoHopNeighborTuple
-					(message.get()->getOriginatorAddress(), neigbour2HopAddr);
-					if (nb2hop_tuple == NULL)
-					{
-						TwoHopNeighborTuple newNeighbor2HopTuple;
-						newNeighbor2HopTuple.neighborMainAddr = message.get()->getOriginatorAddress();
-						newNeighbor2HopTuple.twoHopNeighborAddr = neigbour2HopAddr;
-						// newNeighbor2HopTuple.expirationTime = now + message.get()->GetVTime ();
-						mState.insertTwoHopNeighborTuple(newNeighbor2HopTuple);
-					} else {
-						// Two Hop Neighbor Tuple Expiration Time
-					}
-				} else if (neighborType == N_NOT_NEIGH) {
-					mState.cleanTwoHopNeighborTuples (message.get()->getOriginatorAddress(), neigbour2HopAddr);
-				}
-			}
-		}
-	}
-}
-
+void RoutingProtocol::handleTCMessage(TCMessage&, IPv6Address&) {}
 
 void RoutingProtocol::handleTCMessage(std::shared_ptr<OLSRMessage> message) {
 
-	IPv6Address sender 	= message.get()->getSender();
-	TCMessage 	&tc 	= message.get()->getTCMessage();
+    // IPv6Address sender   = message.get()->getSender();
+    // TCMessage    &tc     = message.get()->getTCMessage();
 
-	const LinkTuple *linkTuple = mState.findSymLinkTuple(sender);
-	if (linkTuple == NULL) return;
+    // const LinkTuple *linkTuple = mState.findSymLinkTuple(sender);
+    // if (linkTuple == NULL) return;
 
-	const IPv6Address lastAddr = message.get()->getOriginatorAddress();
-	TopologyTuple *topologyTuple = mState.findNewerTopologyTuple(lastAddr, tc.getAnsn());
-	if (topologyTuple != NULL) return;
+    // const IPv6Address lastAddr = message.get()->getOriginatorAddress();
+    // TopologyTuple *topologyTuple = mState.findNewerTopologyTuple(lastAddr, tc.getAnsn());
+    // if (topologyTuple != NULL) return;
 
-	mState.cleanOlderTopologyTuples(lastAddr, tc.getAnsn());
+    // mState.cleanOlderTopologyTuples(lastAddr, tc.getAnsn());
 
-	const std::vector<IPv6Address> &neighborAddresses = tc.getNeighborAddresses();
-	for(std::vector<IPv6Address>::const_iterator i = neighborAddresses.begin(); i != neighborAddresses.end(); i++)
-	{
-		const IPv6Address &addr = *i;
-		topologyTuple = mState.findTopologyTuple(sender, message.get()->getOriginatorAddress());
-		if (topologyTuple != NULL){
-			// Topology Tuple Expiration Time
-		}else{
-			TopologyTuple topologyTuple;
-			topologyTuple.destAddr = addr;
-			topologyTuple.lastAddr = message.get()->getOriginatorAddress();
-			topologyTuple.sequenceNumber = tc.getAnsn();
-			//topologyTuple.expirationTime = message.get()->getVTime()+1;
-			mState.insertTopologyTuple(topologyTuple);
-		}
-	}
+    // const std::vector<IPv6Address> &neighborAddresses = tc.getNeighborAddresses();
+    // for(std::vector<IPv6Address>::const_iterator i = neighborAddresses.begin(); i != neighborAddresses.end(); i++)
+    // {
+    //  const IPv6Address &addr = *i;
+    //  topologyTuple = mState.findTopologyTuple(sender, message.get()->getOriginatorAddress());
+    //  if (topologyTuple != NULL){
+    //      // Topology Tuple Expiration Time
+    //  }else{
+    //      TopologyTuple topologyTuple;
+    //      topologyTuple.destAddr = addr;
+    //      topologyTuple.lastAddr = message.get()->getOriginatorAddress();
+    //      topologyTuple.sequenceNumber = tc.getAnsn();
+    //      //topologyTuple.expirationTime = message.get()->getVTime()+1;
+    //      mState.insertTopologyTuple(topologyTuple);
+    //  }
+    // }
 
-	// We may dont need it. Delete it later or move it to generateHelloMessage or readHelloMessage
-	const std::vector<TopologyTuple> & topology = mState.getTopologySet();
-	for(std::vector<TopologyTuple>::const_iterator tuple = topology.begin(); tuple != topology.end(); tuple++)
-	{}
+    // // We may dont need it. Delete it later or move it to generateHelloMessage or readHelloMessage
+    // const std::vector<TopologyTuple> & topology = mState.getTopologySet();
+    // for(std::vector<TopologyTuple>::const_iterator tuple = topology.begin(); tuple != topology.end(); tuple++)
+    // {}
 }
 
 
@@ -218,6 +134,84 @@ void RoutingProtocol::updateMPRState() {
 void RoutingProtocol::setPersonalAddress(const IPv6Address& address) {
     mPersonalAddress.setAddressData(address.data);
 }
+
+// void RoutingProtocol::handleHelloMessage(std::shared_ptr<OLSRMessage> message) {
+// 	IPv6Address receiver = message.get()->getReceiver();
+// 	IPv6Address sender 	= message.get()->getSender();
+// 	HelloMessage hello 	= message.get()->getHelloMessage();
+// 	// LinkSensing (msg, hello, receiverIface, senderIface);
+
+// 	// We may dont need it. Delete it later or move it to generateHelloMessage or readHelloMessage
+// 	const std::vector<LinkTuple> &links = mState.getLinks();
+// 	for (std::vector<LinkTuple>::const_iterator link = links.begin(); link != links.end(); link++)
+// 	{}
+
+// 	// We may dont need it. Delete it later or move it to generateHelloMessage or readHelloMessage
+// 	const std::vector<NeighborTuple> &neighbors = mState.getNeighbors();
+// 	for (std::vector<NeighborTuple>::const_iterator neighbor = neighbors.begin(); neighbor != neighbors.end(); neighbor++)
+// 	{}
+
+// 	// PopulateNeighborSet(message, hello);
+// 	NeighborTuple *neighbourTuple = mState.findNeighborTuple (message.get()->getOriginatorAddress());
+// 	if (neighbourTuple != NULL)
+// 	{
+//       neighbourTuple->willingness = hello.getWillingness();
+// 	}
+// 	populateTwoHopNeighborSet(message, hello);
+
+// 	// We may dont need it. Delete it later or move it to generateHelloMessage or readHelloMessage
+// 	const std::vector<TwoHopNeighborTuple> &twoHopNeighbors = mState.getTwoHopNeighbors();
+// 	for (std::vector<TwoHopNeighborTuple>::const_iterator tuple = twoHopNeighbors.begin(); tuple != twoHopNeighbors.end(); tuple++)
+// 	{}
+
+// 	// TODO
+// 	// MPRComupation();
+// 	// PopulateMPRSelectorSet(message, hello);
+// }
+
+
+// void RoutingProtocol::populateTwoHopNeighborSet (const std::shared_ptr<OLSRMessage> &message, const HelloMessage &hello)
+// {
+// 	const std::vector<LinkTuple> &links = mState.getLinks();
+// 	for (std::vector<LinkTuple>::const_iterator link = links.begin(); link != links.end(); link++)
+// 	{
+// 		if (getPersonalAddress(link->neighborIfaceAddr) != message.get()->getOriginatorAddress()){ continue; }
+// 		// Link Tuple Time Expired and Ignore to continue
+// 		// if (linkTuple->symTime < now) { continue; }
+
+// 		std::vector<HelloMessage::LinkMessage> linkMessages = hello.getLinkMessages();
+// 		for (std::vector<HelloMessage::LinkMessage>::const_iterator linkMessage = linkMessages.begin ();
+// 			linkMessage != linkMessages.end (); linkMessage++)
+// 		{
+// 			int neighborType= 0; // = (linkMessage->linkCode >> 2) & 0x3;
+// 			for (std::vector<IPv6Address>::const_iterator nb2hopAddr_iter = linkMessage->neighborIfAddr.begin();
+// 				nb2hopAddr_iter != linkMessage->neighborIfAddr.end(); nb2hopAddr_iter++)
+// 			{
+// 				IPv6Address neigbour2HopAddr = getPersonalAddress(*nb2hopAddr_iter);
+// 				if (neighborType == N_SYM_NEIGH || neighborType == N_MPR_NEIGH)
+// 				{
+// 					// Check Neighbour Two Hop Addr and Routing Agent Addr
+// 					// if (neigbour2HopAddr == m_routingAgentAddr) { continue; }
+
+// 					TwoHopNeighborTuple *nb2hop_tuple = mState.findTwoHopNeighborTuple
+// 					(message.get()->getOriginatorAddress(), neigbour2HopAddr);
+// 					if (nb2hop_tuple == NULL)
+// 					{
+// 						TwoHopNeighborTuple newNeighbor2HopTuple;
+// 						newNeighbor2HopTuple.neighborMainAddr = message.get()->getOriginatorAddress();
+// 						newNeighbor2HopTuple.twoHopNeighborAddr = neigbour2HopAddr;
+// 						// newNeighbor2HopTuple.expirationTime = now + message.get()->GetVTime ();
+// 						mState.insertTwoHopNeighborTuple(newNeighbor2HopTuple);
+// 					} else {
+// 						// Two Hop Neighbor Tuple Expiration Time
+// 					}
+// 				} else if (neighborType == N_NOT_NEIGH) {
+// 					mState.cleanTwoHopNeighborTuples (message.get()->getOriginatorAddress(), neigbour2HopAddr);
+// 				}
+// 			}
+// 		}
+// 	}
+// }
 
 // RoutingProtocol::~RoutingProtocol()
 // {}
@@ -376,7 +370,7 @@ void RoutingProtocol::setPersonalAddress(const IPv6Address& address) {
 //      // number of nodes in N2 which are not yet covered by at
 //      // least one node in the MPR set, and which are reachable
 //      // through this 1-hop neighbor
-//      std::map<int, std::std::vector<const NeighborTuple *> > reachability;
+//      std::map<int, std::vector<const NeighborTuple *> > reachability;
 //      std::set<int> rs;
 //      for (std::vector<NeighborTuple>::iterator it = N.begin(); it != N.end(); it++)
 //      {
@@ -409,7 +403,7 @@ void RoutingProtocol::setPersonalAddress(const IPv6Address& address) {
 //          {
 //              continue;
 //          }
-//          for (std::std::vector<const NeighborTuple *>::iterator it2 = reachability[r].begin();
+//          for (std::vector<const NeighborTuple *>::iterator it2 = reachability[r].begin();
 //               it2 != reachability[r].end(); it2++)
 //          {
 //              const NeighborTuple *nb_tuple = *it2;
