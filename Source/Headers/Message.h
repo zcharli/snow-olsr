@@ -6,10 +6,14 @@ class Message
 public:
     Message();
     ~Message();
-    
     unsigned char getType();
+<<<<<<< HEAD
     virtual char* serialize();
     
+=======
+
+private:
+>>>>>>> master
     unsigned char type;
     int size;
 };

@@ -7,8 +7,10 @@
 #include <string>
 #include <memory>
 #include <iostream>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include "Resources/Types.h"
 #include "Resources/Constants.h"
+#include "Resources/Helpers.h"
 #include "HelloMessage.h"
 #include "TCMessage.h"
 #include "IPv6Address.h"
@@ -16,6 +18,8 @@
 #include "OLSRMessage.h"
 
 using namespace std;
+
+namespace pt = boost::posix_time;
 
 struct RoutingTableEntry
 {
@@ -38,9 +42,9 @@ public:
 		// Instantiated on first use.
 		return instance;
 	};
-	void updateState(shared_ptr<OLSRMessage> message);
+	void updateState(shared_ptr<OLSRMessage>);
 
-	void setPersonalAddress(const IPv6Address& addr);
+	void setPersonalAddress(const IPv6Address&);
 	//void SetMainInterface (uint32_t interface);
 
 private:
@@ -51,8 +55,8 @@ private:
 	TCMessage mTCStateRep;
 	IPv6Address mPersonalAddress;
 
-	void handleTCMessage(shared_ptr<OLSRMessage> message);
-	void handleHelloMessage(shared_ptr<OLSRMessage> message);
+	void handleTCMessage(TCMessage&, IPv6Address&);
+	void handleHelloMessage(HelloMessage&, const IPv6Address&, unsigned char);
 
 	void buildHelloMessage();
 	void buildTCMessage();

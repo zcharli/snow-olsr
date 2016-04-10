@@ -7,8 +7,6 @@
 #include <stdio.h>
 #include "Resources/Constants.h"
 
-using namespace std;
-
 class IPv6Address
 {
 public:
@@ -25,9 +23,9 @@ public:
   void setAddressData(const unsigned char[]);
 };
 
-inline ostream& operator << (ostream& os, IPv6Address const& address) {
+inline std::ostream& operator << (std::ostream& os, IPv6Address const& address) {
   char* str = new char[32];
-  os << address.wlan2asc(str) << endl;
+  os << address.wlan2asc(str) << std::endl;
   delete [] str;
   return os;
 }
