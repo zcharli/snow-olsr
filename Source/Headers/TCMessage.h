@@ -15,12 +15,12 @@ public:
 	TCMessage();
 	~TCMessage();
 
-	std::vector<int> serialize();
+	void serialize();
 
-	
+
 	uint16_t getAnsn();
 	std::vector<IPv6Address> mNeighborAddresses;
-	
+
 private:
 	uint16_t ansn;
 };

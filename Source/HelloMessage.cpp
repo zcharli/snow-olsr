@@ -1,7 +1,11 @@
 #include "Headers/HelloMessage.h"
 
 HelloMessage::HelloMessage() {}
-HelloMessage::~HelloMessage() {}
+HelloMessage::~HelloMessage() {
+    if(mSerializedData != NULL) {
+        delete [] mSerializedData;
+    }
+}
 
 uint8_t HelloMessage::getWillingness() {
     std::cout << "HelloMessage::getWillingness not yet implemented" << std::endl;
@@ -12,19 +16,71 @@ std::vector<HelloMessage::LinkMessage> HelloMessage::getLinkMessages() const {
     return mLinkMessages;
 }
 
-std::vector<int> HelloMessage::serialize() {
-	std::vector<int> output;
-	output.push_back(3); // default willingness.
+void HelloMessage::serialize() {
+    if(mSerializedData != NULL) {
+        delete [] mSerializedData;
+    }
+    int vCurrentIndex = 0;
+    mSerializedDataSize = 26; // With header
+    for (auto& linkMsg : mLinkMessages) {
+        mSerializedDataSize += 4;
+        mSerializedDataSize += linkMsg.neighborIfAddr.size() * 14;
+    }
+    mSerializedData = new char[mSerializedDataSize];
 
-	for (auto& lm : mLinkMessages) {
-		output.push_back((int) lm.linkCode);
-		output.push_back(14*lm.neighborIfAddr.size());
+    // Make header
+    // MsgType
+    mSerializedData[vCurrentIndex++] = mMessageHeader.type;
 
-		for (auto& nia : lm.neighborIfAddr) {
-			for (int i = 0; i < 14; ++i)
-				output.push_back((int) nia.data[i]);
-		}
-	}
+    // VTime
+    mSerializedData[vCurrentIndex++] = mMessageHeader.vtime;
 
-	return output;
+    // MessageSize
+    *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(mSerializedDataSize - 22); // 22 is header size
+    vCurrentIndex += 2;
+
+    // Originator address
+    memcpy ( mSerializedData + vCurrentIndex, mMessageHeader.originatorAddress, WLAN_HEADER_LEN );
+    vCurrentIndex+=WLAN_HEADER_LEN;
+
+    // Time to Live
+    mSerializedData[vCurrentIndex++] = mMessageHeader.timeToLive;
+
+    // Hop Count
+    mSerializedData[vCurrentIndex++] = mMessageHeader.hopCount;
+
+    // Message sequence number
+    *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(mMessageHeader.messageSequenceNumber); // 22 is header size
+    vCurrentIndex += 2;
+
+    // Make hello msg
+    // Reserved section
+    mSerializedData[vCurrentIndex++] = 0;
+    mSerializedData[vCurrentIndex++] = 0;
+
+    // HTime
+    mSerializedData[vCurrentIndex++]  = htime;
+
+    // Willingness
+    mSerializedData[vCurrentIndex++]  = willingness;
+
+    for(auto& msg : mLinkMessages) {
+        // Link code
+        *(mSerializedData + vCurrentIndex) = msg.linkCode;
+        vCurrentIndex++;
+
+        // Reserved
+        *(mSerializedData + vCurrentIndex) = 0;
+        vCurrentIndex++;
+
+        // Link msg size
+        uint16_t msgSize = msg.neighborIfAddr.size() * 14;
+        *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(msgSize);
+        vCurrentIndex+=2;
+
+        for(auto& addr : msg.neighborIfAddr) {
+            memcpy ( mSerializedData + vCurrentIndex, addr.data, WLAN_HEADER_LEN );
+            vCurrentIndex += WLAN_HEADER_LEN;
+        }
+    }
 }

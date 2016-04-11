@@ -64,12 +64,12 @@ int IPv6Address::sscanf6(char str[], int *a1, int *a2, int *a3, int *a4, int *a5
 
 // Convert a char to a hex digit, cred Michel Barbeau
 int IPv6Address::hexdigit(char a) {
-    if (a >= '0' && a <= '9') return (a - '0'); 
+    if (a >= '0' && a <= '9') return (a - '0');
     if (a >= 'a' && a <= 'f') return (a - 'a' + 10);
     if (a >= 'A' && a <= 'F') return (a - 'A' + 10);
     return -1;
 }
 
-void IPv6Address::setAddressData(const unsigned char addr[]) {
+void IPv6Address::setAddressData(const char addr[]) {
     memcpy ( data, addr, WLAN_ADDR_LEN );
 }

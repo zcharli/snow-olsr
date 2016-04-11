@@ -12,9 +12,9 @@ std::shared_ptr<IPv6Address> Message::getOriginatorAddress() {
     return NULL;
 }
 
-std::vector<int> Message::serialize() {
-    std::vector<int> v;
-    return v;
+void Message::serialize() {
+    // std::vector<int> v;
+    // return v;
 }
 
 unsigned char Message::getType() {
@@ -32,12 +32,12 @@ uint8_t Message::getVTime() {
 }
 
 int Message::MessageHeader::copyConstructor(Message& msg) {
-    message = msg.serialize();
+    // message = msg.serialize();
 
-    type = msg.getType();
-    vtime = 2; // default value for now.
-    messageSize = 20 + msg.getSize();
-    /*  BTW, originatorAddress is 14 bytes, WLAN_ADDR_LEN */
+    // type = msg.getType();
+    // vtime = 2; // default value for now.
+    // messageSize = 20 + msg.getSize();
+    //   BTW, originatorAddress is 14 bytes, WLAN_ADDR_LEN
 
     // originatorAddress;
     // timeToLive;
@@ -45,15 +45,14 @@ int Message::MessageHeader::copyConstructor(Message& msg) {
     // messageSequenceNumber;
     return 0;
 }
+void Message::MessageHeader::serialize() {
+    // std::vector<int> output;
+    // output.push_back(type);
+    // output.push_back(messageSize);
+    // output.push_back(originatorAddress);
+    // output.push_back(timeToLive);
+    // output.push_back(hopCount);
+    // output.push_back(messageSequenceNumber);
 
-std::vector<int> Message::MessageHeader::serialize() {
-    std::vector<int> output;
-    output.push_back(type);
-    output.push_back(messageSize);
-    output.push_back(originatorAddress);
-    output.push_back(timeToLive);
-    output.push_back(hopCount);
-    output.push_back(messageSequenceNumber);
-
-    return output;
+    // return output;
 }

@@ -2,7 +2,9 @@
 #define HELLO_MESSAGE_H
 
 #include <iostream>
+#include <stdio.h>
 #include <vector>
+#include <netinet/in.h>
 #include <map>
 #include <memory>
 #include "IPv6Address.h"
@@ -19,13 +21,14 @@ public:
     HelloMessage();
     ~HelloMessage();
 
-    std::vector<int> serialize();
+    void serialize();
     uint8_t getWillingness();
     std::vector<LinkMessage> mLinkMessages;
 	std::vector<LinkMessage> getLinkMessages() const;
+    uint8_t htime;
 
 private:
-	uint8_t willingness;
+    uint8_t willingness;
 };
 
 #endif // HELLO_MESSAGE_H

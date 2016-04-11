@@ -2,9 +2,11 @@
 #define OLSR_MESSAGE_H
 
 #include <stdint.h>
+#include <stdio.h>
 #include <vector>
 #include <algorithm>
 #include <memory>
+#include <netinet/in.h>
 #include "Resources/Constants.h"
 #include "Message.h"
 #include "Packet.h"
@@ -21,15 +23,15 @@ public:
     ~OLSRMessage();
 
     OLSRMessage& serialize();
-    int* getData();
+    char* getData();
 
     std::vector<Message> messages;
     IPv6Address mSenderHWAddr; // The last hop sender addr from, may NOT be the originating addr
     IPv6Address mRecvedHWAddr; // The Interface addr receieved from (we only have 1 as of now)
 
 private:
-    std::vector<int> data;
 
+    char* mSerializedData;
     // Unique OLSRPacket Attributes
     uint16_t mPacketLength;
     uint16_t mPacketSequenceNumber;
