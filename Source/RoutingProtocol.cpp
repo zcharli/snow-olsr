@@ -310,11 +310,14 @@ void RoutingProtocol::updateMPRState() {
         }
         //    excluding        (i)   the nodes only reachable by members of N with
         //                      willingness WILL_NEVER
+        bool filter2hop = false;
         for (std::vector<NeighborTuple>::iterator neigh = N.begin(); neigh != N.end(); neigh++) {
             if (neigh->neighborMainAddr == it->neighborMainAddr) {
                 if (neigh->willingness == W_WILL_NEVER) {
+                    filter2hop = false;
                     continue;
                 } else {
+                    filter2hop = true;
                     break;
                 }
             }
@@ -323,22 +326,26 @@ void RoutingProtocol::updateMPRState() {
         //                      there exists a symmetric link to this node on some
         //                      interface.
         for (std::vector<NeighborTuple>::iterator neigh = N.begin(); neigh != N.end(); neigh++) {
-            if (neigh->neighborMainAddr == it->neighborMainAddr) {
-
+            if (neigh->neighborMainAddr == it->twoHopNeighborAddr) {
+                filter2hop = false;
+                break;
             }
         }
+        // By now we have filtered the redundant neighbors.
+        // (my neight has a 2h neighbor that is also another one of my neighbors)
+        if(filter2hop) {
+            N2.push_back(*it);
+        }
     }
-
-    //     D(y):
-    //               The degree of a 1-hop neighbor node y (where y is a
-    //               member of N), is defined as the number of symmetric
-    //               neighbors of node y, EXCLUDING all the members of N and
-    //               EXCLUDING the node performing the computation.
-
-    //    The proposed heuristic is as follows:
-
+    //    The proposed MPR heuristic is as follows:
     //      1    Start with an MPR set made of all members of N with
     //           N_willingness equal to WILL_ALWAYS
+    for(std::vector<NeighborTuple>::iterator it = N.begin(); it != N.end(); it++) {
+        if(it->willingness == W_WILL_ALWAYS) {
+            vMPRs.insert(it->neighborMainAddr);
+            removeCoveredTwoHopNeighbor(it_>neighborMainAddr, N2);
+        }
+    }
 
     //      2    Calculate D(y), where y is a member of N, for all nodes in N.
 
@@ -387,6 +394,25 @@ void RoutingProtocol::updateMPRState() {
 
 }
 
+void RoutingProtocol::removeCoveredTwoHopNeighbor(IPv6Address addr, std::vector<TwoHopNeighborTuple>& twoHopNeighbors) {
+    // This function will remove all the two hop neighbors that have been covered by an MPR
+    std::set<IPv6Address> uniqueRemovals;
+    for(std::vector<TwoHopNeighborTuple>::iterator it=twoHopNeighbors.begin();
+            it != twoHopNeighbors.end(); it++) {
+        if(it->neighborMainAddr == addr) {
+            uniqueRemovals.insert(it->neighborMainAddr);
+        }
+    }
+    for(std::vector<TwoHopNeighborTuple>::iterator it=twoHopNeighbors.begin();
+            it != twoHopNeighbors.end();) {
+        if(uniqueRemovals.find(it->twoHopNeighborAddr) != uniqueRemovals.end()) {
+            twoHopNeighbors.erase(it);
+        } else {
+            it++;
+        }
+    }
+}
+
 void RoutingProtocol::setPersonalAddress(const IPv6Address& address) {
     mPersonalAddress.setAddressData(address.data);
 }
@@ -420,7 +446,8 @@ void RoutingProtocol::routingTableComputation () {
             {
                 const LinkTuple &linkTuple = *link_it;
                 //  L_time >= current time, a new routing entry is recorded in the routing table with:
-                if (linkTuple.symTime >= now) {
+                if (linkTuple.symTime >= now &&
+                    linkTuple.neighborIfaceAddr == nbTuple.neighborMainAddr) {
                     //              R_dest_addr     = L_neighbor_iface_add, of the associated link tuple;
                     //              R_next_addr     = L_neighbor_iface_addr, of the associated link tuple;
                     //              R_dist          = 1;
@@ -455,8 +482,8 @@ void RoutingProtocol::routingTableComputation () {
     }
 
     //  3.  For each node in N2, i.e., a 2-hop neighbor which is not a neighbor node or the node itself, and such that there
-    const std::vector<TwoHopNeighborTuple> &twoHopeNeighbors = mState.getTwoHopNeighbors();
-    for (std::vector<TwoHopNeighborTuple>::const_iterator twoHopNb_it = twoHopeNeighbors.begin(); twoHopNb_it != twoHopeNeighbors.end(); twoHopNb_it++)
+    const std::vector<TwoHopNeighborTuple> &twoHopNeighbors = mState.getTwoHopNeighbors();
+    for (std::vector<TwoHopNeighborTuple>::const_iterator twoHopNb_it = twoHopNeighbors.begin(); twoHopNb_it != twoHopNeighbors.end(); twoHopNb_it++)
     {
         const TwoHopNeighborTuple &neighbor2HopTuple = *twoHopNb_it;
         if (!mState.findNeighborTuple(neighbor2HopTuple.twoHopNeighborAddr) || neighbor2HopTuple.twoHopNeighborAddr != mPersonalAddress) {

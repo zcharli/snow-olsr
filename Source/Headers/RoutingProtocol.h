@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <map>
+#include <algorithm>
+#include <set>
 #include <stdint.h>
 #include <string>
 #include <memory>
@@ -82,6 +84,7 @@ private:
     void buildTCMessage();
 
     void updateMPRState();
+    void removeCoveredTwoHopNeighbor(IPv6Address, std::vector<TwoHopNeighborTuple>&);
     void populateTwoHopNeighborSet (const std::shared_ptr<OLSRMessage> &message, const HelloMessage &hello);
 
     void updateLinkTuple(LinkTuple*, uint8_t);
