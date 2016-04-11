@@ -18,7 +18,7 @@
 class OLSRState
 {
 private:
-    
+
 public:
     OLSRState();
     bool mIsMPR;
@@ -30,12 +30,6 @@ public:
     std::vector<TwoHopNeighborTuple>            mTwoHopNeighborSet;          ///< 2-hop Neighbor Set type.
     std::vector<TopologyTuple>                  mTopologySet;                ///< Topology Set type.
     std::vector<InterfaceAssociationTuple>      mInterfaceAssociationSet;    ///< Interface Association Set type.
-    
-    //RoutingTable(RoutingTable&);
-    void makeMPR();
-
-    //void operator=(RoutingTable&);
-    
 
     // getter:
     std::vector<MprSelectorTuple>& getMprSelectors ()             { return mMprSelectorSet;            }

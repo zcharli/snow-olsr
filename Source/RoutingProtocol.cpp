@@ -333,20 +333,21 @@ void RoutingProtocol::updateMPRState() {
         }
         // By now we have filtered the redundant neighbors.
         // (my neight has a 2h neighbor that is also another one of my neighbors)
-        if(filter2hop) {
+        if (filter2hop) {
             N2.push_back(*it);
         }
     }
+    std::cout << "Our N2 set is " << N2.size() << std::endl;
     //    The proposed MPR heuristic is as follows:
     //      1    Start with an MPR set made of all members of N with
     //           N_willingness equal to WILL_ALWAYS
-    for(std::vector<NeighborTuple>::iterator it = N.begin(); it != N.end(); it++) {
-        if(it->willingness == W_WILL_ALWAYS) {
+    for (std::vector<NeighborTuple>::iterator it = N.begin(); it != N.end(); it++) {
+        if (it->willingness == W_WILL_ALWAYS) {
             vMPRs.insert(it->neighborMainAddr);
-            removeCoveredTwoHopNeighbor(it_>neighborMainAddr, N2);
+            // Remove the two hop neightbors reachable by MPR from nodes in N2
+            removeCoveredTwoHopNeighbor(it->neighborMainAddr, N2);
         }
     }
-
     //      2    Calculate D(y), where y is a member of N, for all nodes in N.
 
     //      3    Add to the MPR set those nodes in N, which are the *only*
@@ -354,22 +355,113 @@ void RoutingProtocol::updateMPRState() {
     //           if node b in N2 can be reached only through a symmetric link
     //           to node a in N, then add node a to the MPR set.  Remove the
     //           nodes from N2 which are now covered by a node in the MPR set.
-
+    std::set<IPv6Address> vCoveredTwoHopNeighbors;
+    for (std::vector<TwoHopNeighborTuple>::iterator twoHopNeigh = N2.begin();
+            twoHopNeigh != N2.end(); twoHopNeigh++) {
+        bool reachableThruOneIntermediary = true;
+        for (std::vector<TwoHopNeighborTuple>::iterator otherTwoHopNeigh = N2.begin();
+                otherTwoHopNeigh != N2.end(); otherTwoHopNeigh++) {
+            if (twoHopNeigh->twoHopNeighborAddr == otherTwoHopNeigh->twoHopNeighborAddr &&
+                    twoHopNeigh->neighborMainAddr != otherTwoHopNeigh->neighborMainAddr) {
+                reachableThruOneIntermediary = false;
+            }
+        }
+        if (reachableThruOneIntermediary) {
+            PRINTLN(Added a neighbor of N2 as MPR)
+            vMPRs.insert(twoHopNeigh->neighborMainAddr);
+            // Find all two hop neightbors of the MPR so we can remove them later
+            // because they are already covered by this MPR
+            for (std::vector<TwoHopNeighborTuple>::iterator otherNeighs = N2.begin();
+                    otherNeighs != N2.end(); otherNeighs++) {
+                if (otherNeighs->neighborMainAddr == twoHopNeigh->neighborMainAddr) {
+                    vCoveredTwoHopNeighbors.insert(otherNeighs->neighborMainAddr);
+                }
+            }
+        }
+    }
+    // Perform the removal of the covered neighbors
+    for (std::vector<TwoHopNeighborTuple>::iterator it = N2.begin(); it != N2.end(); ) {
+        if (vCoveredTwoHopNeighbors.find(it->twoHopNeighborAddr) != vCoveredTwoHopNeighbors.end()) {
+            N2.erase(it);
+            PRINTLN(Removed a 2 hop neighbor that was already covered by the mpr we just selected)
+        } else {
+            it++;
+        }
+    }
     //      4    While there exist nodes in N2 which are not covered by at
     //           least one node in the MPR set:
-    //           4.1  For each node in N, calculate the reachability, i.e., the
-    //                number of nodes in N2 which are not yet covered by at
-    //                least one node in the MPR set, and which are reachable
-    //                through this 1-hop neighbor;
+    while (N2.begin() != N2.end()) {
+        //           4.1  For each node in N, calculate the reachability, i.e., the
+        //                number of nodes in N2 which are not yet covered by at
+        //                least one node in the MPR set, and which are reachable
+        //                through this 1-hop neighbor;
+        std::map<int, std::vector<NeighborTuple*>> vNeighborRechability;
+        std::set<int> vNeighborRechabilityKeys;
+        for (std::vector<NeighborTuple>::iterator it = N.begin();
+                it != N.end(); it++) {
+            int key = 0;
+            for (std::vector<TwoHopNeighborTuple>::iterator it2hop = N2.begin();
+                    it2hop != N2.end(); it2hop++) {
+                if (it->neighborMainAddr == it2hop->neighborMainAddr) {
+                    key++;
+                    PRINTLN(Found a node reachable node when calculate its reachability)
+                }
+            }
+            vNeighborRechabilityKeys.insert(key);
+            vNeighborRechability[key].push_back(&(*it));
+        }
+        //           4.2  Select as a MPR the node with highest N_willingness among
+        //                the nodes in N with non-zero reachability.  In case of
+        //                multiple choice select the node which provides
+        //                reachability to the maximum number of nodes in N2.  In
+        //                case of multiple nodes providing the same amount of
+        //                reachability, select the node as MPR whose D(y) is
+        //                greater.  Remove the nodes from N2 which are now covered
+        //                by a node in the MPR set.
+        NeighborTuple *vMaxRechabilityNeighbor = NULL;
+        int vMaxRechabilityKey = 0;
+        for (std::set<int>::iterator it = vNeighborRechabilityKeys.begin();
+                it != vNeighborRechabilityKeys.end (); it++) {
+            int key = *it;
+            if (key == 0) {
+                continue;
+            }
+            for (std::vector<NeighborTuple*>::iterator it2 = vNeighborRechability[key].begin ();
+                    it2 != vNeighborRechability[key].end (); it2++) {
+                NeighborTuple *vNeighbor = *it2;
+                if (vMaxRechabilityNeighbor == NULL || vNeighbor->willingness > vMaxRechabilityNeighbor->willingness) {
+                    vMaxRechabilityNeighbor = vNeighbor;
+                    vMaxRechabilityKey = key;
+                }
+                else if (vNeighbor->willingness == vMaxRechabilityNeighbor->willingness) {
+                    if (key > vMaxRechabilityKey) {
+                        vMaxRechabilityNeighbor = vNeighbor;
+                        vMaxRechabilityKey = key;
+                    }
+                    else if (key == vMaxRechabilityKey) {
+                        if (calculateNodeDegree(*vNeighbor) > calculateNodeDegree (*vMaxRechabilityNeighbor)) {
+                            vMaxRechabilityNeighbor = vNeighbor;
+                            vMaxRechabilityKey = key;
+                        }
+                    }
+                }
+            }
+        }
 
-    //           4.2  Select as a MPR the node with highest N_willingness among
-    //                the nodes in N with non-zero reachability.  In case of
-    //                multiple choice select the node which provides
-    //                reachability to the maximum number of nodes in N2.  In
-    //                case of multiple nodes providing the same amount of
-    //                reachability, select the node as MPR whose D(y) is
-    //                greater.  Remove the nodes from N2 which are now covered
-    //                by a node in the MPR set.
+        if (vMaxRechabilityNeighbor != NULL) {
+            vMPRs.insert (vMaxRechabilityNeighbor->neighborMainAddr);
+            for (std::vector<TwoHopNeighborTuple>::iterator twoHopNeigh = N2.begin ();
+                    twoHopNeigh != N2.end (); ) {
+                if (twoHopNeigh->neighborMainAddr == vMaxRechabilityNeighbor->neighborMainAddr) {
+                    twoHopNeigh = N2.erase (twoHopNeigh);
+                }
+                else {
+                    twoHopNeigh++;
+                }
+            }
+        }
+    }
+    PRINTLN(Finish selecting MPR for reachable 2 hop neighbors)
 
     //      5    A node's MPR set is generated from the union of the MPR sets
     //           for each interface.  As an optimization, process each node, y,
@@ -378,34 +470,24 @@ void RoutingProtocol::updateMPRState() {
     //           set excluding node y, and if N_willingness of node y is
     //           smaller than WILL_ALWAYS, then node y MAY be removed from the
     //           MPR set.
-
-    //    Other algorithms, as well as improvements over this algorithm, are
-    //    possible.  For example, assume that in a multiple-interface scenario
-    //    there exists more than one link between nodes 'a' and 'b'.  If node
-    //    'a' has selected node 'b' as MPR for one of its interfaces, then node
-    //    'b' can be selected as MPR without additional performance loss by any
-    //    other interfaces on node 'a'.
-
-    // 8.4.  Populating the MPR Selector Set
-
-    //    The MPR selector set of a node, n, is populated by the main addresses
-    //    of the nodes which have selected n as MPR.  MPR selection is signaled
-    //    through HELLO messages.
-
+    mMtxMprUpdate.lock();
+    mState.setMprSet(vMPRs);
+    mMtxMprUpdate.unlock();
 }
 
 void RoutingProtocol::removeCoveredTwoHopNeighbor(IPv6Address addr, std::vector<TwoHopNeighborTuple>& twoHopNeighbors) {
     // This function will remove all the two hop neighbors that have been covered by an MPR
     std::set<IPv6Address> uniqueRemovals;
-    for(std::vector<TwoHopNeighborTuple>::iterator it=twoHopNeighbors.begin();
+    for (std::vector<TwoHopNeighborTuple>::iterator it = twoHopNeighbors.begin();
             it != twoHopNeighbors.end(); it++) {
-        if(it->neighborMainAddr == addr) {
+        if (it->neighborMainAddr == addr) {
             uniqueRemovals.insert(it->neighborMainAddr);
         }
     }
-    for(std::vector<TwoHopNeighborTuple>::iterator it=twoHopNeighbors.begin();
+    for (std::vector<TwoHopNeighborTuple>::iterator it = twoHopNeighbors.begin();
             it != twoHopNeighbors.end();) {
-        if(uniqueRemovals.find(it->twoHopNeighborAddr) != uniqueRemovals.end()) {
+        if (uniqueRemovals.find(it->twoHopNeighborAddr) != uniqueRemovals.end()) {
+            PRINTLN(Found and removed a two hop neighbor that has been already covered)
             twoHopNeighbors.erase(it);
         } else {
             it++;
@@ -416,7 +498,6 @@ void RoutingProtocol::removeCoveredTwoHopNeighbor(IPv6Address addr, std::vector<
 void RoutingProtocol::setPersonalAddress(const IPv6Address& address) {
     mPersonalAddress.setAddressData(address.data);
 }
-
 
 void RoutingProtocol::routingTableComputation () {
     //  Routing Table Calculation reference to RFC 3626
@@ -447,7 +528,7 @@ void RoutingProtocol::routingTableComputation () {
                 const LinkTuple &linkTuple = *link_it;
                 //  L_time >= current time, a new routing entry is recorded in the routing table with:
                 if (linkTuple.symTime >= now &&
-                    linkTuple.neighborIfaceAddr == nbTuple.neighborMainAddr) {
+                        linkTuple.neighborIfaceAddr == nbTuple.neighborMainAddr) {
                     //              R_dest_addr     = L_neighbor_iface_add, of the associated link tuple;
                     //              R_next_addr     = L_neighbor_iface_addr, of the associated link tuple;
                     //              R_dist          = 1;
@@ -589,4 +670,26 @@ void RoutingProtocol::routingTableComputation () {
     //              R_dist          = R_dist        (of the recorded route entry)
     //              R_iface_addr    = R_iface_addr  (of the recoreded route entry)
     //  No needed to implement in our project
+}
+
+int RoutingProtocol::calculateNodeDegree (NeighborTuple& tuple)
+{
+    int degree = 0;
+    mMtxDegree.lock();
+    std::vector<TwoHopNeighborTuple> vTwoHopNeightbors = mState.getTwoHopNeighbors();
+    mMtxDegree.unlock();
+    for (std::vector<TwoHopNeighborTuple>::const_iterator it =  vTwoHopNeightbors.begin ();
+            it != vTwoHopNeightbors.end (); it++) {
+        TwoHopNeighborTuple const &vTwoHopNeighrborTuple = *it;
+        if (vTwoHopNeighrborTuple.neighborMainAddr == tuple.neighborMainAddr) {
+            mMtxDegree.lock();
+            NeighborTuple *vNeighbor =
+                mState.findNeighborTuple (vTwoHopNeighrborTuple.neighborMainAddr);
+            mMtxDegree.unlock();
+            if (vNeighbor == NULL) {
+                degree++;
+            }
+        }
+    }
+    return degree;
 }

@@ -71,7 +71,7 @@ private:
     TCMessage mTCStateRep;
     IPv6Address mPersonalAddress;
     boost::mutex mMtxState, mMtxLinkExpire, mMtxUpdateLinkTuple, mMtxRoutingTableCalc,
-                 mMtxMprUpdate;
+                 mMtxMprUpdate, mMtxDegree;
 
 
     /* Below is protocol controlling functions */
@@ -86,6 +86,7 @@ private:
     void updateMPRState();
     void removeCoveredTwoHopNeighbor(IPv6Address, std::vector<TwoHopNeighborTuple>&);
     void populateTwoHopNeighborSet (const std::shared_ptr<OLSRMessage> &message, const HelloMessage &hello);
+    int calculateNodeDegree(NeighborTuple &);
 
     void updateLinkTuple(LinkTuple*, uint8_t);
 

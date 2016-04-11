@@ -2,7 +2,6 @@
 
 OLSRState::OLSRState() {}
 
-
 /**
 *   Find MPR
 */
@@ -136,7 +135,7 @@ void OLSRState::insertNeighborTuple (const NeighborTuple &tuple)
 
 
 /**
-* Neighbor 2 Hop Set Manipulation 
+* Neighbor 2 Hop Set Manipulation
 */
 TwoHopNeighborTuple* OLSRState::findTwoHopNeighborTuple (const IPv6Address &neighborMainAddr, const IPv6Address &twoHopNeighborAddr)
 {
@@ -226,7 +225,7 @@ LinkTuple& OLSRState::insertLinkTuple (const LinkTuple &tuple)
 }
 
 /**
-* Topology Set Manipulation 
+* Topology Set Manipulation
 */
 TopologyTuple* OLSRState::findTopologyTuple (const IPv6Address &destAddr, const IPv6Address &lastAddr)
 {
@@ -274,7 +273,7 @@ void OLSRState::insertTopologyTuple (TopologyTuple const &tuple)
 }
 
 /**
-* Interface Association Set Manipulation 
+* Interface Association Set Manipulation
 */
 InterfaceAssociationTuple* OLSRState::findInterfaceAssociationTuple (const IPv6Address &ifaceAddr)
 {
