@@ -3,6 +3,10 @@
 TCMessage::TCMessage() {}
 TCMessage::~TCMessage() {}
 
+uint16_t TCMessage::getAnsn() {
+    return ansn;
+}
+
 std::vector<int> TCMessage::serialize() {
 	std::vector<int> output;
 	output.push_back(ansn);

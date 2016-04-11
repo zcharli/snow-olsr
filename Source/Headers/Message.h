@@ -11,7 +11,7 @@
 class Message
 {
 public:
-     // A suggestion, MessageHeader should go into the Message class
+    // A suggestion, MessageHeader should go into the Message class
     // since each message has a message header.
     // The MsgHeader is defined here, but used in Message.h/cpp
     // Discussion: I think MessageHeader would be more flexible as a struct
@@ -29,7 +29,6 @@ public:
         std::vector<int> message;
         std::vector<int> serialize();
     };
-
 
     Message();
     ~Message();

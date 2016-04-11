@@ -19,8 +19,6 @@ class OLSRState
 {
 private:
     
-    
-
 public:
     OLSRState();
     bool mIsMPR;

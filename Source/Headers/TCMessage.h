@@ -17,9 +17,12 @@ public:
 
 	std::vector<int> serialize();
 
+	
+	uint16_t getAnsn();
+	std::vector<IPv6Address> mNeighborAddresses;
+	
 private:
 	uint16_t ansn;
-	std::vector<IPv6Address> mNeighborAddresses;
 };
 
 #endif // TC_MESSAGE_H
