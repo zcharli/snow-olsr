@@ -68,7 +68,8 @@ private:
     HelloMessage mHelloStateRep;
     TCMessage mTCStateRep;
     IPv6Address mPersonalAddress;
-    boost::mutex mMtxState, mMtxLinkExpire, mMtxUpdateLinkTuple;
+    boost::mutex mMtxState, mMtxLinkExpire, mMtxUpdateLinkTuple, mMtxRoutingTableCalc,
+                 mMtxMprUpdate;
 
 
     /* Below is protocol controlling functions */

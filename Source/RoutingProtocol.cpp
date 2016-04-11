@@ -94,7 +94,7 @@ void RoutingProtocol::handleHelloMessage(HelloMessage& message, const IPv6Addres
                 }
             } else {
                 PRINTLN(Found a address in hello msg that was not supposed to be for us)
-            }
+                }
         }
     }
     // Will expire this link soon if asymTime is greater
@@ -117,7 +117,7 @@ void RoutingProtocol::handleHelloMessage(HelloMessage& message, const IPv6Addres
 }
 
 
-void RoutingProtocol::handleTCMessage(TCMessage& message, IPv6Address& senderHWAddr){
+void RoutingProtocol::handleTCMessage(TCMessage& message, IPv6Address& senderHWAddr) {
     // Double checked with RFC 3626 with TC message processing
     // Should follow the pattern of the handling tc message will be great due to mState is already implemented
     // Either discuss for change or keep in this pattern
@@ -149,23 +149,23 @@ void RoutingProtocol::handleTCMessage(TCMessage& message, IPv6Address& senderHWA
 
     //  4.  For each of the advertised neighbor main address received in the TC message:
     //  Process the advertised neighbors
-    for(std::vector<IPv6Address>::const_iterator it = message.mNeighborAddresses.begin(); it != message.mNeighborAddresses.end(); it++)
+    for (std::vector<IPv6Address>::const_iterator it = message.mNeighborAddresses.begin(); it != message.mNeighborAddresses.end(); it++)
     {
-    //      4.1 If there exist some tuple in the topology set where:
-    //                  T_dest_addr == advertised neighbor main address, AND
-    //                  T_last_addr == originator address,
-    //          then the holding time of that tuple MUST be set to:
-    //                  T_time      = current time + validity time.
-    //      4.2 Otherwise, a new tuple MUST be recorded in the topology set where:
-    //                  T_dest_addr = advertised neighbor main address,
-    //                  T_last_addr = originator address,
-    //                  T_seq       = ANSN,
-    //                  T_time      = current time + validity time
+        //      4.1 If there exist some tuple in the topology set where:
+        //                  T_dest_addr == advertised neighbor main address, AND
+        //                  T_last_addr == originator address,
+        //          then the holding time of that tuple MUST be set to:
+        //                  T_time      = current time + validity time.
+        //      4.2 Otherwise, a new tuple MUST be recorded in the topology set where:
+        //                  T_dest_addr = advertised neighbor main address,
+        //                  T_last_addr = originator address,
+        //                  T_seq       = ANSN,
+        //                  T_time      = current time + validity time
         const IPv6Address &addr = *it;
         vTopologyTuple = mState.findTopologyTuple(senderHWAddr, lastAddr);
-        if (vTopologyTuple != NULL){
+        if (vTopologyTuple != NULL) {
             vTopologyTuple->expirationTime = now + pt::seconds(T_NEIGHB_HOLD_TIME);
-        }else{
+        } else {
             TopologyTuple topologyTuple;
             topologyTuple.destAddr = addr;
             topologyTuple.lastAddr = lastAddr;
@@ -210,6 +210,7 @@ void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio
             mState.cleanMprSelectorTuples(vLinkTuple->neighborIfaceAddr);
             mMtxLinkExpire.unlock();
             // COMPUTE MPR HERE
+            updateMPRState();
             // COMPUTE ROUTING TABLE HERE
         }
         pt::time_duration expireTimer = vLinkTuple->expirationTime - now;
@@ -261,6 +262,128 @@ void RoutingProtocol::updateLinkTuple(LinkTuple* vLinkEdge, uint8_t willingness)
 }
 
 void RoutingProtocol::updateMPRState() {
+    // Based on RFC 3626 8.3.1.  MPR Computation
+    //    The following specifies a proposed heuristic for selection of MPRs.
+    //    It constructs an MPR-set that enables a node to reach any node in the
+    //    symmetrical strict 2-hop neighborhood through relaying by one MPR
+    //    node with willingness different from WILL_NEVER.  The heuristic MUST
+    //    be applied per interface, I.  The MPR set for a node is the union of
+    //    the MPR sets found for each interface.  The following terminology
+    //    will be used in describing the heuristics:
+
+    //        neighbor of an interface
+    //               a node is a "neighbor of an interface" if the interface
+    //               (on the local node) has a link to any one interface of
+    //               the neighbor node.
+    //        2-hop neighbors reachable from an interface
+    //               the list of 2-hop neighbors of the node that can be
+    //               reached from neighbors of this interface.
+    //
+    //        MPR set of an interface
+    //               a (sub)set of the neighbors of an interface with a
+    //               willingness different from WILL_NEVER, selected such that
+    //               through these selected nodes, all strict 2-hop neighbors
+    //               reachable from that interface are reachable.
+    std::set<IPv6Address> vMPRs;
+    //        N:
+    //               N is the subset of neighbors of the node, which are
+    //               neighbor of the interface I.
+    mMtxMprUpdate.lock();
+    std::vector<NeighborTuple> N = mState.getNeighbors();
+    //        N2:
+    //               The set of 2-hop neighbors reachable from the interface
+    //               I, excluding:
+    //                (i)   the nodes only reachable by members of N with
+    //                      willingness WILL_NEVER
+    //                (ii)  the node performing the computation
+    //                (iii) all the symmetric neighbors: the nodes for which
+    //                      there exists a symmetric link to this node on some
+    //                      interface.
+    std::vector<TwoHopNeighborTuple> vCurrentTwoHopNeighbors = mState.getTwoHopNeighbors();
+    mMtxMprUpdate.unlock();
+    std::vector<TwoHopNeighborTuple> N2;
+    for (std::vector<TwoHopNeighborTuple>::iterator it = vCurrentTwoHopNeighbors.begin();
+            it != vCurrentTwoHopNeighbors.end(); it++) {
+        // exclusing the node performing the computation
+        if (it->twoHopNeighborAddr == mPersonalAddress) {
+            continue;
+        }
+        //    excluding        (i)   the nodes only reachable by members of N with
+        //                      willingness WILL_NEVER
+        for (std::vector<NeighborTuple>::iterator neigh = N.begin(); neigh != N.end(); neigh++) {
+            if (neigh->neighborMainAddr == it->neighborMainAddr) {
+                if (neigh->willingness == W_WILL_NEVER) {
+                    continue;
+                } else {
+                    break;
+                }
+            }
+        }
+        //                (iii) all the symmetric neighbors: the nodes for which
+        //                      there exists a symmetric link to this node on some
+        //                      interface.
+        for (std::vector<NeighborTuple>::iterator neigh = N.begin(); neigh != N.end(); neigh++) {
+            if (neigh->neighborMainAddr == it->neighborMainAddr) {
+
+            }
+        }
+    }
+
+    //     D(y):
+    //               The degree of a 1-hop neighbor node y (where y is a
+    //               member of N), is defined as the number of symmetric
+    //               neighbors of node y, EXCLUDING all the members of N and
+    //               EXCLUDING the node performing the computation.
+
+    //    The proposed heuristic is as follows:
+
+    //      1    Start with an MPR set made of all members of N with
+    //           N_willingness equal to WILL_ALWAYS
+
+    //      2    Calculate D(y), where y is a member of N, for all nodes in N.
+
+    //      3    Add to the MPR set those nodes in N, which are the *only*
+    //           nodes to provide reachability to a node in N2.  For example,
+    //           if node b in N2 can be reached only through a symmetric link
+    //           to node a in N, then add node a to the MPR set.  Remove the
+    //           nodes from N2 which are now covered by a node in the MPR set.
+
+    //      4    While there exist nodes in N2 which are not covered by at
+    //           least one node in the MPR set:
+    //           4.1  For each node in N, calculate the reachability, i.e., the
+    //                number of nodes in N2 which are not yet covered by at
+    //                least one node in the MPR set, and which are reachable
+    //                through this 1-hop neighbor;
+
+    //           4.2  Select as a MPR the node with highest N_willingness among
+    //                the nodes in N with non-zero reachability.  In case of
+    //                multiple choice select the node which provides
+    //                reachability to the maximum number of nodes in N2.  In
+    //                case of multiple nodes providing the same amount of
+    //                reachability, select the node as MPR whose D(y) is
+    //                greater.  Remove the nodes from N2 which are now covered
+    //                by a node in the MPR set.
+
+    //      5    A node's MPR set is generated from the union of the MPR sets
+    //           for each interface.  As an optimization, process each node, y,
+    //           in the MPR set in increasing order of N_willingness.  If all
+    //           nodes in N2 are still covered by at least one node in the MPR
+    //           set excluding node y, and if N_willingness of node y is
+    //           smaller than WILL_ALWAYS, then node y MAY be removed from the
+    //           MPR set.
+
+    //    Other algorithms, as well as improvements over this algorithm, are
+    //    possible.  For example, assume that in a multiple-interface scenario
+    //    there exists more than one link between nodes 'a' and 'b'.  If node
+    //    'a' has selected node 'b' as MPR for one of its interfaces, then node
+    //    'b' can be selected as MPR without additional performance loss by any
+    //    other interfaces on node 'a'.
+
+    // 8.4.  Populating the MPR Selector Set
+
+    //    The MPR selector set of a node, n, is populated by the main addresses
+    //    of the nodes which have selected n as MPR.  MPR selection is signaled
+    //    through HELLO messages.
 
 }
 
@@ -269,7 +392,7 @@ void RoutingProtocol::setPersonalAddress(const IPv6Address& address) {
 }
 
 
-void RoutingProtocol::routingTableComputation (){
+void RoutingProtocol::routingTableComputation () {
     //  Routing Table Calculation reference to RFC 3626
     //  Procedure of calculate the routing table
     pt::ptime now = pt::second_clock::local_time();
@@ -278,26 +401,30 @@ void RoutingProtocol::routingTableComputation (){
     mTable.clear();
 
     //  2.  The new routing entries are added starting with the symmetric neighbors (h=1) as the destination nodes.
+    mMtxRoutingTableCalc.lock();
     std::vector<NeighborTuple> &neighborSet = mState.getNeighbors();
-    for(std::vector<NeighborTuple>::const_iterator it = neighborSet.begin(); it != neighborSet.end(); it++)
+    mMtxRoutingTableCalc.unlock();
+    for (std::vector<NeighborTuple>::const_iterator it = neighborSet.begin(); it != neighborSet.end(); it++)
     {
-    //  Thus, for each neighbor tuple in the neighbor set where:
-    //              N_status        = SYM
+        //  Thus, for each neighbor tuple in the neighbor set where:
+        //              N_status        = SYM
         const NeighborTuple &nbTuple = *it;
-        if (nbTuple.status == NeighborTuple::STATUS_SYM){
+        if (nbTuple.status == NeighborTuple::STATUS_SYM) {
 
-    //  (There is a symmetric link to the neighbor), and for each associated link tuple of the neighbor node such that
+            //  (There is a symmetric link to the neighbor), and for each associated link tuple of the neighbor node such that
             const LinkTuple *vLinkTuple = NULL;
+            mMtxRoutingTableCalc.lock();
             std::vector<LinkTuple> &linkTupleSet = mState.getLinks();
-            for(std::vector<LinkTuple>::const_iterator link_it = linkTupleSet.begin(); link_it != linkTupleSet.end(); link_it++)
+            mMtxRoutingTableCalc.unlock();
+            for (std::vector<LinkTuple>::const_iterator link_it = linkTupleSet.begin(); link_it != linkTupleSet.end(); link_it++)
             {
                 const LinkTuple &linkTuple = *link_it;
-    //  L_time >= current time, a new routing entry is recorded in the routing table with:
-                if (linkTuple.symTime >= now){
-    //              R_dest_addr     = L_neighbor_iface_add, of the associated link tuple;
-    //              R_next_addr     = L_neighbor_iface_addr, of the associated link tuple;
-    //              R_dist          = 1;
-    //              R_iface_addr    = L_local_iface_addr of the associated link tuple.
+                //  L_time >= current time, a new routing entry is recorded in the routing table with:
+                if (linkTuple.symTime >= now) {
+                    //              R_dest_addr     = L_neighbor_iface_add, of the associated link tuple;
+                    //              R_next_addr     = L_neighbor_iface_addr, of the associated link tuple;
+                    //              R_dist          = 1;
+                    //              R_iface_addr    = L_local_iface_addr of the associated link tuple.
                     vLinkTuple = &linkTuple;
                     IPv6Address dest = linkTuple.neighborIfaceAddr;
                     IPv6Address next = linkTuple.neighborIfaceAddr;
@@ -307,13 +434,13 @@ void RoutingProtocol::routingTableComputation (){
                     entry.destAddr = dest;
                     entry.nextAddr = next;
                     entry.distance = dist;
-    //  If in the above, no R_dest_addr is euqal to the main address of the neighbor, then another new routing entry
-    //  with MUST be added, with:
-                    if (linkTuple.neighborIfaceAddr != nbTuple.neighborMainAddr){
-    //              R_dest_addr     = main address of the neighbor;
-    //              R_next_addr     = L_neighbor_iface_addr of one of the associated link tuple with L_time >= current time;
-    //              R_dist          = 1;
-    //              R_iface_addr    = L_local_ifcace_addr of the associated link tuple.
+                    //  If in the above, no R_dest_addr is euqal to the main address of the neighbor, then another new routing entry
+                    //  with MUST be added, with:
+                    if (linkTuple.neighborIfaceAddr != nbTuple.neighborMainAddr) {
+                        //              R_dest_addr     = main address of the neighbor;
+                        //              R_next_addr     = L_neighbor_iface_addr of one of the associated link tuple with L_time >= current time;
+                        //              R_dist          = 1;
+                        //              R_iface_addr    = L_local_ifcace_addr of the associated link tuple.
                         dest = nbTuple.neighborMainAddr;
                         next = nbTuple.neighborMainAddr;
 
@@ -332,9 +459,9 @@ void RoutingProtocol::routingTableComputation (){
     for (std::vector<TwoHopNeighborTuple>::const_iterator twoHopNb_it = twoHopeNeighbors.begin(); twoHopNb_it != twoHopeNeighbors.end(); twoHopNb_it++)
     {
         const TwoHopNeighborTuple &neighbor2HopTuple = *twoHopNb_it;
-        if (!mState.findNeighborTuple(neighbor2HopTuple.twoHopNeighborAddr) || neighbor2HopTuple.twoHopNeighborAddr != mPersonalAddress){
-    //  exist at least one entry in the 2-hop neighbor set where N_neighbor_main_addr correspond to a neighbor node with 
-    //  willingness different of WILL_NEVER, one selects one 2-hop tuple and creates one entry in the routing table with:
+        if (!mState.findNeighborTuple(neighbor2HopTuple.twoHopNeighborAddr) || neighbor2HopTuple.twoHopNeighborAddr != mPersonalAddress) {
+            //  exist at least one entry in the 2-hop neighbor set where N_neighbor_main_addr correspond to a neighbor node with
+            //  willingness different of WILL_NEVER, one selects one 2-hop tuple and creates one entry in the routing table with:
             bool nb2hopOk = false;
             const std::vector<NeighborTuple> &neighborSet = mState.getNeighbors();
             for (std::vector<NeighborTuple>::const_iterator neighbor_it = neighborSet.begin(); neighbor_it != neighborSet.end(); neighbor_it++)
@@ -346,19 +473,19 @@ void RoutingProtocol::routingTableComputation (){
                 }
             }
 
-            if (nb2hopOk){
+            if (nb2hopOk) {
                 RoutingTableEntry findEntry;
                 IPv6Address destAddr = neighbor2HopTuple.neighborMainAddr;
                 IPv6Address nextAddr = neighbor2HopTuple.twoHopNeighborAddr;
                 std::map<IPv6Address, RoutingTableEntry>::const_iterator entry_it = mTable.find(destAddr);
                 if (entry_it != mTable.end())
                 {
-    //              R_dest_addr     = the main address of the 2-hop neighbor;
-    //              R_next_addr     = the R_next_addr of the entry in the routing table with:
-    //                                  R_dest_addr     == N_neighbor_main_addr of the 2-hop tuple;
-    //              R_dist          = 2;
-    //              R_iface_addr    = the R_iface_addr of the entry in the routing table with:
-    //                                  R_dest_addr      == N_neighbor_main_addr of the 2-hop tuple;
+                    //              R_dest_addr     = the main address of the 2-hop neighbor;
+                    //              R_next_addr     = the R_next_addr of the entry in the routing table with:
+                    //                                  R_dest_addr     == N_neighbor_main_addr of the 2-hop tuple;
+                    //              R_dist          = 2;
+                    //              R_iface_addr    = the R_iface_addr of the entry in the routing table with:
+                    //                                  R_dest_addr      == N_neighbor_main_addr of the 2-hop tuple;
                     findEntry = entry_it->second;
                     RoutingTableEntry &entry = mTable[destAddr];
                     entry.destAddr = nextAddr;
@@ -371,55 +498,55 @@ void RoutingProtocol::routingTableComputation (){
 
     for (uint32_t h = 2; ; h++)
     {
-    //  The new route entries for the destiona nodes h+1 hops away are recoreded in the routing table. The following procedure
-    //  MUST be executed for each value of h, starting with h=2 and incrementing it by 1 each time. The execution will stop if
-    //  no new entry is recorded in an iteration.        
+        //  The new route entries for the destiona nodes h+1 hops away are recoreded in the routing table. The following procedure
+        //  MUST be executed for each value of h, starting with h=2 and incrementing it by 1 each time. The execution will stop if
+        //  no new entry is recorded in an iteration.
         bool added = false;
         const std::vector<TopologyTuple> &topology = mState.getTopologySet();
         for (std::vector<TopologyTuple>::const_iterator it = topology.begin(); it != topology.end(); it++)
         {
             const TopologyTuple &topologyTuple = *it;
-    //      3.1 For each topology entry in the topology table, if its T_dest_addr does not correspond to R_dest_addr of any 
-    //      route entry in th routing table AND its T_last_addr corresponds to R_dest_addr of a route entry whose R_dist is
-    //      equal to h, then a new route entry MUST be recoreded in the routing table (if it does not already  exist) where:
+            //      3.1 For each topology entry in the topology table, if its T_dest_addr does not correspond to R_dest_addr of any
+            //      route entry in th routing table AND its T_last_addr corresponds to R_dest_addr of a route entry whose R_dist is
+            //      equal to h, then a new route entry MUST be recoreded in the routing table (if it does not already  exist) where:
             RoutingTableEntry destAddrEntry, lastAddrEntry;
             IPv6Address destAddr = topologyTuple.destAddr;
             IPv6Address lastAddr = topologyTuple.lastAddr;
             std::map<IPv6Address, RoutingTableEntry>::const_iterator entry_it = mTable.find(destAddr);
             bool foundDestAddrEntry = false;
             bool foundLastAddrEntry = false;
-            if (entry_it != mTable.end()){
+            if (entry_it != mTable.end()) {
                 destAddrEntry = entry_it->second;
                 foundDestAddrEntry = true;
             }
             entry_it = mTable.find(lastAddr);
-            if (entry_it != mTable.end()){
+            if (entry_it != mTable.end()) {
                 lastAddrEntry = entry_it->second;
                 foundLastAddrEntry = true;
             }
 
-            if(!foundDestAddrEntry && foundLastAddrEntry)
+            if (!foundDestAddrEntry && foundLastAddrEntry)
             {
                 if (lastAddrEntry.distance == h)
-                {                    
-    //              R_dest_addr     = T_dest_addr;
-    //              R_next_addr     = R_next_addr of the recorded route entry where:
-    //                                  R_dest_addr     == T_last_addr
-    //              R_dist          = h+1; and
-    //              R_iface_addr    = R_iface_addr of the recored route entry where:
-    //                                  R_dest_addr == T_last_addr.
+                {
+                    //              R_dest_addr     = T_dest_addr;
+                    //              R_next_addr     = R_next_addr of the recorded route entry where:
+                    //                                  R_dest_addr     == T_last_addr
+                    //              R_dist          = h+1; and
+                    //              R_iface_addr    = R_iface_addr of the recored route entry where:
+                    //                                  R_dest_addr == T_last_addr.
                     RoutingTableEntry &entry = mTable[lastAddr];
                     entry.destAddr = topologyTuple.destAddr;
                     entry.nextAddr = lastAddrEntry.nextAddr;
-                    entry.distance = h+1;      
-                    added = true;              
+                    entry.distance = h + 1;
+                    added = true;
                 }
             }
         }
 
-    //      3.2 Serveral topology entries may be used to select a next hop R_next_addr for reaching the node R_dest_addr. 
-    //      When h=1, ties should be broken such that nodes with highest willingness and MPR selectors are preferred as next hop.
-        if (!added){
+        //      3.2 Serveral topology entries may be used to select a next hop R_next_addr for reaching the node R_dest_addr.
+        //      When h=1, ties should be broken such that nodes with highest willingness and MPR selectors are preferred as next hop.
+        if (!added) {
             break;
         }
 
