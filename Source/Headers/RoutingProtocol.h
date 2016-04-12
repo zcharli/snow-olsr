@@ -24,8 +24,6 @@
 #include "OLSRMessage.h"
 #include "IPv6Address.h"
 
-//using namespace std;
-
 namespace pt = boost::posix_time;
 
 struct RoutingTableEntry
@@ -56,6 +54,10 @@ public:
     void mprComputation ();
 
     // routing table computation should be called after handle TC message
+    HelloMessage getHello();
+    TCMessage getTC();
+
+    // routing table computation should be done after handle TC message
     void routingTableComputation ();
 
     void setPersonalAddress(const IPv6Address& addr);

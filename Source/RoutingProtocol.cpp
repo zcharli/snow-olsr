@@ -24,6 +24,27 @@ void RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> message) {
     }
 }
 
+
+HelloMessage RoutingProtocol::getHello() {
+    std::vector<NeighborTuple> neighbors = mState.getNeighbors();
+    HelloMessage output;
+    
+    for (auto& n : neighbors)
+        output.mLinkMessages.front().push_back(n.neighborMainAddr);
+
+    return output;
+}
+
+TCMessage RoutingProtocol::getTC() {
+    std::vector<NeighborTuple> neighbors = mState.getNeighbors();
+    TCMessage output;
+    
+    for (auto& n : neighbors)
+        output.mNeighborAddresses.push_back(n.neighborMainAddr);
+
+    return output;
+}
+
 void RoutingProtocol::handleHelloMessage(HelloMessage& message, const IPv6Address& senderHWAddr, unsigned char vtime) {
     std::cout << "RoutingProtocol::handleHelloMessage: Process hello message and update state" << std::endl;
     mMtxState.lock();
