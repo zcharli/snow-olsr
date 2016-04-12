@@ -1,10 +1,14 @@
 #include "Headers/OLSRMessage.h"
 
-OLSRMessage::OLSRMessage() {}
+OLSRMessage::OLSRMessage() : mSerializedData(NULL) {}
 OLSRMessage::OLSRMessage(std::shared_ptr<Packet> packet)
     : mSenderHWAddr(packet->getSource()), mRecvedHWAddr(packet->getMyAddress()) {
     IPv6Address destination(packet->getDestination());
-    deserializePacketBuffer(packet);
+    deserializePacketBuffer(packet->getBuffer());
+}
+OLSRMessage::OLSRMessage(char* buffer) : mSerializedData(NULL) {
+
+    deserializePacketBuffer(buffer);
 }
 
 OLSRMessage::~OLSRMessage() {
@@ -19,9 +23,10 @@ OLSRMessage& OLSRMessage::serialize() {
     }
     mPacketLength = 4;
 
-    for (auto& msg : messages) {
-        msg.serialize();
-        mPacketLength += msg.mSerializedDataSize;
+    for (auto* msg : messages) {
+        msg->serialize();
+        mPacketLength += msg->mSerializedDataSize;
+        std::cout << "Serialized a ms with datasize " << msg->mSerializedDataSize << std::endl;
     }
 
     mSerializedData = new char[mPacketLength];
@@ -36,9 +41,9 @@ OLSRMessage& OLSRMessage::serialize() {
     vCurrentIndex += 2;
 
     // The messages
-    for (auto& msg : messages) {
-        memcpy ( mSerializedData + vCurrentIndex, msg.mSerializedData, msg.mSerializedDataSize);
-        vCurrentIndex += msg.mSerializedDataSize;
+    for (auto* msg : messages) {
+        memcpy ( mSerializedData + vCurrentIndex, msg->mSerializedData, msg->mSerializedDataSize);
+        vCurrentIndex += msg->mSerializedDataSize;
     }
 
     return *this;
@@ -48,8 +53,7 @@ char* OLSRMessage::getData() {
     return mSerializedData;
 }
 
-void OLSRMessage::deserializePacketBuffer(std::shared_ptr<Packet> packet) {
-    char* vBuffer = packet->getBuffer();
+void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
 
     // Packet Length
     mPacketLength = ntohs((*(uint16_t*) vBuffer));
@@ -68,9 +72,10 @@ void OLSRMessage::deserializePacketBuffer(std::shared_ptr<Packet> packet) {
         case M_HELLO_MESSAGE:
         {
             // Reach for the message size
-            uint16_t vMessageSize = (*(uint16_t*) (vBuffer + 2)) + HELLO_MSG_HEADER;
-            char* vHelloMessageBuffer = new char[HELLO_MSG_HEADER];
-            memcpy ( vHelloMessageBuffer, vBuffer, vMessageSize );
+            uint16_t vMessageSize = ntohs(*(uint16_t*) (vBuffer + 2));
+            vMessageSize += HELLO_MSG_HEADER;
+            char* vHelloMessageBuffer = new char[vMessageSize];
+            memcpy ( vHelloMessageBuffer, vBuffer, vMessageSize);
             HelloMessage vHelloMessage(vHelloMessageBuffer);
             vBytesLeftToProccess -= vMessageSize;
             delete [] vHelloMessageBuffer;

@@ -1,11 +1,16 @@
 #include "Headers/Message.h"
 
-Message::Message() {}
+Message::Message() : mSerializedData(NULL), mOriginatorAddress(NULL) {
+}
 
-Message::~Message() {}
+Message::~Message() {
+    if (mSerializedData != NULL) {
+        delete [] mSerializedData;
+    }
+}
 
 std::shared_ptr<IPv6Address> Message::getOriginatorAddress() {
-    if(mOriginatorAddress != NULL) {
+    if (mOriginatorAddress != NULL) {
         return mOriginatorAddress;
     }
     std::cout << "Implementation for getOriginatorAddress missing" << std::endl;
@@ -16,7 +21,7 @@ unsigned char Message::getType() {
     return type;
 }
 
-int Message::getSize(){
+int Message::getSize() {
     return size;
 }
 
@@ -41,5 +46,9 @@ int Message::MessageHeader::copyConstructor(Message& msg) {
     return 0;
 }
 
-void Message::serialize() {}
-void Message::deserialize(char* buffer) {}
+void Message::serialize() {
+    PRINTLN(Dam im the base class)
+}
+void Message::deserialize(char* buffer) {
+        PRINTLN(Dam im the base class)
+}

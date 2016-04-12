@@ -19,7 +19,7 @@ Packet::~Packet() {
     delete mDestination;
     if(mAddress != NULL)
         delete mAddress;
-    // delete mBuffer;
+    delete mBuffer;
 }
 
 char* Packet::getSource(){

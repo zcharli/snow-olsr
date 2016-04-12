@@ -23,15 +23,16 @@ public:
     HelloMessage(char*);
     ~HelloMessage();
 
-    void serialize();
-    void deserialize(char*);
+    virtual void serialize();
+    virtual void deserialize(char*);
     uint8_t getWillingness();
     std::vector<LinkMessage> mLinkMessages;
 	std::vector<LinkMessage> getLinkMessages() const;
     uint8_t htime;
+    uint8_t willingness;
 
 private:
-    uint8_t willingness;
+
 };
 
 #endif // HELLO_MESSAGE_H

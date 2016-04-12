@@ -15,8 +15,8 @@ public:
     TCMessage(char*);
 	~TCMessage();
 
-	void serialize();
-    void deserialize(char*);
+	virtual void serialize();
+    virtual void deserialize(char*);
 
 	uint16_t getAnsn();
 	std::vector<IPv6Address> mNeighborAddresses;

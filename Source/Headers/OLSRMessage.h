@@ -21,18 +21,19 @@ class OLSRMessage
 public:
     OLSRMessage(std::shared_ptr<Packet> message);
     OLSRMessage();
+    OLSRMessage(char*);
     ~OLSRMessage();
 
     OLSRMessage& serialize();
     OLSRMessage& deserialize();
     char* getData();
 
-    std::vector<Message> messages;
+    std::vector<Message*> messages;
     IPv6Address mSenderHWAddr; // The last hop sender addr from, may NOT be the originating addr
     IPv6Address mRecvedHWAddr; // The Interface addr receieved from (we only have 1 as of now)
 
 private:
-    void deserializePacketBuffer(std::shared_ptr<Packet> message);
+    void deserializePacketBuffer(char*);
     char* mSerializedData;
     // Unique OLSRPacket Attributes
     uint16_t mPacketLength;

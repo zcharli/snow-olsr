@@ -65,7 +65,10 @@ public:
     //void SetMainInterface (uint32_t interface);
 
 private:
-    RoutingProtocol () {};
+    RoutingProtocol () {
+        mHelloSequenceNumber = 0;
+        mTCSequenceNumber = 0;
+    };
     /// Internal state with all needed data structs.
     std::map<IPv6Address, RoutingTableEntry> mTable;
     OLSRState mState;
@@ -73,8 +76,10 @@ private:
     TCMessage mTCStateRep;
     IPv6Address mPersonalAddress;
     boost::mutex mMtxState, mMtxLinkExpire, mMtxUpdateLinkTuple, mMtxRoutingTableCalc,
-                 mMtxMprUpdate, mMtxDegree, mMtxGetHello;
+                 mMtxMprUpdate, mMtxDegree, mMtxGetHello, mMtxGetTc;
 
+    int mHelloSequenceNumber;
+    int mTCSequenceNumber;
 
     /* Below is protocol controlling functions */
     void handleHelloMessage(HelloMessage&, const IPv6Address&, unsigned char);

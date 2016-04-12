@@ -6,7 +6,9 @@ NetworkTrafficManager::NetworkTrafficManager(std::string interface)
     mSendSocket = std::make_shared<WLAN>(mWirelessInterfaceName);
 
 }
-NetworkTrafficManager::~NetworkTrafficManager() { }
+NetworkTrafficManager::~NetworkTrafficManager() {
+    delete mSemConsumer;
+}
 
 void NetworkTrafficManager::init() {
     mListener = std::make_unique<NetworkPacketListener>(mWirelessInterfaceName, *this);

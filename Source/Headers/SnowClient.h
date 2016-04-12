@@ -3,6 +3,7 @@
 
 //#include <boost/asio.hpp>
 #include <string>
+#include <stdint.h>
 #include <iostream>
 #include <memory>
 #include <list>

@@ -1,13 +1,13 @@
 #include "Headers/HelloMessage.h"
 
-HelloMessage::HelloMessage() {}
+HelloMessage::HelloMessage() {
+    mMessageHeader.type = M_HELLO_MESSAGE;
+}
 HelloMessage::~HelloMessage() {
-    if (mSerializedData != NULL) {
-        delete [] mSerializedData;
-    }
 }
 
 HelloMessage::HelloMessage(char* buffer) {
+    mMessageHeader.type = M_HELLO_MESSAGE;
     deserialize(buffer);
 }
 
@@ -24,6 +24,7 @@ void HelloMessage::deserialize(char* buffer) {
     // MsgType
     mMessageHeader.type = (*(uint8_t*) buffer);
     buffer++;
+    type = mMessageHeader.type;
 
     // VTime
     mMessageHeader.vtime = (*(uint8_t*) buffer);
@@ -33,10 +34,12 @@ void HelloMessage::deserialize(char* buffer) {
     mMessageHeader.messageSize = ntohs((*(uint16_t*) buffer));
     buffer += 2;
     int vTotalMsgSize = mMessageHeader.messageSize - 4;
+    size = vTotalMsgSize;
 
     // Originator address
     memcpy(mMessageHeader.originatorAddress, buffer, WLAN_ADDR_LEN);
     buffer += WLAN_ADDR_LEN;
+    mOriginatorAddress = std::make_shared<IPv6Address>(mMessageHeader.originatorAddress);
 
     // Time to Live
     mMessageHeader.timeToLive = (*(uint8_t*) buffer);
@@ -63,8 +66,8 @@ void HelloMessage::deserialize(char* buffer) {
     // Willingness
     willingness = (*(uint8_t*) buffer);
     buffer++;
-    while(vTotalMsgSize > 0) {
-           // Link code
+    while (vTotalMsgSize > 0) {
+        // Link code
         uint8_t vAdvertisedNeightborLinkCode = (*(uint8_t*) buffer);
         buffer++;
         vTotalMsgSize--;
@@ -82,7 +85,7 @@ void HelloMessage::deserialize(char* buffer) {
         int vNumLinks = vLinkMessageSize / WLAN_ADDR_LEN;
         LinkMessage vLink;
         vLink.linkCode = vAdvertisedNeightborLinkCode;
-        while(vNumLinks--) {
+        while (vNumLinks--) {
             char* vAdvertisedNeighborInterfaceAddrBuffer = new char[WLAN_ADDR_LEN];
             memcpy(vAdvertisedNeighborInterfaceAddrBuffer, buffer, WLAN_ADDR_LEN);
             IPv6Address vAdvertisedNeighborInterfaceAddr(vAdvertisedNeighborInterfaceAddrBuffer);
@@ -117,6 +120,9 @@ void HelloMessage::serialize() {
 
     // MessageSize
     *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(mSerializedDataSize - HELLO_MSG_HEADER); // 22 is header size
+    // Test
+    uint16_t test = ntohs((*(uint16_t*) (mSerializedData + vCurrentIndex)));
+    std::cout << test << std::endl;
     vCurrentIndex += 2;
 
     // Originator address
@@ -126,7 +132,7 @@ void HelloMessage::serialize() {
     // Time to Live (Decremented!)
     if (mMessageHeader.timeToLive - 1 == 0) {
         PRINTLN(Time to live for this Hello message is zero so requires attention)
-        }
+    }
     mSerializedData[vCurrentIndex++] = mMessageHeader.timeToLive - 1;
 
     // Hop Count
@@ -147,8 +153,9 @@ void HelloMessage::serialize() {
     // Willingness
     mSerializedData[vCurrentIndex++]  = willingness;
 
-    for (auto& msg : mLinkMessages) {
+    for (HelloMessage::LinkMessage& msg : mLinkMessages) {
         // Link code
+        PRINTLN(Seralized a link message)
         *(mSerializedData + vCurrentIndex) = msg.linkCode;
         vCurrentIndex++;
 

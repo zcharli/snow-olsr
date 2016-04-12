@@ -6,6 +6,8 @@
 #include <memory>
 #include "IPv6Address.h"
 #include "Resources/Constants.h"
+#include "Resources/Helpers.h"
+
 
 class Message
 {
@@ -40,8 +42,6 @@ public:
     std::shared_ptr<IPv6Address> getOriginatorAddress();
     int mSerializedDataSize;
     char* mSerializedData;
-
-private:
     std::shared_ptr<IPv6Address> mOriginatorAddress;
     unsigned char type;
     int size;

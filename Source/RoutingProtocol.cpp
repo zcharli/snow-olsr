@@ -3,16 +3,16 @@
 void RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> message) {
     std::cout << "RoutingProtocol::updateState: Receive the mssage" << std::endl;
     // Here we want to hand
-    for (std::vector<Message>::iterator it = message->messages.begin();
+    for (std::vector<Message*>::iterator it = message->messages.begin();
             it != message->messages.end(); it++) {
-        switch (it->getType()) {
+        switch ((*it)->getType()) {
         case M_HELLO_MESSAGE :
             // Dereferenced HelloMsg from the address of the dereference iterator msg
-            handleHelloMessage(*((HelloMessage*) & (*it)), message->mSenderHWAddr, it->getVTime());
+            handleHelloMessage(*((HelloMessage*) & (**it)), message->mSenderHWAddr, (*it)->getVTime());
             break;
         case M_TC_MESSAGE:
             // Handle a TC
-            handleTCMessage(*((TCMessage*) & (*it)), message->mSenderHWAddr);
+            handleTCMessage(*((TCMessage*) & (**it)), message->mSenderHWAddr);
             break;
         case M_MID_MESSAGE:
             // Not implemented
@@ -26,25 +26,85 @@ void RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> message) {
 
 
 HelloMessage RoutingProtocol::getHello() {
+    pt::ptime now = pt::second_clock::local_time();
     mMtxGetHello.lock();
     std::vector<NeighborTuple> neighbors = mState.getNeighbors();
+    std::vector<LinkTuple> mLinks = mState.getLinks();
     mMtxGetHello.unlock();
     HelloMessage output;
+    output.mMessageHeader.vtime = T_NEIGHB_HOLD_TIME;
+    // We can ommit message size as its calculated on serialization
+    // output.mMessageHeader.messageSize
+    memcpy(output.mMessageHeader.originatorAddress, mPersonalAddress.data, WLAN_ADDR_LEN);
+    output.mMessageHeader.timeToLive = 1;
+    output.mMessageHeader.hopCount = 0;
+    output.mMessageHeader.messageSequenceNumber = mHelloSequenceNumber++;
+    mHelloSequenceNumber = (mHelloSequenceNumber + 1) % 65530;
+    output.htime = 3 * T_HELLO_INTERVAL;
 
-    for (auto& n : neighbors)
-        //output.mLinkMessages.push_back(n.neighborMainAddr);
-
+    for (auto& link : mLinks) {
+        // If they are not supposed to link to me
+        if (!(link.localIfaceAddr == mPersonalAddress && link.expirationTime >= now)) {
+            PRINTLN(Skipped a host when making a hello msg)
+            continue;
+        }
+        uint8_t linkType, neighborType = 0xff;
+        // Establishes link type
+        if (link.symTime >= now) {
+            linkType = L_SYM_LINK;
+        }
+        else if (link.asymTime >= now) {
+            linkType = L_ASYM_LINK;
+        }
+        else {
+            linkType = L_LOST_LINK;
+        }
+        mMtxGetHello.lock();
+        // Establishes neighbor type.
+        bool found = mState.findMprAddress(link.neighborIfaceAddr);
+        mMtxGetHello.unlock();
+        if (found) {
+            neighborType = N_MPR_NEIGH;
+        }
+        else {
+            bool ok = false;
+            for (auto& neighbor : neighbors) {
+                if (neighbor.neighborMainAddr == link.neighborIfaceAddr) {
+                    if (neighbor.status == NeighborTuple::STATUS_SYM) {
+                        neighborType = N_SYM_NEIGH;
+                    }
+                    else if (neighbor.status == NeighborTuple::STATUS_NOT_SYM) {
+                        neighborType = N_NOT_NEIGH;
+                    }
+                    else {
+                        PRINTLN(Unable to find a neighbor)
+                    }
+                    ok = true;
+                    break;
+                }
+            }
+            if (!ok) {
+                continue;
+            }
+        }
+        HelloMessage::LinkMessage vNeighborLink;
+        vNeighborLink.linkCode = (linkType & 0x03) | ((neighborType << 2) & 0x0f);
+        vNeighborLink.neighborIfAddr.push_back(link.neighborIfaceAddr);
+        output.mLinkMessages.push_back(vNeighborLink);
+    }
     return output;
 }
 
 TCMessage RoutingProtocol::getTC() {
+    mMtxGetTc.lock();
     std::vector<NeighborTuple> neighbors = mState.getNeighbors();
+    mMtxGetTc.unlock();
     TCMessage output;
 
     for (auto& n : neighbors)
         //output.mNeighborAddresses.push_back(n.neighborMainAddr);
 
-    return output;
+        return output;
 }
 
 void RoutingProtocol::handleHelloMessage(HelloMessage& message, const IPv6Address& senderHWAddr, unsigned char vtime) {
@@ -127,7 +187,7 @@ void RoutingProtocol::handleHelloMessage(HelloMessage& message, const IPv6Addres
                 }
             } else {
                 PRINTLN(RoutingProtocol::handleHelloMessage: Found a address in hello msg that was not supposed to be for us)
-            }
+                }
         }
     }
 
@@ -527,14 +587,14 @@ void RoutingProtocol::updateMPRState() {
     }
     PRINTLN(RoutingProtocol::updateMPRState: Finish selecting MPR for reachable 2 hop neighbors)
 
-    //      5    A node's MPR set is generated from the union of the MPR sets
-    //           for each interface.  As an optimization, process each node, y,
-    //           in the MPR set in increasing order of N_willingness.  If all
-    //           nodes in N2 are still covered by at least one node in the MPR
-    //           set excluding node y, and if N_willingness of node y is
-    //           smaller than WILL_ALWAYS, then node y MAY be removed from the
-    //           MPR set.
-    mMtxMprUpdate.lock();
+        //      5    A node's MPR set is generated from the union of the MPR sets
+        //           for each interface.  As an optimization, process each node, y,
+        //           in the MPR set in increasing order of N_willingness.  If all
+        //           nodes in N2 are still covered by at least one node in the MPR
+        //           set excluding node y, and if N_willingness of node y is
+        //           smaller than WILL_ALWAYS, then node y MAY be removed from the
+        //           MPR set.
+        mMtxMprUpdate.lock();
     mState.setMprSet(vMPRs);
     mMtxMprUpdate.unlock();
 }
