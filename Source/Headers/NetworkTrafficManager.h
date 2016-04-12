@@ -18,6 +18,7 @@
 #include "NetworkPacketListener.h"
 #include "IPv6Address.h"
 #include "Packet.h"
+#include "RoutingProtocol.h"
 //#include "NetworkTCMessageThread.h"
 //#include "NetworkHelloMessageThread.h"
 
