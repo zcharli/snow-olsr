@@ -73,7 +73,7 @@ private:
     TCMessage mTCStateRep;
     IPv6Address mPersonalAddress;
     boost::mutex mMtxState, mMtxLinkExpire, mMtxUpdateLinkTuple, mMtxRoutingTableCalc,
-                 mMtxMprUpdate, mMtxDegree;
+                 mMtxMprUpdate, mMtxDegree, mMtxGetHello;
 
 
     /* Below is protocol controlling functions */

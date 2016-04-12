@@ -26,9 +26,11 @@ void RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> message) {
 
 
 HelloMessage RoutingProtocol::getHello() {
+    mMtxGetHello.lock();
     std::vector<NeighborTuple> neighbors = mState.getNeighbors();
+    mMtxGetHello.unlock();
     HelloMessage output;
-    
+
     for (auto& n : neighbors)
         //output.mLinkMessages.push_back(n.neighborMainAddr);
 
@@ -38,7 +40,7 @@ HelloMessage RoutingProtocol::getHello() {
 TCMessage RoutingProtocol::getTC() {
     std::vector<NeighborTuple> neighbors = mState.getNeighbors();
     TCMessage output;
-    
+
     for (auto& n : neighbors)
         //output.mNeighborAddresses.push_back(n.neighborMainAddr);
 
@@ -165,7 +167,7 @@ void RoutingProtocol::handleTCMessage(TCMessage& message, IPv6Address& senderHWA
     LinkTuple* linkTuple = mState.findSymLinkTuple(senderHWAddr);
     mMtxState.unlock();
     pt::ptime now = pt::second_clock::local_time();
-    if (linkTuple == NULL) 
+    if (linkTuple == NULL)
     {
         std::cout << "RoutingProtocol::handleTCMessage: The link tuple is not exist and discard this message" << std::endl;
         return;
@@ -184,7 +186,7 @@ void RoutingProtocol::handleTCMessage(TCMessage& message, IPv6Address& senderHWA
     {
         std::cout << "RoutingProtocol::handleTCMessage: Message received out of order discard this message" << std::endl;
         return;
-    } 
+    }
 
 
     //  3. All tuples in the topology set where:
@@ -313,7 +315,7 @@ void RoutingProtocol::updateLinkTuple(LinkTuple* vLinkEdge, uint8_t willingness)
 }
 
 void RoutingProtocol::updateMPRState() {
-    std::cout << "RoutingProtocol::updateMPRState: Update the MPR to the OLSR state" << std::endl;    
+    std::cout << "RoutingProtocol::updateMPRState: Update the MPR to the OLSR state" << std::endl;
     // Based on RFC 3626 8.3.1.  MPR Computation
     //    The following specifies a proposed heuristic for selection of MPRs.
     //    It constructs an MPR-set that enables a node to reach any node in the
@@ -352,7 +354,7 @@ void RoutingProtocol::updateMPRState() {
     //                      there exists a symmetric link to this node on some
     //                      interface.
 
-    std::cout << "RoutingProtocol::updateMPRState: Compute the MPR base on the neighbor and 2-hop neighbors and MPR set" << std::endl;    
+    std::cout << "RoutingProtocol::updateMPRState: Compute the MPR base on the neighbor and 2-hop neighbors and MPR set" << std::endl;
     std::vector<TwoHopNeighborTuple> vCurrentTwoHopNeighbors = mState.getTwoHopNeighbors();
     mMtxMprUpdate.unlock();
     std::vector<TwoHopNeighborTuple> N2;
@@ -393,7 +395,7 @@ void RoutingProtocol::updateMPRState() {
     }
 
 
-    std::cout << "RoutingProtocol::updateMPRState: Start with an MPR set made of all members of N with N_willingness and WILL_ALWAYS" << std::endl;    
+    std::cout << "RoutingProtocol::updateMPRState: Start with an MPR set made of all members of N with N_willingness and WILL_ALWAYS" << std::endl;
     std::cout << "RoutingProtocol::updateMPRState: Our N2 set is " << N2.size() << std::endl;
     //    The proposed MPR heuristic is as follows:
     //      1    Start with an MPR set made of all members of N with
@@ -412,7 +414,7 @@ void RoutingProtocol::updateMPRState() {
     //           if node b in N2 can be reached only through a symmetric link
     //           to node a in N, then add node a to the MPR set.  Remove the
     //           nodes from N2 which are now covered by a node in the MPR set.
-    std::cout << "RoutingProtocol::updateMPRState: Add to the MPR set those nodes in N, which could reach N2" << std::endl;    
+    std::cout << "RoutingProtocol::updateMPRState: Add to the MPR set those nodes in N, which could reach N2" << std::endl;
     std::set<IPv6Address> vCoveredTwoHopNeighbors;
     for (std::vector<TwoHopNeighborTuple>::iterator twoHopNeigh = N2.begin();
             twoHopNeigh != N2.end(); twoHopNeigh++) {
@@ -437,9 +439,9 @@ void RoutingProtocol::updateMPRState() {
             }
         }
     }
- 
+
     // Perform the removal of the covered neighbors
-    std::cout << "RoutingProtocol::updateMPRState: Perform the removal of the coverd Neighbors" << std::endl;   
+    std::cout << "RoutingProtocol::updateMPRState: Perform the removal of the coverd Neighbors" << std::endl;
     for (std::vector<TwoHopNeighborTuple>::iterator it = N2.begin(); it != N2.end(); ) {
         if (vCoveredTwoHopNeighbors.find(it->twoHopNeighborAddr) != vCoveredTwoHopNeighbors.end()) {
             N2.erase(it);
@@ -451,7 +453,7 @@ void RoutingProtocol::updateMPRState() {
 
     //      4    While there exist nodes in N2 which are not covered by at
     //           least one node in the MPR set:
-    std::cout << "RoutingProtocol::updateMPRState: Check the exist nodes in N2 which are not covered in the last one in MPR set" << std::endl;   
+    std::cout << "RoutingProtocol::updateMPRState: Check the exist nodes in N2 which are not covered in the last one in MPR set" << std::endl;
     while (N2.begin() != N2.end()) {
         //           4.1  For each node in N, calculate the reachability, i.e., the
         //                number of nodes in N2 which are not yet covered by at
@@ -539,7 +541,7 @@ void RoutingProtocol::updateMPRState() {
 
 void RoutingProtocol::removeCoveredTwoHopNeighbor(IPv6Address addr, std::vector<TwoHopNeighborTuple>& twoHopNeighbors) {
     // This function will remove all the two hop neighbors that have been covered by an MPR
-    std::cout << "RoutingProtocol::removeCoveredTwoHopNeighbor: Remove all the two hop neighbors that have been covered by an MPR" << std::endl; 
+    std::cout << "RoutingProtocol::removeCoveredTwoHopNeighbor: Remove all the two hop neighbors that have been covered by an MPR" << std::endl;
     std::set<IPv6Address> uniqueRemovals;
     for (std::vector<TwoHopNeighborTuple>::iterator it = twoHopNeighbors.begin();
             it != twoHopNeighbors.end(); it++) {

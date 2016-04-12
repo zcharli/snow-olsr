@@ -97,7 +97,7 @@ void NetworkHelloMessageThread::startBroadcastHelloMessages() {
 
     while (1) {
         // TODO:: Implement Hello Message
-        //HelloMessage hm = RoutingProtocol.getInstance.getHelloMessage();
+        HelloMessage hm = RoutingProtocol::getInstance().getHello();
 
         char a[] = "ff:ff:ff:ff:ff:ff";
         //char a[]="1c:bd:b9:7e:b5:d4"; // unicast address
