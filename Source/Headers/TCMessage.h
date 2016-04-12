@@ -1,22 +1,22 @@
 #ifndef TC_MESSAGE_H
 #define TC_MESSAGE_H
 
+#include <iostream>
 #include <stdint.h>
 #include <memory>
 #include <vector>
-#include "Message.h"
 #include "IPv6Address.h"
-
-class Message;
+#include "Message.h"
 
 class TCMessage : public Message
 {
 public:
 	TCMessage();
+    TCMessage(char*);
 	~TCMessage();
 
 	void serialize();
-
+    void deserialize(char*);
 
 	uint16_t getAnsn();
 	std::vector<IPv6Address> mNeighborAddresses;

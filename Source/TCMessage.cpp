@@ -3,8 +3,16 @@
 TCMessage::TCMessage() {}
 TCMessage::~TCMessage() {}
 
+TCMessage::TCMessage(char* buffer) {
+    deserialize(buffer);
+}
+
 uint16_t TCMessage::getAnsn() {
     return ansn;
+}
+
+void TCMessage::deserialize(char* buffer) {
+
 }
 
 void TCMessage::serialize() {

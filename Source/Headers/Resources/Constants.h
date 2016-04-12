@@ -8,6 +8,7 @@
 #define MAX_BUF 1500
 #define WLAN_HEADER_LEN 14
 #define WLAN_ADDR_LEN 6
+#define HELLO_MSG_HEADER 12
 
 /**
  * Below is OLSR dependent constants

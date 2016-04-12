@@ -11,6 +11,8 @@
 #include "Message.h"
 #include "Packet.h"
 #include "IPv6Address.h"
+#include "HelloMessage.h"
+#include "TCMessage.h"
 
 class Message;
 
@@ -18,7 +20,6 @@ class OLSRMessage
 {
 public:
     OLSRMessage(std::shared_ptr<Packet> message);
-
     OLSRMessage();
     ~OLSRMessage();
 
@@ -31,12 +32,11 @@ public:
     IPv6Address mRecvedHWAddr; // The Interface addr receieved from (we only have 1 as of now)
 
 private:
-
+    void deserializePacketBuffer(std::shared_ptr<Packet> message);
     char* mSerializedData;
     // Unique OLSRPacket Attributes
     uint16_t mPacketLength;
     uint16_t mPacketSequenceNumber;
-
 };
 
 #endif // OLSR_MESSAGE_H

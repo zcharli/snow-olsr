@@ -12,11 +12,6 @@ std::shared_ptr<IPv6Address> Message::getOriginatorAddress() {
     return NULL;
 }
 
-void Message::serialize() {
-    // std::vector<int> v;
-    // return v;
-}
-
 unsigned char Message::getType() {
     return type;
 }
@@ -45,14 +40,6 @@ int Message::MessageHeader::copyConstructor(Message& msg) {
     // messageSequenceNumber;
     return 0;
 }
-void Message::MessageHeader::serialize() {
-    // std::vector<int> output;
-    // output.push_back(type);
-    // output.push_back(messageSize);
-    // output.push_back(originatorAddress);
-    // output.push_back(timeToLive);
-    // output.push_back(hopCount);
-    // output.push_back(messageSequenceNumber);
 
-    // return output;
-}
+void Message::serialize() {}
+void Message::deserialize(char* buffer) {}

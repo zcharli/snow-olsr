@@ -9,6 +9,7 @@
 #include <memory>
 #include "IPv6Address.h"
 #include "Message.h"
+#include "Resources/Helpers.h"
 
 class HelloMessage : public Message
 {
@@ -19,9 +20,11 @@ public:
         std::vector<IPv6Address> neighborIfAddr;
     };
     HelloMessage();
+    HelloMessage(char*);
     ~HelloMessage();
 
     void serialize();
+    void deserialize(char*);
     uint8_t getWillingness();
     std::vector<LinkMessage> mLinkMessages;
 	std::vector<LinkMessage> getLinkMessages() const;

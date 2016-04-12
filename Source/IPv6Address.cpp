@@ -1,6 +1,9 @@
 #include "Headers/IPv6Address.h"
 
 IPv6Address::IPv6Address() {}
+IPv6Address::IPv6Address(char* address) {
+    memcpy ( data, address, WLAN_ADDR_LEN );
+}
 IPv6Address::IPv6Address(const IPv6Address& addr) {
     memcpy ( data, addr.data, WLAN_ADDR_LEN );
 }

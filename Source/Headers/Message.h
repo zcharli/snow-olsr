@@ -4,10 +4,8 @@
 #include <stdint.h>
 #include <iostream>
 #include <memory>
-#include "OLSRMessage.h"
 #include "IPv6Address.h"
 #include "Resources/Constants.h"
-
 
 class Message
 {
@@ -23,7 +21,7 @@ public:
         uint8_t type;
         uint8_t vtime;
         uint16_t messageSize;
-        char originatorAddress[WLAN_HEADER_LEN];
+        char originatorAddress[WLAN_ADDR_LEN];
         uint8_t timeToLive;
         uint8_t hopCount;
         uint16_t messageSequenceNumber;
@@ -37,6 +35,7 @@ public:
     int getSize();
     uint8_t getVTime();
     virtual void serialize();
+    virtual void deserialize(char*);
     MessageHeader mMessageHeader;
     std::shared_ptr<IPv6Address> getOriginatorAddress();
     int mSerializedDataSize;

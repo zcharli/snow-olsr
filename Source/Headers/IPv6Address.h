@@ -11,6 +11,7 @@ class IPv6Address
 {
 public:
   IPv6Address();
+  IPv6Address(char*);
   IPv6Address(const IPv6Address&);
   ~IPv6Address();
   char* wlan2asc(char str[]);

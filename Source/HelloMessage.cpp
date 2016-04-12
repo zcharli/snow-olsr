@@ -2,9 +2,13 @@
 
 HelloMessage::HelloMessage() {}
 HelloMessage::~HelloMessage() {
-    if(mSerializedData != NULL) {
+    if (mSerializedData != NULL) {
         delete [] mSerializedData;
     }
+}
+
+HelloMessage::HelloMessage(char* buffer) {
+    deserialize(buffer);
 }
 
 uint8_t HelloMessage::getWillingness() {
@@ -16,15 +20,91 @@ std::vector<HelloMessage::LinkMessage> HelloMessage::getLinkMessages() const {
     return mLinkMessages;
 }
 
+void HelloMessage::deserialize(char* buffer) {
+    // MsgType
+    mMessageHeader.type = (*(uint8_t*) buffer);
+    buffer++;
+
+    // VTime
+    mMessageHeader.vtime = (*(uint8_t*) buffer);
+    buffer++;
+
+    // MessageSize
+    mMessageHeader.messageSize = ntohs((*(uint16_t*) buffer));
+    buffer += 2;
+    int vTotalMsgSize = mMessageHeader.messageSize - 4;
+
+    // Originator address
+    memcpy(mMessageHeader.originatorAddress, buffer, WLAN_ADDR_LEN);
+    buffer += WLAN_ADDR_LEN;
+
+    // Time to Live
+    mMessageHeader.timeToLive = (*(uint8_t*) buffer);
+    buffer++;
+
+    // Hop Count
+    mMessageHeader.hopCount = (*(uint8_t*) buffer);
+    buffer++;
+
+    // Message sequence number
+    mMessageHeader.messageSequenceNumber = ntohs((*(uint16_t*) buffer));
+    buffer += 2;
+
+    // Deserialize the actual message now lol
+    std::cout << "After deserializing the header, we still have " << mMessageHeader.messageSize << " bytes left" << std::endl;
+
+    // Skip the reserved
+    buffer += 2;
+
+    // Htime
+    htime = (*(uint8_t*) buffer);
+    buffer++;
+
+    // Willingness
+    willingness = (*(uint8_t*) buffer);
+    buffer++;
+    while(vTotalMsgSize > 0) {
+           // Link code
+        uint8_t vAdvertisedNeightborLinkCode = (*(uint8_t*) buffer);
+        buffer++;
+        vTotalMsgSize--;
+
+        // Skip reserved
+        buffer++;
+        vTotalMsgSize--;
+
+        // Link message size
+        uint16_t vLinkMessageSize = ntohs((*(uint16_t*) buffer));
+        buffer += 2;
+        vTotalMsgSize -= 2;
+
+        // Create advertised neightbours from links
+        int vNumLinks = vLinkMessageSize / WLAN_ADDR_LEN;
+        LinkMessage vLink;
+        vLink.linkCode = vAdvertisedNeightborLinkCode;
+        while(vNumLinks--) {
+            char* vAdvertisedNeighborInterfaceAddrBuffer = new char[WLAN_ADDR_LEN];
+            memcpy(vAdvertisedNeighborInterfaceAddrBuffer, buffer, WLAN_ADDR_LEN);
+            IPv6Address vAdvertisedNeighborInterfaceAddr(vAdvertisedNeighborInterfaceAddrBuffer);
+            vLink.neighborIfAddr.push_back(vAdvertisedNeighborInterfaceAddr);
+            buffer += WLAN_ADDR_LEN;
+            vTotalMsgSize -= WLAN_ADDR_LEN;
+            delete [] vAdvertisedNeighborInterfaceAddrBuffer;
+        }
+        mLinkMessages.push_back(vLink);
+    }
+
+}
+
 void HelloMessage::serialize() {
-    if(mSerializedData != NULL) {
+    if (mSerializedData != NULL) {
         delete [] mSerializedData;
     }
     int vCurrentIndex = 0;
-    mSerializedDataSize = 26; // With header
+    mSerializedDataSize = HELLO_MSG_HEADER + 4; // With header
     for (auto& linkMsg : mLinkMessages) {
         mSerializedDataSize += 4;
-        mSerializedDataSize += linkMsg.neighborIfAddr.size() * 14;
+        mSerializedDataSize += linkMsg.neighborIfAddr.size() * WLAN_ADDR_LEN;
     }
     mSerializedData = new char[mSerializedDataSize];
 
@@ -36,18 +116,21 @@ void HelloMessage::serialize() {
     mSerializedData[vCurrentIndex++] = mMessageHeader.vtime;
 
     // MessageSize
-    *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(mSerializedDataSize - 22); // 22 is header size
+    *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(mSerializedDataSize - HELLO_MSG_HEADER); // 22 is header size
     vCurrentIndex += 2;
 
     // Originator address
-    memcpy ( mSerializedData + vCurrentIndex, mMessageHeader.originatorAddress, WLAN_HEADER_LEN );
-    vCurrentIndex+=WLAN_HEADER_LEN;
+    memcpy ( mSerializedData + vCurrentIndex, mMessageHeader.originatorAddress, WLAN_ADDR_LEN );
+    vCurrentIndex += WLAN_ADDR_LEN;
 
-    // Time to Live
-    mSerializedData[vCurrentIndex++] = mMessageHeader.timeToLive;
+    // Time to Live (Decremented!)
+    if (mMessageHeader.timeToLive - 1 == 0) {
+        PRINTLN(Time to live for this Hello message is zero so requires attention)
+        }
+    mSerializedData[vCurrentIndex++] = mMessageHeader.timeToLive - 1;
 
     // Hop Count
-    mSerializedData[vCurrentIndex++] = mMessageHeader.hopCount;
+    mSerializedData[vCurrentIndex++] = mMessageHeader.hopCount + 1;
 
     // Message sequence number
     *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(mMessageHeader.messageSequenceNumber); // 22 is header size
@@ -64,7 +147,7 @@ void HelloMessage::serialize() {
     // Willingness
     mSerializedData[vCurrentIndex++]  = willingness;
 
-    for(auto& msg : mLinkMessages) {
+    for (auto& msg : mLinkMessages) {
         // Link code
         *(mSerializedData + vCurrentIndex) = msg.linkCode;
         vCurrentIndex++;
@@ -74,11 +157,11 @@ void HelloMessage::serialize() {
         vCurrentIndex++;
 
         // Link msg size
-        uint16_t msgSize = msg.neighborIfAddr.size() * 14;
+        uint16_t msgSize = msg.neighborIfAddr.size() * WLAN_ADDR_LEN;
         *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(msgSize);
-        vCurrentIndex+=2;
+        vCurrentIndex += 2;
 
-        for(auto& addr : msg.neighborIfAddr) {
+        for (auto& addr : msg.neighborIfAddr) {
             memcpy ( mSerializedData + vCurrentIndex, addr.data, WLAN_HEADER_LEN );
             vCurrentIndex += WLAN_HEADER_LEN;
         }
