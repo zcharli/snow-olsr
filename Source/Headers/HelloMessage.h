@@ -25,7 +25,7 @@ public:
 	std::vector<LinkMessage> getLinkMessages() const;
 
 private:
-	uint8_t willingness;
+    uint8_t willingness;
 };
 
 #endif // HELLO_MESSAGE_H

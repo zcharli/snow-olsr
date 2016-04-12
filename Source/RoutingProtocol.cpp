@@ -23,6 +23,27 @@ void RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> message) {
     }
 }
 
+
+HelloMessage RoutingProtocol::getHello() {
+    std::vector<NeighborTuple> neighbors = mState.getNeighbors();
+    HelloMessage output;
+    
+    for (auto& n : neighbors)
+        output.mLinkMessages.front().push_back(n.neighborMainAddr);
+
+    return output;
+}
+
+TCMessage RoutingProtocol::getTC() {
+    std::vector<NeighborTuple> neighbors = mState.getNeighbors();
+    TCMessage output;
+    
+    for (auto& n : neighbors)
+        output.mNeighborAddresses.push_back(n.neighborMainAddr);
+
+    return output;
+}
+
 void RoutingProtocol::handleHelloMessage(HelloMessage& message, const IPv6Address& senderHWAddr, unsigned char vtime) {
     mMtxState.lock();
     LinkTuple* vLinkEdge = mState.findLinkTuple(senderHWAddr);
@@ -58,6 +79,7 @@ void RoutingProtocol::handleHelloMessage(HelloMessage& message, const IPv6Addres
     }
 
     // Being computing MPR and bunch of other stuff
+    // for (auto& linkNeighbrs : message.mLinkMessages)
     for (std::vector<HelloMessage::LinkMessage>::iterator linkNeighbrs = message.mLinkMessages.begin();
             linkNeighbrs != message.mLinkMessages.end(); linkNeighbrs++ ) {
         int linkType = linkNeighbrs->linkCode & 0x03; // ^C Terminiation

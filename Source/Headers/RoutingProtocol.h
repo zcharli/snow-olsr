@@ -24,8 +24,6 @@
 #include "OLSRMessage.h"
 #include "IPv6Address.h"
 
-//using namespace std;
-
 namespace pt = boost::posix_time;
 
 struct RoutingTableEntry
@@ -54,6 +52,9 @@ public:
     // This should be private because when every times hanle message this is be called to update.
     // This need to disccuss
     void mprComputation ();
+
+    HelloMessage getHello();
+    TCMessage getTC();
 
     // routing table computation should be done after handle TC message
     void routingTableComputation ();
