@@ -55,7 +55,7 @@ public:
     // This need to disccuss
     void mprComputation ();
 
-    // routing table computation should be done after handle TC message
+    // routing table computation should be called after handle TC message
     void routingTableComputation ();
 
     void setPersonalAddress(const IPv6Address& addr);
@@ -79,7 +79,6 @@ private:
     void handleTCMessage(TCMessage&, IPv6Address&);
     void handleTCMessage(std::shared_ptr<OLSRMessage> message);
 
-
     void buildHelloMessage();
     void buildTCMessage();
 
@@ -97,23 +96,6 @@ private:
     /* Below is important OLSR attributes */
     // advertised neighbor set sequence number
     uint16_t mANSN;
-
-    // // Entry
-    // vector<RoutingTableEntry> GetEntries () const;
-    // bool Lookup (const IPv6Address &dest, RoutingTableEntry &outEntry) const;
-    // bool FindSendEntry (const RoutingTableEntry &entry, RoutingTableEntry &outEntry) const;
-    // void AddEntry (const IPv6Address &dest, const IPv6Address &next, uint32_t interface, uint32_t distance);
-    // void RemoveEntry (const IPv6Address &dest);
-
-    // // Routing Table and MPR computation
-    // void MprComputation ();
-    // void RoutingTableComputation ();
-
-    // // Populate Routing Table
-    // void LinkSensing (const TCMessage &msg, const HelloMessage &hello, const IPv6Address &receiverIface, const IPv6Address &sender_iface);
-    // void PopulateNeighborSet (const TCMessage &msg, const HelloMessage &hello);
-    // void PopulateTwoHopNeighborSet (const TCMessage &msg, const HelloMessage &hello);
-    // void PopulateMprSelectorSet (const TCMessage &msg, const HelloMessage &hello);
 };
 
 #endif
