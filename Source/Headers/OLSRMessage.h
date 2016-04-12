@@ -23,6 +23,7 @@ public:
     ~OLSRMessage();
 
     OLSRMessage& serialize();
+    OLSRMessage& deserialize();
     char* getData();
 
     std::vector<Message> messages;

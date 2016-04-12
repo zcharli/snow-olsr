@@ -30,7 +30,7 @@ HelloMessage RoutingProtocol::getHello() {
     HelloMessage output;
     
     for (auto& n : neighbors)
-        output.mLinkMessages.front().push_back(n.neighborMainAddr);
+        //output.mLinkMessages.push_back(n.neighborMainAddr);
 
     return output;
 }
@@ -40,7 +40,7 @@ TCMessage RoutingProtocol::getTC() {
     TCMessage output;
     
     for (auto& n : neighbors)
-        output.mNeighborAddresses.push_back(n.neighborMainAddr);
+        //output.mNeighborAddresses.push_back(n.neighborMainAddr);
 
     return output;
 }

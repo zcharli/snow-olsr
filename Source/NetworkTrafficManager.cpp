@@ -96,7 +96,8 @@ void NetworkHelloMessageThread::startBroadcastHelloMessages() {
     //int vPkgSeqNum = 1, vMsgSeqNum = 1; // Commented out cause unused atm.
 
     while (1) {
-        HelloMessage hm = RoutingProtocol.getInstance.getHelloMessage();
+        // TODO:: Implement Hello Message
+        //HelloMessage hm = RoutingProtocol.getInstance.getHelloMessage();
 
         char a[] = "ff:ff:ff:ff:ff:ff";
         //char a[]="1c:bd:b9:7e:b5:d4"; // unicast address
