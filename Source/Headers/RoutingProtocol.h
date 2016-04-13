@@ -104,7 +104,6 @@ private:
 
     /* Below if our timers for updating the state */
     void expireLink(const boost::system::error_code&, boost::asio::deadline_timer*, boost::asio::io_service*, MACAddress&);
-    bool flag = true;
 
     /* Below is important OLSR attributes */
     // advertised neighbor set sequence number

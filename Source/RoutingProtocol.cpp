@@ -215,12 +215,82 @@ void RoutingProtocol::handleHelloMessage(HelloMessage& message, const MACAddress
     PRINTLN(END Timer)
 }
 
-void RoutingProtocol::startTimer(int seconds, MACAddress neighorIface) {
-    boost::asio::io_service *mIo = new boost::asio::io_service();
-    boost::asio::deadline_timer *vRepeatingTimer = new boost::asio::deadline_timer(*mIo, pt::seconds(seconds)); //T_NEIGHB_HOLD_TIME
-    vRepeatingTimer->async_wait(boost::bind(&RoutingProtocol::expireLink, this, boost::asio::placeholders::error, vRepeatingTimer, mIo, neighorIface));
-    PRINTLN(Start IO service)
-    mIo->run();
+void RoutingProtocol::startTimer(int seconds, MACAddress neighborAddr) {
+    std::cout << "RoutingProtocol::expireLink: A Link timer has expired, checking status of the link" << std::endl;
+
+    std::cout << "Sleeping for " << seconds <<std::endl;
+    sleep(seconds);
+    std::cout << "Waking up to check sym times for " << neighborAddr <<std::endl;
+    pt::time_duration expireTimer;
+    seconds = expireTimer.total_seconds();
+    do {
+        pt::ptime now = pt::second_clock::local_time();
+        mMtxLinkExpire.lock();
+        LinkTuple* vLinkTuple = mState.findLinkTuple(neighborAddr);
+        mMtxLinkExpire.unlock();
+        if (vLinkTuple == NULL) {
+            // Maybe something else expired it already, kill the timer
+            PRINTLN(RoutingProtocol::expireLink: Reached a state where someone else deleted a link tuple)
+                PRINTLN(Cleaning up timer)
+                return;
+        }
+        expireTimer = vLinkTuple->expirationTime - now;
+        seconds = expireTimer.total_seconds();
+        std::cout << "Link expires in " << expireTimer << std::endl;
+
+        if (vLinkTuple->expirationTime < now) {
+            // Remove this link
+            PRINTLN(RoutingProtocol::expireLink: Expiring a link tuple)
+            mMtxLinkExpire.lock();
+            mState.cleanNeighborTuple(vLinkTuple->neighborIfaceAddr);
+            mState.cleanLinkTuple(*vLinkTuple);
+            mMtxLinkExpire.unlock();
+            PRINTLN(Expiring tuple now)
+            return;
+
+        } else if (vLinkTuple->symTime < now) {
+            PRINTLN(RoutingProtocol::expireLink: Updating Link tuple and its neightbor for timeout in definite expiration)
+                mMtxLinkExpire.lock();
+            NeighborTuple* vNeighbor = mState.findNeighborTuple(vLinkTuple->neighborIfaceAddr);
+            mMtxLinkExpire.unlock();
+            if (vNeighbor == NULL) {
+                updateLinkTuple(vLinkTuple, W_WILL_ALWAYS);
+                mMtxLinkExpire.lock();
+                mState.cleanTwoHopNeighborTuples(vLinkTuple->neighborIfaceAddr);
+                mState.cleanMprSelectorTuples(vLinkTuple->neighborIfaceAddr);
+                mMtxLinkExpire.unlock();
+                updateMPRState();
+                routingTableComputation();
+            }
+            expireTimer = vLinkTuple->expirationTime - now;
+
+            if (expireTimer.total_seconds() <= 0) {
+                // Expire now
+                PRINTLN(RoutingProtocol::expireLink: Expiring a link tuple)
+                mMtxLinkExpire.lock();
+                mState.cleanNeighborTuple(vLinkTuple->neighborIfaceAddr);
+                mState.cleanLinkTuple(*vLinkTuple);
+                mMtxLinkExpire.unlock();
+                PRINTLN(Expiring from else if case)
+                return;
+            }
+            seconds = expireTimer.total_seconds();
+            std::cout << "Sleeping for " << seconds <<std::endl;
+            sleep(seconds);
+            PRINTLN(Woke from else if case)
+        } else {
+            // Reschedule, timer is good
+            PRINTLN(RoutingProtocol::expireLink: Rescheduling timeout for link tuple)
+                expireTimer = vLinkTuple->expirationTime < vLinkTuple->symTime ?
+                                            vLinkTuple->symTime - vLinkTuple->expirationTime
+                                            : vLinkTuple->symTime - vLinkTuple->expirationTime;
+
+            seconds = expireTimer.total_seconds();
+            std::cout << "Sleeping for " << seconds <<std::endl;
+            sleep(seconds);
+            PRINTLN(Woke from else case)
+        }
+    } while(seconds > 0);
     PRINTLN(End IO Service)
 }
 
@@ -343,7 +413,7 @@ void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio
         }
         pt::time_duration expireTimer = vLinkTuple->expirationTime - now;
 
-        if (expireTimer.total_seconds() == 0) {
+        if (expireTimer.total_seconds() <= 0) {
             // Expire now
             PRINTLN(RoutingProtocol::expireLink: Expiring a link tuple)
             mMtxLinkExpire.lock();
