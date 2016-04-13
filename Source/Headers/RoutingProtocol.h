@@ -13,6 +13,7 @@
 #include <boost/bind.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "Resources/Types.h"
 #include "Resources/Constants.h"
@@ -99,10 +100,11 @@ private:
     int calculateNodeDegree(NeighborTuple &);
 
     void updateLinkTuple(LinkTuple*, uint8_t);
+    void startTimer(int seconds, MACAddress);
 
     /* Below if our timers for updating the state */
     void expireLink(const boost::system::error_code&, boost::asio::deadline_timer*, boost::asio::io_service*, MACAddress&);
-
+    bool flag = true;
 
     /* Below is important OLSR attributes */
     // advertised neighbor set sequence number

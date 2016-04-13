@@ -14,18 +14,16 @@ Packet::Packet() {
 }
 
 Packet::~Packet() {
-    PRINTLN(Destroying a packet does not destroy buffer.);
-    delete mSource;
-    delete mDestination;
+    //PRINTLN(Destroying a packet does not destroy buffer.);
     if(mAddress != NULL)
         delete mAddress;
     delete mBuffer;
 }
 
-char* Packet::getSource(){
+MACAddress& Packet::getSource(){
     return mSource;
 }
-char* Packet::getDestination() {
+MACAddress& Packet::getDestination() {
     return mDestination;
 }
 char* Packet::getBuffer() {
@@ -37,10 +35,10 @@ char* Packet::getMyAddress() {
 int Packet::getOffset() {
     return offset;
 }
-void Packet::setSource(char* data){
+void Packet::setSource(MACAddress data){
     mSource = data;
 }
-void Packet::setDestination(char* data){
+void Packet::setDestination(MACAddress data){
     mDestination = data;
 }
 void Packet::setBuffer(char* data){

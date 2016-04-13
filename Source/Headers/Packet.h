@@ -9,6 +9,7 @@
 #include <iostream>
 #include <array>
 #include "Resources/Helpers.h"
+#include "MACAddress.h"
 
 #define ADDRESS_SIZE 32
 
@@ -19,20 +20,20 @@ public:
     Packet(char*, char*, char*, int);
     Packet();
     ~Packet();
-    char* getSource();
-    char* getDestination();
+    MACAddress& getSource();
+    MACAddress& getDestination();
     char* getBuffer();
     char* getMyAddress();
     int getOffset();
-    void setSource(char*);
-    void setDestination(char*);
+    void setSource(MACAddress);
+    void setDestination(MACAddress);
     void setBuffer(char*);
     void setMyAddress(char*);
     void setOffset(int);
 
 private:
-    char* mSource;
-    char* mDestination;
+    MACAddress mSource;
+    MACAddress mDestination;
     char* mBuffer;
     char* mAddress;
     int offset;

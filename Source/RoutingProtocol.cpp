@@ -10,7 +10,7 @@ void RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> message) {
         case M_HELLO_MESSAGE :
             // Dereferenced HelloMsg from the address of the dereference iterator msg
             PRINTLN(Handling hello msg)
-            handleHelloMessage(*((HelloMessage*) & (**it)), message->mSenderHWAddr, (*it)->getVTime());
+            handleHelloMessage(*((HelloMessage*) & (**it)), message->mSenderHWAddr, (*it)->mMessageHeader.vtime);
             break;
         case M_TC_MESSAGE:
             // Handle a TC
@@ -43,7 +43,7 @@ int RoutingProtocol::buildHelloMessage(OLSRMessage& message) {
     helloMessage->mMessageHeader.hopCount = 0;
     helloMessage->mMessageHeader.messageSequenceNumber = mHelloSequenceNumber++;
     mHelloSequenceNumber = (mHelloSequenceNumber + 1) % 65530;
-    helloMessage->htime = 3 * T_HELLO_INTERVAL/1000;
+    helloMessage->htime = 3 * T_HELLO_INTERVAL / 1000;
 
     for (auto& link : mLinks) {
         // If they are not supposed to link to me
@@ -104,8 +104,8 @@ int RoutingProtocol::buildTCMessage(OLSRMessage& message) {
     mMtxGetTc.unlock();
     TCMessage helloMessage;
 
-    for (auto& n : neighbors)
-        //helloMessage->mNeighborAddresses.push_back(n.neighborMainAddr);
+    // for (auto& n : neighbors)
+    //     //helloMessage->mNeighborAddresses.push_back(n.neighborMainAddr);
 
     return 0;
 }
@@ -148,7 +148,7 @@ void RoutingProtocol::handleHelloMessage(HelloMessage& message, const MACAddress
     if (neighbor != NULL)
     {
         std::cout << "RoutingProtocol::handleHelloMessage: The neighbor is the same as originator then update the willingness of the neighbor" << std::endl;
-        neighbor->willingness = message.getWillingness();
+        neighbor->willingness = message.willingness;
     }
 
     // Being computing MPR and bunch of other stuff
@@ -200,22 +200,29 @@ void RoutingProtocol::handleHelloMessage(HelloMessage& message, const MACAddress
     // Update the changes we made on this edge
     if (update) {
         std::cout << "RoutingProtocol::handleHelloMessage: Update the link to the link tuple set" << std::endl;
-        updateLinkTuple(vLinkEdge, message.getWillingness());
+        updateLinkTuple(vLinkEdge, message.willingness);
     }
 
     if (create && vLinkEdge != NULL) {
-        std::cout << "RoutingProtocol::handleHelloMessage: Schedule a time to do expire this link" << std::endl;
-        // TODO: Schedule a timer to to expire this link
+        std::cout << vLinkEdge->expirationTime << " " << vLinkEdge->symTime  << std::endl;
         pt::time_duration expireTimer = vLinkEdge->expirationTime < vLinkEdge->symTime ?
                                         vLinkEdge->symTime - vLinkEdge->expirationTime
-                                        : vLinkEdge->symTime - vLinkEdge->expirationTime;
-        boost::asio::io_service *mIo = new boost::asio::io_service();
-        boost::asio::deadline_timer *vRepeatingTimer = new boost::asio::deadline_timer(*mIo, pt::seconds(expireTimer.total_seconds()));
-        vRepeatingTimer->async_wait(boost::bind(&RoutingProtocol::expireLink, this, boost::asio::placeholders::error, vRepeatingTimer, mIo, vLinkEdge->neighborIfaceAddr));
-        mIo->run();
+                                        : vLinkEdge->expirationTime - vLinkEdge->symTime ;
+        std::cout << "RoutingProtocol::handleHelloMessage: Schedule a " << expireTimer.total_seconds() << " seconds to do expire this link" << std::endl;
+        boost::thread vExpiryThread = boost::thread(boost::bind(&RoutingProtocol::startTimer, this, expireTimer.total_seconds(), vLinkEdge->neighborIfaceAddr));
+
     }
+    PRINTLN(END Timer)
 }
 
+void RoutingProtocol::startTimer(int seconds, MACAddress neighorIface) {
+    boost::asio::io_service *mIo = new boost::asio::io_service();
+    boost::asio::deadline_timer *vRepeatingTimer = new boost::asio::deadline_timer(*mIo, pt::seconds(seconds)); //T_NEIGHB_HOLD_TIME
+    vRepeatingTimer->async_wait(boost::bind(&RoutingProtocol::expireLink, this, boost::asio::placeholders::error, vRepeatingTimer, mIo, neighorIface));
+    PRINTLN(Start IO service)
+    mIo->run();
+    PRINTLN(End IO Service)
+}
 
 void RoutingProtocol::handleTCMessage(TCMessage& message, MACAddress& senderHWAddr) {
     std::cout << "RoutingProtocol::handleTCMessage: Process tc message and update state" << std::endl;
@@ -292,7 +299,7 @@ void RoutingProtocol::handleTCMessage(TCMessage& message, MACAddress& senderHWAd
 }
 
 void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio::deadline_timer *vRepeatingTimer, boost::asio::io_service *mIo,  MACAddress& neighborAddr) {
-    std::cout << "RoutingProtocol::expireLink: Link is expired" << std::endl;
+    std::cout << "RoutingProtocol::expireLink: A Link timer has expired, checking status of the link" << std::endl;
     pt::ptime now = pt::second_clock::local_time();
     mMtxLinkExpire.lock();
     LinkTuple* vLinkTuple = mState.findLinkTuple(neighborAddr);
@@ -301,11 +308,13 @@ void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio
         // Maybe something else expired it already, kill the timer
         PRINTLN(RoutingProtocol::expireLink: Reached a state where someone else deleted a link tuple)
             vRepeatingTimer->cancel();
+        mIo->stop();
         delete vRepeatingTimer;
         delete mIo;
         return;
     }
-    std::cout << "Link expires in " << vLinkTuple->expirationTime << std::endl;
+    pt::time_duration expireTimer = vLinkTuple->expirationTime - now;
+    std::cout << "Link expires in " << expireTimer << std::endl;
     if (vLinkTuple->expirationTime < now) {
         // Remove this link
         PRINTLN(RoutingProtocol::expireLink: Expiring a link tuple)
@@ -313,10 +322,11 @@ void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio
         mState.cleanNeighborTuple(vLinkTuple->neighborIfaceAddr);
         mState.cleanLinkTuple(*vLinkTuple);
         mMtxLinkExpire.unlock();
+        mIo->stop();
         delete vRepeatingTimer;
         delete mIo;
     } else if (vLinkTuple->symTime < now) {
-        // PRINTLN(RoutingProtocol::expireLink: Updating Link tuple and its neightbor for timeout in definite expiration)
+        PRINTLN(RoutingProtocol::expireLink: Updating Link tuple and its neightbor for timeout in definite expiration)
             mMtxLinkExpire.lock();
         NeighborTuple* vNeighbor = mState.findNeighborTuple(vLinkTuple->neighborIfaceAddr);
         mMtxLinkExpire.unlock();
@@ -330,7 +340,12 @@ void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio
             routingTableComputation();
         }
         pt::time_duration expireTimer = vLinkTuple->expirationTime - now;
-        std::cout << "Update link and expire in " << expireTimer.total_seconds() << std::endl;
+        if (flag) {
+            flag = false;
+            std::cout << "Update link and expire in " << expireTimer.total_seconds() << std::endl;
+
+        }
+        vRepeatingTimer->cancel();
         vRepeatingTimer->expires_from_now(pt::seconds(expireTimer.total_seconds()));
         vRepeatingTimer->async_wait(boost::bind(&RoutingProtocol::expireLink, this, boost::asio::placeholders::error, vRepeatingTimer, mIo, neighborAddr));
     } else {
@@ -339,9 +354,11 @@ void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio
             pt::time_duration expireTimer = vLinkTuple->expirationTime < vLinkTuple->symTime ?
                                             vLinkTuple->symTime - vLinkTuple->expirationTime
                                             : vLinkTuple->symTime - vLinkTuple->expirationTime;
+        vRepeatingTimer->cancel();
         vRepeatingTimer->expires_from_now(pt::seconds(expireTimer.total_seconds()));
         vRepeatingTimer->async_wait(boost::bind(&RoutingProtocol::expireLink, this, boost::asio::placeholders::error, vRepeatingTimer, mIo, neighborAddr));
     }
+
 }
 
 void RoutingProtocol::updateLinkTuple(LinkTuple* vLinkEdge, uint8_t willingness) {
@@ -795,7 +812,7 @@ void RoutingProtocol::routingTableComputation () {
         }
 
     }
-
+    PRINTLN(Done computing routing table)
     //  4.  For each entry in the multiple interface association base where there exists a routing entry such that:
     //              R_dest_addr     == I_main_addr (of the multiple interface association entry)
     //  And there is no routing entry such that:

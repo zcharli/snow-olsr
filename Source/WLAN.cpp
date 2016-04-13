@@ -159,11 +159,11 @@ void WLAN::parseReceivedFrame(std::shared_ptr<Packet> inPacket) {
     // get gestination in ascii
     char *dst = new char[32];
     wlanHdr->destAddr.wlan2asc(dst);
-    inPacket->setDestination(dst);
+    inPacket->setDestination(wlanHdr->destAddr);
     // get source in ascii
     char *src = new char[32];
     wlanHdr->srcAddr.wlan2asc(src);
-    inPacket->setSource(src);
+    inPacket->setSource(wlanHdr->srcAddr);
     // get my address in ascii
     char *myaddress = new char[32];
     inPacket->setMyAddress(myaddress);
