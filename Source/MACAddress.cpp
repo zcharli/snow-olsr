@@ -8,7 +8,7 @@ MACAddress::MACAddress(const MACAddress& addr) {
     memcpy ( data, addr.data, WLAN_ADDR_LEN );
 }
 MACAddress::~MACAddress() {
-    std::cout << "MACAddress destructor" << std::endl;
+    //std::cout << "MACAddress destructor" << std::endl;
 }
 
 // Return the address in a human readable form, cred. Michel Barbeau

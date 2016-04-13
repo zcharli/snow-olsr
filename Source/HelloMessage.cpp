@@ -4,7 +4,7 @@ HelloMessage::HelloMessage() {
     mMessageHeader.type = M_HELLO_MESSAGE;
 }
 HelloMessage::~HelloMessage() {
-    std::cout << "HelloMessage destructor" << std::endl;
+    //std::cout << "HelloMessage destructor" << std::endl;
 }
 
 HelloMessage::HelloMessage(char* buffer) {
@@ -101,7 +101,7 @@ void HelloMessage::deserialize(char* buffer) {
 }
 
 void HelloMessage::serialize() {
-    std::cout << "Seralizing hello message" << std::endl;
+    //std::cout << "Seralizing hello message" << std::endl;
     if (mSerializedData != NULL) {
         std::cout << "Found a non null serialize data, deleting it" << std::endl;
         delete [] mSerializedData;

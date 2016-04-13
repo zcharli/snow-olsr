@@ -28,12 +28,12 @@ int NetworkTrafficManager::sendMsg(OLSRMessage& messageToSend) {
 }
 
 int NetworkTrafficManager::enqueMsgForProcessing(std::shared_ptr<Packet> packet) {
-    mSemConsumer->wait();
     mMtxEnqueue.lock();
     mReceivedMsgsQ.push(packet);
-
-    mListener->notifyProducerReady();
     mMtxEnqueue.unlock();
+    if(mReceivedMsgsQ.size() == 1) {
+        mSemConsumer->post();
+    }
     return 1;
 }
 
@@ -42,7 +42,9 @@ void NetworkTrafficManager::notifyConsumerReady() {
 }
 
 std::shared_ptr<Packet> NetworkTrafficManager::getMessage() {
-
+    if(mReceivedMsgsQ.size() == 0) {
+        mSemConsumer->wait();
+    }
     mMtxGetMessage.lock();
     if(mReceivedMsgsQ.size() == 0) {
         mMtxGetMessage.unlock();
@@ -51,6 +53,7 @@ std::shared_ptr<Packet> NetworkTrafficManager::getMessage() {
     std::shared_ptr<Packet> vMessage = mReceivedMsgsQ.front();
     mReceivedMsgsQ.pop();
     mMtxGetMessage.unlock();
+    //mListener->notifyProducerReady();
     return vMessage;
 }
 
@@ -104,7 +107,7 @@ void NetworkHelloMessageThread::startBroadcastHelloMessages() {
 
     while (1) {
         char a[] = "ff:ff:ff:ff:ff:ff";
-        PRINTLN(Waiting to send)
+        //PRINTLN(Waiting to send)
         mSocketMutex.lock();
         OLSRMessage message;
         if(RoutingProtocol::getInstance().buildHelloMessage(message) == 0) {
@@ -119,9 +122,41 @@ void NetworkHelloMessageThread::startBroadcastHelloMessages() {
         //buffer[message.getPacketSize() + 14] = '\0';
         mSocket->send(a, buffer);
         PRINTLN(Sent a hello message)
-        std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
+        //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
         usleep(1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()));
         delete [] buffer;
     }
     PRINTLN(Hello message thread closed down);
 }
+
+
+// Garbage code dump
+//
+// int NetworkTrafficManager::enqueMsgForProcessing(std::shared_ptr<Packet> packet) {
+//     //PRINTLN(EnQing)
+//     mSemConsumer->wait();
+//     //PRINTLN(been notified)
+//     mMtxEnqueue.lock();
+//     mReceivedMsgsQ.push(packet);
+
+//     mListener->notifyProducerReady();
+//     mMtxEnqueue.unlock();
+//     return 1;
+// }
+
+// void NetworkTrafficManager::notifyConsumerReady() {
+//     mSemConsumer->post();
+// }
+
+// std::shared_ptr<Packet> NetworkTrafficManager::getMessage() {
+
+//     mMtxGetMessage.lock();
+//     if(mReceivedMsgsQ.size() == 0) {
+//         mMtxGetMessage.unlock();
+//         return nullptr;
+//     }
+//     std::shared_ptr<Packet> vMessage = mReceivedMsgsQ.front();
+//     mReceivedMsgsQ.pop();
+//     mMtxGetMessage.unlock();
+//     return vMessage;
+// }

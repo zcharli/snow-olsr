@@ -63,6 +63,13 @@ public:
     void setPersonalAddress(const MACAddress& addr);
     MACAddress getPersonalAddress(MACAddress addr) const;
     //void SetMainInterface (uint32_t interface);
+    void lockForUpdate() {
+        mMtxSystem.lock();
+    }
+
+    void unLockAfterUpdate() {
+        mMtxSystem.unlock();
+    }
 
 private:
     RoutingProtocol () {
@@ -76,7 +83,7 @@ private:
     TCMessage mTCStateRep;
     MACAddress mPersonalAddress;
     boost::mutex mMtxState, mMtxLinkExpire, mMtxUpdateLinkTuple, mMtxRoutingTableCalc,
-                 mMtxMprUpdate, mMtxDegree, mMtxGetHello, mMtxGetTc;
+                 mMtxMprUpdate, mMtxDegree, mMtxGetHello, mMtxGetTc, mMtxSystem;
 
     int mHelloSequenceNumber;
     int mTCSequenceNumber;

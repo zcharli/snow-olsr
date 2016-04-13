@@ -4,7 +4,7 @@ Message::Message() : mSerializedData(NULL), mOriginatorAddress(NULL) {
 }
 
 Message::~Message() {
-    std::cout << "Message destructor" << std::endl;
+    //std::cout << "Message destructor" << std::endl;
     if (mSerializedData != NULL) {
         delete [] mSerializedData;
     }

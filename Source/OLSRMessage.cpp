@@ -12,7 +12,7 @@ OLSRMessage::OLSRMessage(char* buffer) : mSerializedData(NULL) {
 }
 
 OLSRMessage::~OLSRMessage() {
-    std::cout << "OLSRMessage destructor" << std::endl;
+    //std::cout << "OLSRMessage destructor" << std::endl;
 
     if (mSerializedData != NULL) {
         delete [] mSerializedData;
@@ -20,7 +20,7 @@ OLSRMessage::~OLSRMessage() {
 }
 
 OLSRMessage& OLSRMessage::serialize() {
-    std::cout << "Seralizing hello message" << std::endl;
+    //std::cout << "Seralizing hello message" << std::endl;
     if (mSerializedData != NULL) {
         std::cout << "OLSR serialize was called for the second time" <<std::endl;
         delete [] mSerializedData;

@@ -24,8 +24,12 @@ int SnowClient::start() {
         shared_ptr<Packet> vPacket = vNetworkManager->getMessage();
         if (vPacket != nullptr) {
             shared_ptr<OLSRMessage> vMessage = make_shared<OLSRMessage>(vPacket);
+            RoutingProtocol::getInstance().lockForUpdate();
+            PRINTLN(Locked protocol for update)
             RoutingProtocol::getInstance().updateState(vMessage);
-            vNetworkManager->notifyConsumerReady();
+            RoutingProtocol::getInstance().unLockAfterUpdate();
+            PRINTLN(Released protocol after update)
+            //vNetworkManager->notifyConsumerReady();
         }
         sleep(3);
     }
