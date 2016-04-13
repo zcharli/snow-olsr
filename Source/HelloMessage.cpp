@@ -4,6 +4,7 @@ HelloMessage::HelloMessage() {
     mMessageHeader.type = M_HELLO_MESSAGE;
 }
 HelloMessage::~HelloMessage() {
+    std::cout << "HelloMessage destructor" << std::endl;
 }
 
 HelloMessage::HelloMessage(char* buffer) {
@@ -100,7 +101,9 @@ void HelloMessage::deserialize(char* buffer) {
 }
 
 void HelloMessage::serialize() {
+    std::cout << "Seralizing hello message" << std::endl;
     if (mSerializedData != NULL) {
+        std::cout << "Found a non null serialize data, deleting it" << std::endl;
         delete [] mSerializedData;
     }
     int vCurrentIndex = 0;
@@ -121,8 +124,8 @@ void HelloMessage::serialize() {
     // MessageSize
     *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(mSerializedDataSize - HELLO_MSG_HEADER); // 22 is header size
     // Test
-    uint16_t test = ntohs((*(uint16_t*) (mSerializedData + vCurrentIndex)));
-    std::cout << test << std::endl;
+    //uint16_t test = ntohs((*(uint16_t*) (mSerializedData + vCurrentIndex)));
+    // std::cout << test << std::endl;
     vCurrentIndex += 2;
 
     // Originator address
@@ -130,9 +133,9 @@ void HelloMessage::serialize() {
     vCurrentIndex += WLAN_ADDR_LEN;
 
     // Time to Live (Decremented!)
-    if (mMessageHeader.timeToLive - 1 == 0) {
-        PRINTLN(Time to live for this Hello message is zero so requires attention)
-    }
+    // if (mMessageHeader.timeToLive - 1 == 0) {
+    //     PRINTLN(Time to live for this Hello message is zero so requires attention)
+    // }
     mSerializedData[vCurrentIndex++] = mMessageHeader.timeToLive - 1;
 
     // Hop Count

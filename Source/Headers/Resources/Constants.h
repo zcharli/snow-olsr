@@ -78,5 +78,5 @@
  */
 #define S_TC_REDUNDANCY 0
 #define S_MPR_COVERAGE 1
-#define S_MAXJITTER T_HELLO_INTERVAL / 4.0f
+#define S_MAXJITTER 500
 #define S_MAX_SEQ_NUM   65535

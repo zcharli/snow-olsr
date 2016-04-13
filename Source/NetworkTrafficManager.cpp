@@ -12,12 +12,12 @@ NetworkTrafficManager::~NetworkTrafficManager() {
 
 void NetworkTrafficManager::init() {
     mListener = std::make_unique<NetworkPacketListener>(mWirelessInterfaceName, *this);
-    mListener->run();
+    //mListener->run();
     mSendSocket->init();
     // Only create TC thread if this client is an MPR, lets test anyways
     mTCThread = std::make_unique<NetworkTCMessageThread>(mSendSocket);
     mHelloThread = std::make_unique<NetworkHelloMessageThread>(mSendSocket);
-    mTCThread->run();
+    //mTCThread->run();
     mHelloThread->run();
     PRINTLN(Traffic manager has been initialized);
 }
@@ -60,7 +60,7 @@ const MACAddress& NetworkTrafficManager::getPersonalAddress() {
 
 int NetworkTrafficManager::generateRandomJitter() {
     boost::random::mt19937 vRandomSeed;
-    boost::random::uniform_int_distribution<> vJitterGenerator(0,S_MAXJITTER*1000);
+    boost::random::uniform_int_distribution<> vJitterGenerator(0,S_MAXJITTER);
     return vJitterGenerator(vRandomSeed);
 }
 
@@ -104,6 +104,7 @@ void NetworkHelloMessageThread::startBroadcastHelloMessages() {
 
     while (1) {
         char a[] = "ff:ff:ff:ff:ff:ff";
+        PRINTLN(Waiting to send)
         mSocketMutex.lock();
         OLSRMessage message;
         if(RoutingProtocol::getInstance().buildHelloMessage(message) == 0) {
@@ -113,11 +114,12 @@ void NetworkHelloMessageThread::startBroadcastHelloMessages() {
         char* vBuffer = message.serialize().getData();
         //char a[]="1c:bd:b9:7e:b5:d4"; // unicast address
         //char f[] = "Hello!"; // data
-        char* buffer = message.serialize().getData();
-        memmove(buffer + 14, vBuffer, message.getPacketSize());
-        buffer[message.getPacketSize() + 14] = '\0';
+        char* buffer = new char[message.getPacketSize() + WLAN_HEADER_LEN];
+        memmove(buffer + WLAN_HEADER_LEN, vBuffer, message.getPacketSize());
+        //buffer[message.getPacketSize() + 14] = '\0';
         mSocket->send(a, buffer);
         PRINTLN(Sent a hello message)
+        std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
         usleep(1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()));
         delete [] buffer;
     }

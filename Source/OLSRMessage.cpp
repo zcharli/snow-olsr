@@ -12,20 +12,24 @@ OLSRMessage::OLSRMessage(char* buffer) : mSerializedData(NULL) {
 }
 
 OLSRMessage::~OLSRMessage() {
+    std::cout << "OLSRMessage destructor" << std::endl;
+
     if (mSerializedData != NULL) {
         delete [] mSerializedData;
     }
 }
 
 OLSRMessage& OLSRMessage::serialize() {
+    std::cout << "Seralizing hello message" << std::endl;
     if (mSerializedData != NULL) {
+        std::cout << "OLSR serialize was called for the second time" <<std::endl;
         delete [] mSerializedData;
     }
     mPacketLength = 4;
     for (std::shared_ptr<Message>& msg : messages) {
         msg->serialize();
         mPacketLength += msg->mSerializedDataSize;
-        std::cout << "Serialized a ms with datasize " << msg->mSerializedDataSize << std::endl;
+        // std::cout << "Serialized a ms with datasize " << msg->mSerializedDataSize << std::endl;
     }
 
     mSerializedData = new char[mPacketLength];
