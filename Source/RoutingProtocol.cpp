@@ -60,7 +60,6 @@ int RoutingProtocol::buildHelloMessage(OLSRMessage& message) {
             linkType = L_LOST_LINK;
         }
         mMtxGetHello.lock();
-        // Establishes neighbor type.
         bool found = mState.findMprAddress(link.neighborIfaceAddr);
         mMtxGetHello.unlock();
         if (found) {

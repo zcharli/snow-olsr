@@ -12,12 +12,12 @@ NetworkTrafficManager::~NetworkTrafficManager() {
 
 void NetworkTrafficManager::init() {
     mListener = std::make_unique<NetworkPacketListener>(mWirelessInterfaceName, *this);
-    //mListener->run();
+    mListener->run();
     mSendSocket->init();
     // Only create TC thread if this client is an MPR, lets test anyways
     mTCThread = std::make_unique<NetworkTCMessageThread>(mSendSocket);
     mHelloThread = std::make_unique<NetworkHelloMessageThread>(mSendSocket);
-    //mTCThread->run();
+    mTCThread->run();
     mHelloThread->run();
     PRINTLN(Traffic manager has been initialized);
 }
@@ -59,7 +59,7 @@ const MACAddress& NetworkTrafficManager::getPersonalAddress() {
 }
 
 int NetworkTrafficManager::generateRandomJitter() {
-    boost::random::mt19937 vRandomSeed;
+    boost::random::mt19937 vRandomSeed(time(0));
     boost::random::uniform_int_distribution<> vJitterGenerator(0,S_MAXJITTER);
     return vJitterGenerator(vRandomSeed);
 }
