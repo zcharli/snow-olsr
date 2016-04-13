@@ -111,7 +111,7 @@ int RoutingProtocol::buildTCMessage(OLSRMessage& message) {
     tcMessage->mMessageHeader.messageSequenceNumber = mSequenceNumber++;
     mSequenceNumber = (mSequenceNumber + 1) % 65530;
     tcMessage->ansn = mANSN;
-    for(auto& neighborMprs : neighbors) {
+    for (auto& neighborMprs : neighbors) {
         tcMessage->mNeighborAddresses.push_back(neighborMprs.mainAddr);
     }
     message.messages.push_back(tcMessage);
@@ -218,13 +218,13 @@ void RoutingProtocol::handleHelloMessage(HelloMessage& message, const MACAddress
                                         vLinkEdge->symTime - vLinkEdge->expirationTime
                                         : vLinkEdge->expirationTime - vLinkEdge->symTime ;
         std::cout << "RoutingProtocol::handleHelloMessage: Schedule a " << expireTimer.total_seconds() << " seconds to do expire this link" << std::endl;
-        boost::thread vExpiryThread = boost::thread(boost::bind(&RoutingProtocol::startTimer, this, expireTimer.total_seconds(), vLinkEdge->neighborIfaceAddr));
+        boost::thread vExpiryThread = boost::thread(boost::bind(&RoutingProtocol::expireLink, this, expireTimer.total_seconds(), vLinkEdge->neighborIfaceAddr));
 
     }
     PRINTLN(END Timer)
 }
 
-void RoutingProtocol::startTimer(int seconds, MACAddress neighborAddr) {
+void RoutingProtocol::expireLink(int seconds, MACAddress neighborAddr) {
     std::cout << "RoutingProtocol::expireLink: A Link timer has expired, checking status of the link" << std::endl;
 
     std::cout << "Sleeping for " << seconds << std::endl;
@@ -281,7 +281,7 @@ void RoutingProtocol::startTimer(int seconds, MACAddress neighborAddr) {
                 mState.cleanLinkTuple(*vLinkTuple);
                 mMtxLinkExpire.unlock();
                 PRINTLN(Expiring from else if case)
-                return;
+                    return;
             }
             seconds = expireTimer.total_seconds();
             std::cout << "Sleeping for " << seconds << std::endl;
@@ -329,7 +329,7 @@ void RoutingProtocol::handleTCMessage(TCMessage& message, MACAddress& senderHWAd
     //  (case: message received out of order).
     std::cout << "RoutingProtocol::handleTCMessage: Check the tc message and discard if message received out of order" << std::endl;
     MACAddress lastAddr =  *(message.getOriginatorAddress());
-    uint16_t ansn = message.ansn
+    uint16_t ansn = message.ansn;
     mMtxState.lock();
     TopologyTuple* vTopologyTuple = mState.findNewerTopologyTuple(lastAddr, ansn);
     mMtxState.unlock();
@@ -369,19 +369,49 @@ void RoutingProtocol::handleTCMessage(TCMessage& message, MACAddress& senderHWAd
         mMtxState.unlock();
         if (vTopologyTuple != NULL) {
             std::cout << "RoutingProtocol::handleTCMessage: This tuple is already exist in the topology set" << std::endl;
-            vTopologyTuple->expirationTime = now + pt::seconds(T_NEIGHB_HOLD_TIME);
+            vTopologyTuple->expirationTime = now + pt::seconds(T_TOP_HOLD_TIME);
         } else {
             std::cout << "RoutingProtocol::handleTCMessage: A new tuple is recorded in the topology set" << std::endl;
             TopologyTuple topologyTuple;
             topologyTuple.destAddr = addr;
             topologyTuple.lastAddr = lastAddr;
             topologyTuple.sequenceNumber = ansn;
-            topologyTuple.expirationTime = vTopologyTuple->expirationTime + pt::seconds(T_NEIGHB_HOLD_TIME);
+            topologyTuple.expirationTime = vTopologyTuple->expirationTime + pt::seconds(T_TOP_HOLD_TIME);
             mMtxState.lock();
             mState.insertTopologyTuple(topologyTuple);
             mMtxState.unlock();
+            pt::time_duration expireTimer = topologyTuple.expirationTime - now;
+            int seconds = expireTimer.total_seconds();
+            boost::thread vExpiryThread = boost::thread(boost::bind(&RoutingProtocol::expireTopology, this, seconds, addr, lastAddr));
         }
     }
+}
+
+void RoutingProtocol::expireTopology(int seconds, MACAddress destAddr, MACAddress lastAddr) {
+    std::cout << "TC expire timer started with " << seconds << " seconds" << std::endl;
+
+    do {
+        sleep(seconds);
+        pt::ptime now = pt::second_clock::local_time();
+
+        mMtxTCExpire.lock();
+        TopologyTuple* vTopologyTuple = mState.findTopologyTuple(destAddr, lastAddr);
+        mMtxTCExpire.unlock();
+        if (vTopologyTuple == NULL) {
+            return;
+        }
+        pt::time_duration expireTimer = vTopologyTuple->expirationTime - now;
+        seconds = expireTimer.total_seconds();
+        if (vTopologyTuple->expirationTime < now) {
+            mMtxTCExpire.lock();
+            mState.cleanTopologyTuple(*vTopologyTuple);
+            mMtxTCExpire.unlock();
+            std::cout << "TC lost contact with a node " << vTopologyTuple->destAddr << " from neighbor "
+                      << vTopologyTuple->lastAddr << std::endl;
+            return;
+        }
+        std::cout << "TC did not expire and will sleep for another " << seconds << " seconds" << std::endl;
+    } while (seconds > 0);
 }
 
 void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio::deadline_timer *vRepeatingTimer, boost::asio::io_service *mIo,  MACAddress& neighborAddr) {
@@ -819,7 +849,7 @@ void RoutingProtocol::routingTableComputation () {
         mMtxRoutingTableCalc.lock();
         bool found = mState.findNeighborTuple(neighbor2HopTuple.twoHopNeighborAddr);
         mMtxRoutingTableCalc.unlock();
-        if (!found|| neighbor2HopTuple.twoHopNeighborAddr != mPersonalAddress) {
+        if (!found || neighbor2HopTuple.twoHopNeighborAddr != mPersonalAddress) {
             //  exist at least one entry in the 2-hop neighbor set where N_neighbor_main_addr correspond to a neighbor node with
             //  willingness different of WILL_NEVER, one selects one 2-hop tuple and creates one entry in the routing table with:
             bool nb2hopOk = false;

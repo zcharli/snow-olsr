@@ -83,7 +83,8 @@ private:
     TCMessage mTCStateRep;
     MACAddress mPersonalAddress;
     boost::mutex mMtxState, mMtxLinkExpire, mMtxUpdateLinkTuple, mMtxRoutingTableCalc,
-                 mMtxMprUpdate, mMtxDegree, mMtxGetHello, mMtxGetTc, mMtxSystem, mMtxGetTC;
+                 mMtxMprUpdate, mMtxDegree, mMtxGetHello, mMtxGetTc, mMtxSystem, mMtxGetTC,
+                 mMtxTCExpire;
 
     int mSequenceNumber;
 
@@ -98,10 +99,12 @@ private:
     int calculateNodeDegree(NeighborTuple &);
 
     void updateLinkTuple(LinkTuple*, uint8_t);
-    void startTimer(int seconds, MACAddress);
+    void expireLink(int seconds, MACAddress);
+    void expireTopology(int, MACAddress destAddr, MACAddress lastAddr);
 
     /* Below if our timers for updating the state */
     void expireLink(const boost::system::error_code&, boost::asio::deadline_timer*, boost::asio::io_service*, MACAddress&);
+
 
     /* Below is important OLSR attributes */
     // advertised neighbor set sequence number
