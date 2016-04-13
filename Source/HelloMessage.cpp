@@ -55,7 +55,7 @@ void HelloMessage::deserialize(char* buffer) {
     buffer += 2;
 
     // Deserialize the actual message now lol
-    std::cout << "After deserializing the header, we still have " << mMessageHeader.messageSize << " bytes left" << std::endl;
+    // std::cout << "After deserializing the header, we still have " << mMessageHeader.messageSize << " bytes left" << std::endl;
 
     // Skip the reserved
     buffer += 2;

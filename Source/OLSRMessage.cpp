@@ -61,7 +61,6 @@ char* OLSRMessage::getData() {
 }
 
 void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
-    PRINTLN(Deserializing begin)
     // Packet Length
     mPacketLength = ntohs((*(uint16_t*) vBuffer));
     vBuffer += 2;
@@ -84,7 +83,8 @@ void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
             char* vHelloMessageBuffer = new char[vMessageSize];
             memcpy ( vHelloMessageBuffer, vBuffer, vMessageSize);
 
-            HelloMessage vHelloMessage(vHelloMessageBuffer);
+            std::shared_ptr<HelloMessage> vHelloMessage = std::make_shared<HelloMessage>(vHelloMessageBuffer);
+            messages.push_back(vHelloMessage);
             vBytesLeftToProccess -= vMessageSize;
             delete [] vHelloMessageBuffer;
             break;
@@ -99,8 +99,5 @@ void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
             // Not implemented
             break;
         }
-
-
     }
-    PRINTLN(Deserializing finish)
 }

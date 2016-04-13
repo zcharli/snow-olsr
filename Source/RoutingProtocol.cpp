@@ -1,13 +1,15 @@
 #include "Headers/RoutingProtocol.h"
 
 void RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> message) {
-    std::cout << "RoutingProtocol::updateState: Receive the mssage" << std::endl;
+    std::cout << "RoutingProtocol::updateState: Received the message" << std::endl;
     // Here we want to hand
     for (std::vector<std::shared_ptr<Message>>::iterator it = message->messages.begin();
             it != message->messages.end(); it++) {
+        std::cout << "RoutingProtocol::updateState: got message type " << (*it)->getType() << std::endl;
         switch ((*it)->getType()) {
         case M_HELLO_MESSAGE :
             // Dereferenced HelloMsg from the address of the dereference iterator msg
+            PRINTLN(Handling hello msg)
             handleHelloMessage(*((HelloMessage*) & (**it)), message->mSenderHWAddr, (*it)->getVTime());
             break;
         case M_TC_MESSAGE:
@@ -22,6 +24,7 @@ void RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> message) {
             break;
         }
     }
+    PRINTLN(Update done)
 }
 
 
@@ -302,6 +305,7 @@ void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio
         delete mIo;
         return;
     }
+    std::cout << "Link expires in " << vLinkTuple->expirationTime << std::endl;
     if (vLinkTuple->expirationTime < now) {
         // Remove this link
         PRINTLN(RoutingProtocol::expireLink: Expiring a link tuple)
@@ -312,7 +316,7 @@ void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio
         delete vRepeatingTimer;
         delete mIo;
     } else if (vLinkTuple->symTime < now) {
-        PRINTLN(RoutingProtocol::expireLink: Updating Link tuple and its neightbor for timeout in definite expiration)
+        // PRINTLN(RoutingProtocol::expireLink: Updating Link tuple and its neightbor for timeout in definite expiration)
             mMtxLinkExpire.lock();
         NeighborTuple* vNeighbor = mState.findNeighborTuple(vLinkTuple->neighborIfaceAddr);
         mMtxLinkExpire.unlock();
@@ -322,11 +326,11 @@ void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio
             mState.cleanTwoHopNeighborTuples(vLinkTuple->neighborIfaceAddr);
             mState.cleanMprSelectorTuples(vLinkTuple->neighborIfaceAddr);
             mMtxLinkExpire.unlock();
-            // COMPUTE MPR HERE
             updateMPRState();
-            // COMPUTE ROUTING TABLE HERE
+            routingTableComputation();
         }
         pt::time_duration expireTimer = vLinkTuple->expirationTime - now;
+        std::cout << "Update link and expire in " << expireTimer.total_seconds() << std::endl;
         vRepeatingTimer->expires_from_now(pt::seconds(expireTimer.total_seconds()));
         vRepeatingTimer->async_wait(boost::bind(&RoutingProtocol::expireLink, this, boost::asio::placeholders::error, vRepeatingTimer, mIo, neighborAddr));
     } else {
