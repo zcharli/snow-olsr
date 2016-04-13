@@ -54,7 +54,7 @@ std::shared_ptr<Packet> NetworkTrafficManager::getMessage() {
     return vMessage;
 }
 
-const IPv6Address& NetworkTrafficManager::getPersonalAddress() {
+const MACAddress& NetworkTrafficManager::getPersonalAddress() {
     return mSendSocket->getPersonalAddress();
 }
 

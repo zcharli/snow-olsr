@@ -17,3 +17,4 @@ iwconfig wlx1cbdb97eb663 ap 00:00:00:00:00:01
 ifconfig wlx1cbdb97eb663 up
 iwconfig wlx1cbdb97eb663
 
+./SnowNetwork

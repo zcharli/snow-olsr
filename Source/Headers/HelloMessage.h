@@ -7,7 +7,7 @@
 #include <netinet/in.h>
 #include <map>
 #include <memory>
-#include "IPv6Address.h"
+#include "MACAddress.h"
 #include "Message.h"
 #include "Resources/Helpers.h"
 
@@ -17,7 +17,7 @@ class HelloMessage : public Message
 public:
     struct LinkMessage {
         uint8_t linkCode;
-        std::vector<IPv6Address> neighborIfAddr;
+        std::vector<MACAddress> neighborIfAddr;
     };
     HelloMessage();
     HelloMessage(char*);

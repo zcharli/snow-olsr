@@ -39,7 +39,7 @@ void HelloMessage::deserialize(char* buffer) {
     // Originator address
     memcpy(mMessageHeader.originatorAddress, buffer, WLAN_ADDR_LEN);
     buffer += WLAN_ADDR_LEN;
-    mOriginatorAddress = std::make_shared<IPv6Address>(mMessageHeader.originatorAddress);
+    mOriginatorAddress = std::make_shared<MACAddress>(mMessageHeader.originatorAddress);
 
     // Time to Live
     mMessageHeader.timeToLive = (*(uint8_t*) buffer);
@@ -88,7 +88,7 @@ void HelloMessage::deserialize(char* buffer) {
         while (vNumLinks--) {
             char* vAdvertisedNeighborInterfaceAddrBuffer = new char[WLAN_ADDR_LEN];
             memcpy(vAdvertisedNeighborInterfaceAddrBuffer, buffer, WLAN_ADDR_LEN);
-            IPv6Address vAdvertisedNeighborInterfaceAddr(vAdvertisedNeighborInterfaceAddrBuffer);
+            MACAddress vAdvertisedNeighborInterfaceAddr(vAdvertisedNeighborInterfaceAddrBuffer);
             vLink.neighborIfAddr.push_back(vAdvertisedNeighborInterfaceAddr);
             buffer += WLAN_ADDR_LEN;
             vTotalMsgSize -= WLAN_ADDR_LEN;

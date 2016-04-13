@@ -38,7 +38,7 @@ int SnowClient::start() {
 // HelloMessage::LinkMessage link;
 // link.linkCode = 255;
 // char a[] = {'1','2','3','4','5','6'};
-// IPv6Address linkAddr(a);
+// MACAddress linkAddr(a);
 // link.neighborIfAddr.push_back(linkAddr);
 // msg.mLinkMessages.push_back(link);
 // msg.type = 1;

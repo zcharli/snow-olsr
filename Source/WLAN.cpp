@@ -51,6 +51,7 @@ bool WLAN::fetchHardwareAddress() {
         std::cerr << "Failed to fetch hardware address: " << strerror(errno) << "\n";
         return false;
     }
+    std::cout << "real hardware address " << ifr.ifr_hwaddr.sa_data << std::endl;
     memcpy(&ifconfig.hwaddr.data, &ifr.ifr_hwaddr.sa_data, WLAN_ADDR_LEN);
     char * addr = new char[32];
     std::cerr << "hardware address is: " << ifconfig.hwaddr.wlan2asc(addr) << "\n";
@@ -105,7 +106,7 @@ bool WLAN::init() {
 }
 
 // build a frame header
-void WLAN::buildHeader(char address[], IPv6Address *daddr) {
+void WLAN::buildHeader(char address[], MACAddress *daddr) {
     // conversion of  destination address from ASCII to binary
     daddr->str2wlan(address);
     // store the destination address
@@ -117,7 +118,7 @@ void WLAN::buildHeader(char address[], IPv6Address *daddr) {
 }
 
 // set the "to address"
-void WLAN::setToAddress(IPv6Address *daddr, struct sockaddr_ll *to) {
+void WLAN::setToAddress(MACAddress *daddr, struct sockaddr_ll *to) {
     to->sll_family = AF_PACKET;
     to->sll_ifindex = ifconfig.ifindex;
     memmove(&(to->sll_addr), daddr->data, WLAN_ADDR_LEN);
@@ -129,7 +130,7 @@ bool WLAN::send(char address[], char* msg_buffer) {
     // send buffer
     //char buff[WLAN_HEADER_LEN+strlen(message)];
     // destination address
-    IPv6Address daddr;
+    MACAddress daddr;
     // build the header
     buildHeader(address, &daddr);
     // store the header into the frame
@@ -168,6 +169,7 @@ void WLAN::parseReceivedFrame(std::shared_ptr<Packet> inPacket) {
     inPacket->setMyAddress(myaddress);
     inPacket->setOffset(sizeof(WLANHeader));
     // check destination
+    std::cout << "DEBUG: from " << src << " to " << dst << ": " << myaddress<< "\n";
     if (strcmp(dst, ifconfig.hwaddr.wlan2asc(myaddress)) == 0 ||
             dst == WLAN_BROADCAST) {
         // destination address is self or broadcast
@@ -213,6 +215,6 @@ void WLAN::receive(std::shared_ptr<Packet> inPacket) {
     parseReceivedFrame(inPacket);
 }
 
-const IPv6Address& WLAN::getPersonalAddress() const {
+const MACAddress& WLAN::getPersonalAddress() const {
     return ifconfig.hwaddr;
 }

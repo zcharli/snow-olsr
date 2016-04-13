@@ -9,7 +9,7 @@ Message::~Message() {
     }
 }
 
-std::shared_ptr<IPv6Address> Message::getOriginatorAddress() {
+std::shared_ptr<MACAddress> Message::getOriginatorAddress() {
     if (mOriginatorAddress != NULL) {
         return mOriginatorAddress;
     }

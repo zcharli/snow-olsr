@@ -7,24 +7,24 @@
 #include <stdio.h>
 #include "Resources/Constants.h"
 
-class IPv6Address
+class MACAddress
 {
 public:
-  IPv6Address();
-  IPv6Address(char*);
-  IPv6Address(const IPv6Address&);
-  ~IPv6Address();
+  MACAddress();
+  MACAddress(char*);
+  MACAddress(const MACAddress&);
+  ~MACAddress();
   char* wlan2asc(char str[]);
   char* wlan2asc(char str[]) const;
   int str2wlan(char s[]);
-  char data[WLAN_ADDR_LEN];
+  unsigned char data[WLAN_ADDR_LEN];
   static int sscanf6(char str[], int *a1, int *a2, int *a3, int *a4, int *a5,
                      int *a6);
   static int hexdigit(char a);
-  void setAddressData(const char[]);
+  void setAddressData(const unsigned char[]);
 };
 
-inline std::ostream& operator << (std::ostream& os, IPv6Address const& address) {
+inline std::ostream& operator << (std::ostream& os, MACAddress const& address) {
   char* str = new char[32];
   os << address.wlan2asc(str) << std::endl;
   delete [] str;
@@ -32,18 +32,18 @@ inline std::ostream& operator << (std::ostream& os, IPv6Address const& address) 
 }
 
 
-inline bool operator==(const IPv6Address& lhs, const IPv6Address& rhs)
+inline bool operator==(const MACAddress& lhs, const MACAddress& rhs)
 {
   return memcmp ( lhs.data, rhs.data, WLAN_ADDR_LEN ) == 0;
 }
 
-inline bool operator!=(const IPv6Address& lhs, const IPv6Address& rhs)
+inline bool operator!=(const MACAddress& lhs, const MACAddress& rhs)
 {
   return !(lhs == rhs);
 
 }
 
-inline bool operator<(const IPv6Address& lhs, const IPv6Address& rhs)
+inline bool operator<(const MACAddress& lhs, const MACAddress& rhs)
 {
     return memcmp ( lhs.data, rhs.data, WLAN_ADDR_LEN ) < 0;
 }

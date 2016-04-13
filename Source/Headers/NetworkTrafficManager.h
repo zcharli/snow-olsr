@@ -16,7 +16,7 @@
 #include "Resources/Helpers.h"
 #include "OLSRMessage.h"
 #include "NetworkPacketListener.h"
-#include "IPv6Address.h"
+#include "MACAddress.h"
 #include "Packet.h"
 #include "RoutingProtocol.h"
 //#include "NetworkTCMessageThread.h"
@@ -50,7 +50,7 @@ public:
     int enqueMsgForProcessing(std::shared_ptr<Packet> );
     void notifyConsumerReady();
     std::shared_ptr<Packet> getMessage();
-    const IPv6Address& getPersonalAddress();
+    const MACAddress& getPersonalAddress();
     static int generateRandomJitter();
 
 };

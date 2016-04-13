@@ -5,20 +5,20 @@ OLSRState::OLSRState() {}
 /**
 *   Find MPR
 */
-bool OLSRState::findMprAddress (const IPv6Address  &address) {
-    std::set<IPv6Address>::iterator it = mMprSet.find(address);
+bool OLSRState::findMprAddress (const MACAddress  &address) {
+    std::set<MACAddress>::iterator it = mMprSet.find(address);
     return (it != mMprSet.end());
 
 }
 
-void OLSRState::setMprSet (std::set<IPv6Address> mprSet) {
+void OLSRState::setMprSet (std::set<MACAddress> mprSet) {
     mMprSet = mprSet;
 }
 
 /**
 * MPR selector
 */
-MprSelectorTuple* OLSRState::findMprSelectorTuple (IPv6Address &mainAddr) {
+MprSelectorTuple* OLSRState::findMprSelectorTuple (MACAddress &mainAddr) {
     for (std::vector<MprSelectorTuple>::iterator it = mMprSelectorSet.begin();
             it != mMprSelectorSet.end(); it++) {
         if (it->mainAddr == mainAddr)
@@ -37,7 +37,7 @@ void OLSRState::cleanMprSelectorTuple (MprSelectorTuple &tuple) {
     }
 }
 
-void OLSRState::cleanMprSelectorTuples (const IPv6Address &mainAddr)
+void OLSRState::cleanMprSelectorTuples (const MACAddress &mainAddr)
 {
     for (std::vector<MprSelectorTuple>::iterator it = mMprSelectorSet.begin();
             it != mMprSelectorSet.end();) {
@@ -73,7 +73,7 @@ std::string OLSRState::printMprSelectorSet() const
 /**
 *   Neighbor Set Manipulation
 */
-NeighborTuple* OLSRState::findNeighborTuple (const IPv6Address &mainAddr)
+NeighborTuple* OLSRState::findNeighborTuple (const MACAddress &mainAddr)
 {
     for (std::vector<NeighborTuple>::iterator it = mNeighborSet.begin(); it != mNeighborSet.end(); it++) {
         if (it->neighborMainAddr == mainAddr)
@@ -82,7 +82,7 @@ NeighborTuple* OLSRState::findNeighborTuple (const IPv6Address &mainAddr)
     return NULL;
 }
 
-const NeighborTuple* OLSRState::findSymNeighborTuple (const IPv6Address &mainAddr) const
+const NeighborTuple* OLSRState::findSymNeighborTuple (const MACAddress &mainAddr) const
 {
     for (std::vector<NeighborTuple>::const_iterator it = mNeighborSet.begin(); it != mNeighborSet.end(); it++) {
         if (it->neighborMainAddr == mainAddr && it->status == NeighborTuple::STATUS_SYM)
@@ -91,7 +91,7 @@ const NeighborTuple* OLSRState::findSymNeighborTuple (const IPv6Address &mainAdd
     return NULL;
 }
 
-NeighborTuple* OLSRState::findNeighborTuple (const IPv6Address &mainAddr, uint8_t willingness)
+NeighborTuple* OLSRState::findNeighborTuple (const MACAddress &mainAddr, uint8_t willingness)
 {
     for (std::vector<NeighborTuple>::iterator it = mNeighborSet.begin(); it != mNeighborSet.end(); it++) {
         if (it->neighborMainAddr == mainAddr && it->willingness == willingness)
@@ -110,7 +110,7 @@ void OLSRState::cleanNeighborTuple (const NeighborTuple &tuple)
     }
 }
 
-void OLSRState::cleanNeighborTuple (const IPv6Address &mainAddr)
+void OLSRState::cleanNeighborTuple (const MACAddress &mainAddr)
 {
     for (std::vector<NeighborTuple>::iterator it = mNeighborSet.begin(); it != mNeighborSet.end(); it++) {
         if (it->neighborMainAddr == mainAddr) {
@@ -137,7 +137,7 @@ void OLSRState::insertNeighborTuple (const NeighborTuple &tuple)
 /**
 * Neighbor 2 Hop Set Manipulation
 */
-TwoHopNeighborTuple* OLSRState::findTwoHopNeighborTuple (const IPv6Address &neighborMainAddr, const IPv6Address &twoHopNeighborAddr)
+TwoHopNeighborTuple* OLSRState::findTwoHopNeighborTuple (const MACAddress &neighborMainAddr, const MACAddress &twoHopNeighborAddr)
 {
     for (std::vector<TwoHopNeighborTuple>::iterator it = mTwoHopNeighborSet.begin(); it != mTwoHopNeighborSet.end(); it++) {
         if (it->neighborMainAddr == neighborMainAddr && it->twoHopNeighborAddr == twoHopNeighborAddr) {
@@ -157,7 +157,7 @@ void OLSRState::cleanTwoHopNeighborTuple (const TwoHopNeighborTuple &tuple)
     }
 }
 
-void OLSRState::cleanTwoHopNeighborTuples (const IPv6Address &neighborMainAddr, const IPv6Address &twoHopNeighborAddr)
+void OLSRState::cleanTwoHopNeighborTuples (const MACAddress &neighborMainAddr, const MACAddress &twoHopNeighborAddr)
 {
     for (std::vector<TwoHopNeighborTuple>::iterator it = mTwoHopNeighborSet.begin(); it != mTwoHopNeighborSet.end();) {
         if (it->neighborMainAddr == neighborMainAddr
@@ -169,7 +169,7 @@ void OLSRState::cleanTwoHopNeighborTuples (const IPv6Address &neighborMainAddr, 
     }
 }
 
-void OLSRState::cleanTwoHopNeighborTuples (const IPv6Address &neighborMainAddr)
+void OLSRState::cleanTwoHopNeighborTuples (const MACAddress &neighborMainAddr)
 {
     for (std::vector<TwoHopNeighborTuple>::iterator it = mTwoHopNeighborSet.begin(); it != mTwoHopNeighborSet.end();) {
         if (it->neighborMainAddr == neighborMainAddr) {
@@ -189,7 +189,7 @@ void OLSRState::insertTwoHopNeighborTuple (const TwoHopNeighborTuple &tuple)
 /**
 * Link Set Manipulation
 */
-LinkTuple* OLSRState::findLinkTuple (const IPv6Address & ifaceAddr)
+LinkTuple* OLSRState::findLinkTuple (const MACAddress & ifaceAddr)
 {
     for (std::vector<LinkTuple> ::iterator it = mLinkSet.begin(); it != mLinkSet.end(); it++) {
         if (it->neighborIfaceAddr == ifaceAddr)
@@ -198,7 +198,7 @@ LinkTuple* OLSRState::findLinkTuple (const IPv6Address & ifaceAddr)
     return NULL;
 }
 
-LinkTuple* OLSRState::findSymLinkTuple (const IPv6Address &ifaceAddr)
+LinkTuple* OLSRState::findSymLinkTuple (const MACAddress &ifaceAddr)
 {
     for (std::vector<LinkTuple> ::iterator it = mLinkSet.begin(); it != mLinkSet.end(); it++) {
         if (it->neighborIfaceAddr == ifaceAddr) {
@@ -227,7 +227,7 @@ LinkTuple& OLSRState::insertLinkTuple (const LinkTuple &tuple)
 /**
 * Topology Set Manipulation
 */
-TopologyTuple* OLSRState::findTopologyTuple (const IPv6Address &destAddr, const IPv6Address &lastAddr)
+TopologyTuple* OLSRState::findTopologyTuple (const MACAddress &destAddr, const MACAddress &lastAddr)
 {
     for (std::vector<TopologyTuple>::iterator it = mTopologySet.begin(); it != mTopologySet.end(); it++) {
         if (it->destAddr == destAddr && it->lastAddr == lastAddr)
@@ -236,7 +236,7 @@ TopologyTuple* OLSRState::findTopologyTuple (const IPv6Address &destAddr, const 
     return NULL;
 }
 
-TopologyTuple* OLSRState::findNewerTopologyTuple (const IPv6Address & lastAddr, uint16_t ansn)
+TopologyTuple* OLSRState::findNewerTopologyTuple (const MACAddress & lastAddr, uint16_t ansn)
 {
     for (std::vector<TopologyTuple>::iterator it = mTopologySet.begin(); it != mTopologySet.end(); it++) {
         if (it->lastAddr == lastAddr && it->sequenceNumber > ansn)
@@ -256,7 +256,7 @@ void OLSRState::cleanTopologyTuple(const TopologyTuple &tuple)
     }
 }
 
-void OLSRState::cleanOlderTopologyTuples (const IPv6Address &lastAddr, uint16_t ansn)
+void OLSRState::cleanOlderTopologyTuples (const MACAddress &lastAddr, uint16_t ansn)
 {
     for (std::vector<TopologyTuple>::iterator it = mTopologySet.begin(); it != mTopologySet.end();) {
         if (it->lastAddr == lastAddr && it->sequenceNumber < ansn) {
@@ -275,7 +275,7 @@ void OLSRState::insertTopologyTuple (TopologyTuple const &tuple)
 /**
 * Interface Association Set Manipulation
 */
-InterfaceAssociationTuple* OLSRState::findInterfaceAssociationTuple (const IPv6Address &ifaceAddr)
+InterfaceAssociationTuple* OLSRState::findInterfaceAssociationTuple (const MACAddress &ifaceAddr)
 {
     for (std::vector<InterfaceAssociationTuple>::iterator it = mInterfaceAssociationSet.begin(); it != mInterfaceAssociationSet.end(); it++) {
         if (it->ifaceAddr == ifaceAddr)
@@ -284,7 +284,7 @@ InterfaceAssociationTuple* OLSRState::findInterfaceAssociationTuple (const IPv6A
     return NULL;
 }
 
-const InterfaceAssociationTuple* OLSRState::findInterfaceAssociationTuple (const IPv6Address &ifaceAddr) const
+const InterfaceAssociationTuple* OLSRState::findInterfaceAssociationTuple (const MACAddress &ifaceAddr) const
 {
     for (std::vector<InterfaceAssociationTuple>::const_iterator it = mInterfaceAssociationSet.begin(); it != mInterfaceAssociationSet.end(); it++) {
         if (it->ifaceAddr == ifaceAddr)
@@ -308,9 +308,9 @@ void OLSRState::insertInterfaceAssociationTuple (const InterfaceAssociationTuple
     mInterfaceAssociationSet.push_back(tuple);
 }
 
-std::vector<IPv6Address> OLSRState::findNeighborInterfaces (const IPv6Address &neighborMainAddr) const
+std::vector<MACAddress> OLSRState::findNeighborInterfaces (const MACAddress &neighborMainAddr) const
 {
-    std::vector<IPv6Address> retval;
+    std::vector<MACAddress> retval;
     for (std::vector<InterfaceAssociationTuple>::const_iterator it = mInterfaceAssociationSet.begin(); it != mInterfaceAssociationSet.end(); it++) {
         if (it->mainAddr == neighborMainAddr)
             retval.push_back (it->ifaceAddr);

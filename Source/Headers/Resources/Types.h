@@ -11,13 +11,13 @@
 //#include "ns3/nstime.h"
 //#include "boost/asio.hpp"
 //#include <ctime>
-#include "../IPv6Address.h"
+#include "../MACAddress.h"
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 /*
     Introduction of Type.h for OLSR
 
     Type Name                   Description                         Data Type
-    MprSet:                     MPR Set type                        std::set<IPv6Address>
+    MprSet:                     MPR Set type                        std::set<MACAddress>
     MprSelectorSet:             MPR Selector Set type               std::vector<MprSelectorTuple>
     LinkSet:                    Link Set type                       std::vector<LinkTuple>
     NeighborSet:                Neighbor Set type                   std::vector<NeighborTuple>
@@ -42,13 +42,13 @@
         InterfaceAssociationTuple
 */
 
-//#define IPv6Address char
+//#define MACAddress char
 
 /// An MPR-Selector Tuple.
 struct MprSelectorTuple
 {
     /// Main address of a node which have selected this node as a MPR.
-    IPv6Address mainAddr;
+    MACAddress mainAddr;
     /// Time at which this tuple expires and must be removed.
     boost::posix_time::ptime expirationTime;
 };
@@ -62,9 +62,9 @@ static inline bool operator == (const MprSelectorTuple &a, const MprSelectorTupl
 struct LinkTuple
 {
     /// Interface address of the local node.
-    IPv6Address localIfaceAddr;
+    MACAddress localIfaceAddr;
     /// Interface address of the neighbor node.
-    IPv6Address neighborIfaceAddr;
+    MACAddress neighborIfaceAddr;
     /// The link is considered bidirectional until this time.
     boost::posix_time::ptime symTime;
     /// The link is considered unidirectional until this time.
@@ -89,7 +89,7 @@ static inline bool operator == (const LinkTuple &a, const LinkTuple &b)
 struct NeighborTuple
 {
     /// Main address of a neighbor node.
-    IPv6Address neighborMainAddr;
+    MACAddress neighborMainAddr;
     /// Neighbor Type and Link Type at the four less significative digits.
     enum Status {
         STATUS_NOT_SYM = 0, // "not symmetric"
@@ -119,9 +119,9 @@ static inline bool operator == (const NeighborTuple &a, const NeighborTuple &b)
 struct TwoHopNeighborTuple
 {
     /// Main address of a neighbor.
-    IPv6Address neighborMainAddr;
+    MACAddress neighborMainAddr;
     /// Main address of a 2-hop neighbor with a symmetric link to nb_main_addr.
-    IPv6Address twoHopNeighborAddr;
+    MACAddress twoHopNeighborAddr;
     boost::posix_time::ptime expirationTime;
 };
 
@@ -143,9 +143,9 @@ static inline bool operator == (const TwoHopNeighborTuple &a, const TwoHopNeighb
 struct TopologyTuple
 {
     /// Main address of the destination.
-    IPv6Address destAddr;
+    MACAddress destAddr;
     /// Main address of a node which is a neighbor of the destination.
-    IPv6Address lastAddr;
+    MACAddress lastAddr;
     /// Sequence number.
     uint16_t sequenceNumber;
     boost::posix_time::ptime expirationTime;
@@ -171,9 +171,9 @@ static inline bool operator == (const TopologyTuple &a, const TopologyTuple &b)
 struct InterfaceAssociationTuple
 {
     /// Interface address of a node.
-    IPv6Address ifaceAddr;
+    MACAddress ifaceAddr;
     /// Main address of the node.
-    IPv6Address mainAddr;
+    MACAddress mainAddr;
 };
 
 static inline bool  operator == (const InterfaceAssociationTuple &a, const InterfaceAssociationTuple &b)
@@ -188,7 +188,7 @@ static inline bool  operator == (const InterfaceAssociationTuple &a, const Inter
 //     return os;
 // }
 
-// typedef std::set<IPv6Address>                       MprSet;                     ///< MPR Set type.
+// typedef std::set<MACAddress>                       MprSet;                     ///< MPR Set type.
 // typedef std::vector<MprSelectorTuple>               MprSelectorSet;             ///< MPR Selector Set type.
 // typedef std::vector<LinkTuple>                      LinkSet;                    ///< Link Set type.
 // typedef std::vector<NeighborTuple>                  NeighborSet;                ///< Neighbor Set type.

@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <memory>
-#include "IPv6Address.h"
+#include "MACAddress.h"
 #include "Resources/Constants.h"
 #include "Resources/Helpers.h"
 
@@ -39,10 +39,10 @@ public:
     virtual void serialize();
     virtual void deserialize(char*);
     MessageHeader mMessageHeader;
-    std::shared_ptr<IPv6Address> getOriginatorAddress();
+    std::shared_ptr<MACAddress> getOriginatorAddress();
     int mSerializedDataSize;
     char* mSerializedData;
-    std::shared_ptr<IPv6Address> mOriginatorAddress;
+    std::shared_ptr<MACAddress> mOriginatorAddress;
     unsigned char type;
     int size;
 };

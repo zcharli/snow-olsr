@@ -10,7 +10,7 @@
 #include "Resources/Constants.h"
 #include "Message.h"
 #include "Packet.h"
-#include "IPv6Address.h"
+#include "MACAddress.h"
 #include "HelloMessage.h"
 #include "TCMessage.h"
 
@@ -31,8 +31,8 @@ public:
     int getPacketSize();
 
     std::vector<std::shared_ptr<Message>> messages;
-    IPv6Address mSenderHWAddr; // The last hop sender addr from, may NOT be the originating addr
-    IPv6Address mRecvedHWAddr; // The Interface addr receieved from (we only have 1 as of now)
+    MACAddress mSenderHWAddr; // The last hop sender addr from, may NOT be the originating addr
+    MACAddress mRecvedHWAddr; // The Interface addr receieved from (we only have 1 as of now)
 
 
 private:

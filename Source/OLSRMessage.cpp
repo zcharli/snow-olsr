@@ -3,7 +3,7 @@
 OLSRMessage::OLSRMessage() : mSerializedData(NULL) {}
 OLSRMessage::OLSRMessage(std::shared_ptr<Packet> packet)
     : mSenderHWAddr(packet->getSource()), mRecvedHWAddr(packet->getMyAddress()) {
-    IPv6Address destination(packet->getDestination());
+    MACAddress destination(packet->getDestination());
     deserializePacketBuffer(packet->getBuffer());
 }
 OLSRMessage::OLSRMessage(char* buffer) : mSerializedData(NULL) {

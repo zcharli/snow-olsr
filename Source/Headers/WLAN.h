@@ -25,7 +25,7 @@
 #include <memory>
 #include "Handler.h"
 #include "Packet.h"
-#include "IPv6Address.h"
+#include "MACAddress.h"
 #include "Resources/Constants.h"
 
 //using namespace std;
@@ -46,7 +46,7 @@ public:
    // Receive a frame
    void receive(std::shared_ptr<Packet>);
    // Get the IfConfig
-   const IPv6Address& getPersonalAddress() const;
+   const MACAddress& getPersonalAddress() const;
 private:
    // Constants
    static const unsigned short IP_TYPE = 0x3901;
@@ -55,9 +55,9 @@ private:
    // Structure of a frame header
    struct WLANHeader{
        // destination address
-       IPv6Address destAddr;
+       MACAddress destAddr;
        // source address
-       IPv6Address srcAddr;
+       MACAddress srcAddr;
        // type
        unsigned short type;
    };
@@ -69,7 +69,7 @@ private:
       // interface index
       int ifindex;
       // mac address
-      IPv6Address hwaddr;
+      MACAddress hwaddr;
       // maximum transmission unit
       int mtu;
    };
@@ -91,8 +91,8 @@ private:
    bool addPromiscuousMode();
    bool bindSocketToInterface();
    // Send helpers
-   void buildHeader(char address[], IPv6Address *daddr);
-   void setToAddress(IPv6Address *daddr, struct sockaddr_ll *to);
+   void buildHeader(char address[], MACAddress *daddr);
+   void setToAddress(MACAddress *daddr, struct sockaddr_ll *to);
    // Receive helper
    void parseReceivedFrame(std::shared_ptr<Packet>);
 };

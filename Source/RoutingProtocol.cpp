@@ -108,7 +108,7 @@ int RoutingProtocol::buildTCMessage(OLSRMessage& message) {
     return 0;
 }
 
-void RoutingProtocol::handleHelloMessage(HelloMessage& message, const IPv6Address& senderHWAddr, unsigned char vtime) {
+void RoutingProtocol::handleHelloMessage(HelloMessage& message, const MACAddress& senderHWAddr, unsigned char vtime) {
     std::cout << "RoutingProtocol::handleHelloMessage: Process hello message and update state" << std::endl;
     mMtxState.lock();
     LinkTuple* vLinkEdge = mState.findLinkTuple(senderHWAddr);
@@ -167,7 +167,7 @@ void RoutingProtocol::handleHelloMessage(HelloMessage& message, const IPv6Addres
 
         // Process the advertised neighbors
         std::cout << "RoutingProtocol::handleHelloMessage: Process the advertised neighbors" << std::endl;
-        for (std::vector<IPv6Address>::iterator it = linkNeighbrs->neighborIfAddr.begin();
+        for (std::vector<MACAddress>::iterator it = linkNeighbrs->neighborIfAddr.begin();
                 it != linkNeighbrs->neighborIfAddr.end(); it++) {
             if (*it == mPersonalAddress) {
                 if (!update) {
@@ -215,7 +215,7 @@ void RoutingProtocol::handleHelloMessage(HelloMessage& message, const IPv6Addres
 }
 
 
-void RoutingProtocol::handleTCMessage(TCMessage& message, IPv6Address& senderHWAddr) {
+void RoutingProtocol::handleTCMessage(TCMessage& message, MACAddress& senderHWAddr) {
     std::cout << "RoutingProtocol::handleTCMessage: Process tc message and update state" << std::endl;
     // Double checked with RFC 3626 with TC message processing
     // Should follow the pattern of the handling tc message will be great due to mState is already implemented
@@ -240,7 +240,7 @@ void RoutingProtocol::handleTCMessage(TCMessage& message, IPv6Address& senderHWA
     //  then further processing of this TC message MUST NOT be performed and the message MUST besilently discard
     //  (case: message received out of order).
     std::cout << "RoutingProtocol::handleTCMessage: Check the tc message and discard if message received out of order" << std::endl;
-    IPv6Address lastAddr =  *(message.getOriginatorAddress());
+    MACAddress lastAddr =  *(message.getOriginatorAddress());
     uint16_t ansn = message.getAnsn();
     TopologyTuple* vTopologyTuple = mState.findNewerTopologyTuple(lastAddr, ansn);
     if (vTopologyTuple != NULL)
@@ -260,7 +260,7 @@ void RoutingProtocol::handleTCMessage(TCMessage& message, IPv6Address& senderHWA
     //  4.  For each of the advertised neighbor main address received in the TC message:
     //  Process the advertised neighbors
     std::cout << "RoutingProtocol::handleTCMessage: Process the advertised neighbors" << std::endl;
-    for (std::vector<IPv6Address>::const_iterator it = message.mNeighborAddresses.begin(); it != message.mNeighborAddresses.end(); it++)
+    for (std::vector<MACAddress>::const_iterator it = message.mNeighborAddresses.begin(); it != message.mNeighborAddresses.end(); it++)
     {
         //      4.1 If there exist some tuple in the topology set where:
         //                  T_dest_addr == advertised neighbor main address, AND
@@ -272,7 +272,7 @@ void RoutingProtocol::handleTCMessage(TCMessage& message, IPv6Address& senderHWA
         //                  T_last_addr = originator address,
         //                  T_seq       = ANSN,
         //                  T_time      = current time + validity time
-        const IPv6Address &addr = *it;
+        const MACAddress &addr = *it;
         vTopologyTuple = mState.findTopologyTuple(senderHWAddr, lastAddr);
         if (vTopologyTuple != NULL) {
             std::cout << "RoutingProtocol::handleTCMessage: This tuple is already exist in the topology set" << std::endl;
@@ -289,7 +289,7 @@ void RoutingProtocol::handleTCMessage(TCMessage& message, IPv6Address& senderHWA
     }
 }
 
-void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio::deadline_timer *vRepeatingTimer, boost::asio::io_service *mIo,  IPv6Address& neighborAddr) {
+void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio::deadline_timer *vRepeatingTimer, boost::asio::io_service *mIo,  MACAddress& neighborAddr) {
     std::cout << "RoutingProtocol::expireLink: Link is expired" << std::endl;
     pt::ptime now = pt::second_clock::local_time();
     mMtxLinkExpire.lock();
@@ -399,7 +399,7 @@ void RoutingProtocol::updateMPRState() {
     //               willingness different from WILL_NEVER, selected such that
     //               through these selected nodes, all strict 2-hop neighbors
     //               reachable from that interface are reachable.
-    std::set<IPv6Address> vMPRs;
+    std::set<MACAddress> vMPRs;
     //        N:
     //               N is the subset of neighbors of the node, which are
     //               neighbor of the interface I.
@@ -476,7 +476,7 @@ void RoutingProtocol::updateMPRState() {
     //           to node a in N, then add node a to the MPR set.  Remove the
     //           nodes from N2 which are now covered by a node in the MPR set.
     std::cout << "RoutingProtocol::updateMPRState: Add to the MPR set those nodes in N, which could reach N2" << std::endl;
-    std::set<IPv6Address> vCoveredTwoHopNeighbors;
+    std::set<MACAddress> vCoveredTwoHopNeighbors;
     for (std::vector<TwoHopNeighborTuple>::iterator twoHopNeigh = N2.begin();
             twoHopNeigh != N2.end(); twoHopNeigh++) {
         bool reachableThruOneIntermediary = true;
@@ -600,10 +600,10 @@ void RoutingProtocol::updateMPRState() {
     mMtxMprUpdate.unlock();
 }
 
-void RoutingProtocol::removeCoveredTwoHopNeighbor(IPv6Address addr, std::vector<TwoHopNeighborTuple>& twoHopNeighbors) {
+void RoutingProtocol::removeCoveredTwoHopNeighbor(MACAddress addr, std::vector<TwoHopNeighborTuple>& twoHopNeighbors) {
     // This function will remove all the two hop neighbors that have been covered by an MPR
     std::cout << "RoutingProtocol::removeCoveredTwoHopNeighbor: Remove all the two hop neighbors that have been covered by an MPR" << std::endl;
-    std::set<IPv6Address> uniqueRemovals;
+    std::set<MACAddress> uniqueRemovals;
     for (std::vector<TwoHopNeighborTuple>::iterator it = twoHopNeighbors.begin();
             it != twoHopNeighbors.end(); it++) {
         if (it->neighborMainAddr == addr) {
@@ -621,7 +621,7 @@ void RoutingProtocol::removeCoveredTwoHopNeighbor(IPv6Address addr, std::vector<
     }
 }
 
-void RoutingProtocol::setPersonalAddress(const IPv6Address& address) {
+void RoutingProtocol::setPersonalAddress(const MACAddress& address) {
     std::cout << "RoutingProtocol::setPersonalAddress: Create OLSR Routing Protocol" << std::endl;
     mPersonalAddress.setAddressData(address.data);
 }
@@ -662,8 +662,8 @@ void RoutingProtocol::routingTableComputation () {
                     //              R_next_addr     = L_neighbor_iface_addr, of the associated link tuple;
                     //              R_dist          = 1;
                     //              R_iface_addr    = L_local_iface_addr of the associated link tuple.
-                    IPv6Address dest = linkTuple.neighborIfaceAddr;
-                    IPv6Address next = linkTuple.neighborIfaceAddr;
+                    MACAddress dest = linkTuple.neighborIfaceAddr;
+                    MACAddress next = linkTuple.neighborIfaceAddr;
                     uint32_t dist = 1;
 
                     RoutingTableEntry &entry = mTable[dest];
@@ -713,9 +713,9 @@ void RoutingProtocol::routingTableComputation () {
 
             if (nb2hopOk) {
                 RoutingTableEntry findEntry;
-                IPv6Address destAddr = neighbor2HopTuple.neighborMainAddr;
-                IPv6Address nextAddr = neighbor2HopTuple.twoHopNeighborAddr;
-                std::map<IPv6Address, RoutingTableEntry>::const_iterator entry_it = mTable.find(destAddr);
+                MACAddress destAddr = neighbor2HopTuple.neighborMainAddr;
+                MACAddress nextAddr = neighbor2HopTuple.twoHopNeighborAddr;
+                std::map<MACAddress, RoutingTableEntry>::const_iterator entry_it = mTable.find(destAddr);
                 if (entry_it != mTable.end())
                 {
                     //              R_dest_addr     = the main address of the 2-hop neighbor;
@@ -750,9 +750,9 @@ void RoutingProtocol::routingTableComputation () {
             //      route entry in th routing table AND its T_last_addr corresponds to R_dest_addr of a route entry whose R_dist is
             //      equal to h, then a new route entry MUST be recoreded in the routing table (if it does not already  exist) where:
             RoutingTableEntry destAddrEntry, lastAddrEntry;
-            IPv6Address destAddr = topologyTuple.destAddr;
-            IPv6Address lastAddr = topologyTuple.lastAddr;
-            std::map<IPv6Address, RoutingTableEntry>::const_iterator entry_it = mTable.find(destAddr);
+            MACAddress destAddr = topologyTuple.destAddr;
+            MACAddress lastAddr = topologyTuple.lastAddr;
+            std::map<MACAddress, RoutingTableEntry>::const_iterator entry_it = mTable.find(destAddr);
             bool foundDestAddrEntry = false;
             bool foundLastAddrEntry = false;
             if (entry_it != mTable.end()) {
