@@ -22,8 +22,7 @@ OLSRMessage& OLSRMessage::serialize() {
         delete [] mSerializedData;
     }
     mPacketLength = 4;
-
-    for (auto* msg : messages) {
+    for (std::shared_ptr<Message>& msg : messages) {
         msg->serialize();
         mPacketLength += msg->mSerializedDataSize;
         std::cout << "Serialized a ms with datasize " << msg->mSerializedDataSize << std::endl;
@@ -41,12 +40,16 @@ OLSRMessage& OLSRMessage::serialize() {
     vCurrentIndex += 2;
 
     // The messages
-    for (auto* msg : messages) {
+    for (std::shared_ptr<Message>& msg : messages) {
         memcpy ( mSerializedData + vCurrentIndex, msg->mSerializedData, msg->mSerializedDataSize);
         vCurrentIndex += msg->mSerializedDataSize;
     }
 
     return *this;
+}
+
+int OLSRMessage::getPacketSize() {
+    return mPacketLength;
 }
 
 char* OLSRMessage::getData() {

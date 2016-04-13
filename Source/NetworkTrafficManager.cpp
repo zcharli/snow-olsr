@@ -42,7 +42,12 @@ void NetworkTrafficManager::notifyConsumerReady() {
 }
 
 std::shared_ptr<Packet> NetworkTrafficManager::getMessage() {
+
     mMtxGetMessage.lock();
+    if(mReceivedMsgsQ.size() == 0) {
+        mMtxGetMessage.unlock();
+        return nullptr;
+    }
     std::shared_ptr<Packet> vMessage = mReceivedMsgsQ.front();
     mReceivedMsgsQ.pop();
     mMtxGetMessage.unlock();
@@ -100,17 +105,21 @@ void NetworkHelloMessageThread::startBroadcastHelloMessages() {
     while (1) {
         char a[] = "ff:ff:ff:ff:ff:ff";
         mSocketMutex.lock();
-        HelloMessage hm = RoutingProtocol::getInstance().getHello();
+        OLSRMessage message;
+        if(RoutingProtocol::getInstance().buildHelloMessage(message) == 0) {
+            std::cout << "Error when building hello message" << std::endl;
+        }
         mSocketMutex.unlock();
-        hm.serialize();
+        char* vBuffer = message.serialize().getData();
         //char a[]="1c:bd:b9:7e:b5:d4"; // unicast address
         //char f[] = "Hello!"; // data
-        char* buffer = new char[hm.mSerializedDataSize + 14];
-        memmove(buffer + 14, hm.mSerializedData, hm.mSerializedDataSize);
-        buffer[hm.mSerializedDataSize + 14] = '\0';
+        char* buffer = message.serialize().getData();
+        memmove(buffer + 14, vBuffer, message.getPacketSize());
+        buffer[message.getPacketSize() + 14] = '\0';
         mSocket->send(a, buffer);
         PRINTLN(Sent a hello message)
-        sleep(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter());
+        usleep(1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()));
+        delete [] buffer;
     }
     PRINTLN(Hello message thread closed down);
 }

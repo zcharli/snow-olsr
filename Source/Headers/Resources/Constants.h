@@ -1,6 +1,6 @@
 
 
-#define INTERFACE_NAME "wlxf07d6813a47c"
+#define INTERFACE_NAME "wlx1cbdb97eb663"
 // Defines the max num threads for waiting on messages
 #define MAX_SEM 25
 #define MIN_SEM 0
@@ -23,7 +23,7 @@
  * TIME INTERVALS 18.2, 18.3
  */
 #define T_SECOND 1 // 1 second
-#define T_HELLO_INTERVAL 2
+#define T_HELLO_INTERVAL 2000 // uisng milliseconds
 #define T_REFRESH_INTERVAL 2
 #define T_TC_INTERVAL 5
 #define T_MID_INTERVAL 5

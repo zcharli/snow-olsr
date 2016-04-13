@@ -32,7 +32,7 @@ public:
     };
 
     Message();
-    ~Message();
+    virtual ~Message();
     uint8_t getType();
     int getSize();
     uint8_t getVTime();

@@ -54,8 +54,8 @@ public:
     void mprComputation ();
 
     // routing table computation should be called after handle TC message
-    HelloMessage getHello();
-    TCMessage getTC();
+    int buildHelloMessage(OLSRMessage&);
+    int buildTCMessage(OLSRMessage&);
 
     // routing table computation should be done after handle TC message
     void routingTableComputation ();
@@ -85,9 +85,6 @@ private:
     void handleHelloMessage(HelloMessage&, const IPv6Address&, unsigned char);
     void handleTCMessage(TCMessage&, IPv6Address&);
     void handleTCMessage(std::shared_ptr<OLSRMessage> message);
-
-    void buildHelloMessage();
-    void buildTCMessage();
 
     void updateMPRState();
     void removeCoveredTwoHopNeighbor(IPv6Address, std::vector<TwoHopNeighborTuple>&);

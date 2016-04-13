@@ -13,7 +13,7 @@ class TCMessage : public Message
 public:
 	TCMessage();
     TCMessage(char*);
-	~TCMessage();
+	virtual ~TCMessage();
 
 	virtual void serialize();
     virtual void deserialize(char*);

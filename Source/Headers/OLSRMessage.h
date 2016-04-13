@@ -26,11 +26,14 @@ public:
 
     OLSRMessage& serialize();
     OLSRMessage& deserialize();
-    char* getData();
 
-    std::vector<Message*> messages;
+    char* getData();
+    int getPacketSize();
+
+    std::vector<std::shared_ptr<Message>> messages;
     IPv6Address mSenderHWAddr; // The last hop sender addr from, may NOT be the originating addr
     IPv6Address mRecvedHWAddr; // The Interface addr receieved from (we only have 1 as of now)
+
 
 private:
     void deserializePacketBuffer(char*);

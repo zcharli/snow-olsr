@@ -3,7 +3,7 @@
 void RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> message) {
     std::cout << "RoutingProtocol::updateState: Receive the mssage" << std::endl;
     // Here we want to hand
-    for (std::vector<Message*>::iterator it = message->messages.begin();
+    for (std::vector<std::shared_ptr<Message>>::iterator it = message->messages.begin();
             it != message->messages.end(); it++) {
         switch ((*it)->getType()) {
         case M_HELLO_MESSAGE :
@@ -25,22 +25,22 @@ void RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> message) {
 }
 
 
-HelloMessage RoutingProtocol::getHello() {
+int RoutingProtocol::buildHelloMessage(OLSRMessage& message) {
     pt::ptime now = pt::second_clock::local_time();
     mMtxGetHello.lock();
     std::vector<NeighborTuple> neighbors = mState.getNeighbors();
     std::vector<LinkTuple> mLinks = mState.getLinks();
     mMtxGetHello.unlock();
-    HelloMessage output;
-    output.mMessageHeader.vtime = T_NEIGHB_HOLD_TIME;
+    std::shared_ptr<HelloMessage> helloMessage = std::make_shared<HelloMessage>();
+    helloMessage->mMessageHeader.vtime = T_NEIGHB_HOLD_TIME;
     // We can ommit message size as its calculated on serialization
-    // output.mMessageHeader.messageSize
-    memcpy(output.mMessageHeader.originatorAddress, mPersonalAddress.data, WLAN_ADDR_LEN);
-    output.mMessageHeader.timeToLive = 1;
-    output.mMessageHeader.hopCount = 0;
-    output.mMessageHeader.messageSequenceNumber = mHelloSequenceNumber++;
+    // helloMessage->mMessageHeader.messageSize
+    memcpy(helloMessage->mMessageHeader.originatorAddress, mPersonalAddress.data, WLAN_ADDR_LEN);
+    helloMessage->mMessageHeader.timeToLive = 1;
+    helloMessage->mMessageHeader.hopCount = 0;
+    helloMessage->mMessageHeader.messageSequenceNumber = mHelloSequenceNumber++;
     mHelloSequenceNumber = (mHelloSequenceNumber + 1) % 65530;
-    output.htime = 3 * T_HELLO_INTERVAL;
+    helloMessage->htime = 3 * T_HELLO_INTERVAL/1000;
 
     for (auto& link : mLinks) {
         // If they are not supposed to link to me
@@ -90,21 +90,22 @@ HelloMessage RoutingProtocol::getHello() {
         HelloMessage::LinkMessage vNeighborLink;
         vNeighborLink.linkCode = (linkType & 0x03) | ((neighborType << 2) & 0x0f);
         vNeighborLink.neighborIfAddr.push_back(link.neighborIfaceAddr);
-        output.mLinkMessages.push_back(vNeighborLink);
+        helloMessage->mLinkMessages.push_back(vNeighborLink);
     }
-    return output;
+    message.messages.push_back(helloMessage);
+    return 1;
 }
 
-TCMessage RoutingProtocol::getTC() {
+int RoutingProtocol::buildTCMessage(OLSRMessage& message) {
     mMtxGetTc.lock();
     std::vector<NeighborTuple> neighbors = mState.getNeighbors();
     mMtxGetTc.unlock();
-    TCMessage output;
+    TCMessage helloMessage;
 
     for (auto& n : neighbors)
-        //output.mNeighborAddresses.push_back(n.neighborMainAddr);
+        //helloMessage->mNeighborAddresses.push_back(n.neighborMainAddr);
 
-        return output;
+    return 0;
 }
 
 void RoutingProtocol::handleHelloMessage(HelloMessage& message, const IPv6Address& senderHWAddr, unsigned char vtime) {

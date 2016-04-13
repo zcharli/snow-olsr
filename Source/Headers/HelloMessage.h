@@ -21,7 +21,7 @@ public:
     };
     HelloMessage();
     HelloMessage(char*);
-    ~HelloMessage();
+    virtual ~HelloMessage();
 
     virtual void serialize();
     virtual void deserialize(char*);
