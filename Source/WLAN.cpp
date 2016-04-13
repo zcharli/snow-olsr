@@ -179,7 +179,7 @@ void WLAN::parseReceivedFrame(std::shared_ptr<Packet> inPacket) {
             aHandler->handle(src, dst, inPacket->getBuffer() + sizeof(WLANHeader));
         }
     } else {
-        std::cout << "Destination is not WLAN broadcast" << std::endl;
+        std::cout << "Destination is not WLAN broadcast: " << src << std::endl;
     }
 }
 

@@ -35,7 +35,6 @@ int SnowClient::start() {
                 std::cout << "Got a packet from my self lulz" << std::endl;
             }
         }
-        sleep(3);
     }
     return 0;
 }
