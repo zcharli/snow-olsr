@@ -20,14 +20,14 @@ int NetworkPacketListener::run() {
 }
 
 void NetworkPacketListener::listenOnInterface() {
-    PRINTLN(Network Packet Listener thread started);
+    std::cout << "Network Packet Listener thread started" << std::endl;
     while(1){
         //PRINTLN(Semaphore wait)
         //mSemProducer->wait(); // Wait for the signal from Manager class
         std::shared_ptr<Packet> vPacket = std::make_shared<Packet>();
         mRecvSocket->receive(vPacket);
         // Received a packet.  Now fucking make me a message
-        PRINTLN(Received a packet);
+        //PRINTLN(Received a packet);
         mMtxMonitor.lock();
         //PRINTLN(Inside lock);
         //mMonitor.notifyConsumerReady();

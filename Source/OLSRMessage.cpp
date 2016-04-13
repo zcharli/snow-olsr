@@ -4,7 +4,7 @@ OLSRMessage::OLSRMessage() : mSerializedData(NULL) {}
 OLSRMessage::OLSRMessage(std::shared_ptr<Packet> packet)
     : mSenderHWAddr(packet->getSource()), mRecvedHWAddr(packet->getMyAddress()) {
     MACAddress destination(packet->getDestination());
-    deserializePacketBuffer(packet->getBuffer());
+    deserializePacketBuffer(packet->getBuffer() + WLAN_HEADER_LEN);
 }
 OLSRMessage::OLSRMessage(char* buffer) : mSerializedData(NULL) {
 
@@ -61,7 +61,7 @@ char* OLSRMessage::getData() {
 }
 
 void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
-
+    PRINTLN(Deserializing begin)
     // Packet Length
     mPacketLength = ntohs((*(uint16_t*) vBuffer));
     vBuffer += 2;
@@ -83,6 +83,7 @@ void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
             vMessageSize += HELLO_MSG_HEADER;
             char* vHelloMessageBuffer = new char[vMessageSize];
             memcpy ( vHelloMessageBuffer, vBuffer, vMessageSize);
+
             HelloMessage vHelloMessage(vHelloMessageBuffer);
             vBytesLeftToProccess -= vMessageSize;
             delete [] vHelloMessageBuffer;
@@ -101,5 +102,5 @@ void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
 
 
     }
-
+    PRINTLN(Deserializing finish)
 }

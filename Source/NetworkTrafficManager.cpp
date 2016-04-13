@@ -30,10 +30,12 @@ int NetworkTrafficManager::sendMsg(OLSRMessage& messageToSend) {
 int NetworkTrafficManager::enqueMsgForProcessing(std::shared_ptr<Packet> packet) {
     mMtxEnqueue.lock();
     mReceivedMsgsQ.push(packet);
-    mMtxEnqueue.unlock();
+
     if(mReceivedMsgsQ.size() == 1) {
         mSemConsumer->post();
+        //PRINTLN(Posted)
     }
+    mMtxEnqueue.unlock();
     return 1;
 }
 
@@ -43,10 +45,13 @@ void NetworkTrafficManager::notifyConsumerReady() {
 
 std::shared_ptr<Packet> NetworkTrafficManager::getMessage() {
     if(mReceivedMsgsQ.size() == 0) {
+        //PRINTLN(Waiting)
         mSemConsumer->wait();
+        //PRINTLN(Been posted)
     }
     mMtxGetMessage.lock();
     if(mReceivedMsgsQ.size() == 0) {
+        PRINTLN(Returned null msg)
         mMtxGetMessage.unlock();
         return nullptr;
     }
@@ -54,6 +59,7 @@ std::shared_ptr<Packet> NetworkTrafficManager::getMessage() {
     mReceivedMsgsQ.pop();
     mMtxGetMessage.unlock();
     //mListener->notifyProducerReady();
+    PRINTLN(Returned good msg)
     return vMessage;
 }
 

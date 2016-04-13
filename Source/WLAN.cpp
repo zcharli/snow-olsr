@@ -169,7 +169,7 @@ void WLAN::parseReceivedFrame(std::shared_ptr<Packet> inPacket) {
     inPacket->setMyAddress(myaddress);
     inPacket->setOffset(sizeof(WLANHeader));
     // check destination
-    std::cout << "DEBUG: from " << src << " to " << dst << ": " << myaddress<< "\n";
+    //std::cout << "DEBUG: from " << src << " to " << dst << ": " << myaddress<< "\n";
     if (strcmp(dst, ifconfig.hwaddr.wlan2asc(myaddress)) == 0 ||
             dst == WLAN_BROADCAST) {
         // destination address is self or broadcast
