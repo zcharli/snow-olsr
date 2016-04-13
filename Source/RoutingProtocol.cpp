@@ -329,8 +329,10 @@ void RoutingProtocol::handleTCMessage(TCMessage& message, MACAddress& senderHWAd
     //  (case: message received out of order).
     std::cout << "RoutingProtocol::handleTCMessage: Check the tc message and discard if message received out of order" << std::endl;
     MACAddress lastAddr =  *(message.getOriginatorAddress());
-    uint16_t ansn = message.getAnsn();
+    uint16_t ansn = message.ansn
+    mMtxState.lock();
     TopologyTuple* vTopologyTuple = mState.findNewerTopologyTuple(lastAddr, ansn);
+    mMtxState.unlock();
     if (vTopologyTuple != NULL)
     {
         std::cout << "RoutingProtocol::handleTCMessage: Message received out of order discard this message" << std::endl;
@@ -343,8 +345,9 @@ void RoutingProtocol::handleTCMessage(TCMessage& message, MACAddress& senderHWAd
     //          T_seq       <   ANSN
     //  MUST be removed from the topology set.
     std::cout << "RoutingProtocol::handleTCMessage: Clean all older topology tuple set" << std::endl;
+    mMtxState.lock();
     mState.cleanOlderTopologyTuples(lastAddr, ansn);
-
+    mMtxState.unlock();
     //  4.  For each of the advertised neighbor main address received in the TC message:
     //  Process the advertised neighbors
     std::cout << "RoutingProtocol::handleTCMessage: Process the advertised neighbors" << std::endl;
@@ -361,7 +364,9 @@ void RoutingProtocol::handleTCMessage(TCMessage& message, MACAddress& senderHWAd
         //                  T_seq       = ANSN,
         //                  T_time      = current time + validity time
         const MACAddress &addr = *it;
+        mMtxState.lock();
         vTopologyTuple = mState.findTopologyTuple(senderHWAddr, lastAddr);
+        mMtxState.unlock();
         if (vTopologyTuple != NULL) {
             std::cout << "RoutingProtocol::handleTCMessage: This tuple is already exist in the topology set" << std::endl;
             vTopologyTuple->expirationTime = now + pt::seconds(T_NEIGHB_HOLD_TIME);
@@ -372,7 +377,9 @@ void RoutingProtocol::handleTCMessage(TCMessage& message, MACAddress& senderHWAd
             topologyTuple.lastAddr = lastAddr;
             topologyTuple.sequenceNumber = ansn;
             topologyTuple.expirationTime = vTopologyTuple->expirationTime + pt::seconds(T_NEIGHB_HOLD_TIME);
+            mMtxState.lock();
             mState.insertTopologyTuple(topologyTuple);
+            mMtxState.unlock();
         }
     }
 }

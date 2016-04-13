@@ -40,7 +40,6 @@ inline bool operator==(const MACAddress& lhs, const MACAddress& rhs)
 inline bool operator!=(const MACAddress& lhs, const MACAddress& rhs)
 {
   return !(lhs == rhs);
-
 }
 
 inline bool operator<(const MACAddress& lhs, const MACAddress& rhs)

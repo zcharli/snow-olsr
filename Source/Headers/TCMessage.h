@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <stdint.h>
+#include <netinet/in.h>
 #include <memory>
 #include <vector>
 #include "MACAddress.h"
