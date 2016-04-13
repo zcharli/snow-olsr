@@ -309,6 +309,7 @@ void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio
         PRINTLN(RoutingProtocol::expireLink: Reached a state where someone else deleted a link tuple)
             vRepeatingTimer->cancel();
         mIo->stop();
+        PRINTLN(Cleaning up timer)
         delete vRepeatingTimer;
         delete mIo;
         return;
@@ -323,6 +324,7 @@ void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio
         mState.cleanLinkTuple(*vLinkTuple);
         mMtxLinkExpire.unlock();
         mIo->stop();
+        PRINTLN(Cleaning up timer)
         delete vRepeatingTimer;
         delete mIo;
     } else if (vLinkTuple->symTime < now) {
@@ -340,10 +342,19 @@ void RoutingProtocol::expireLink(const boost::system::error_code& e, boost::asio
             routingTableComputation();
         }
         pt::time_duration expireTimer = vLinkTuple->expirationTime - now;
-        if (flag) {
-            flag = false;
-            std::cout << "Update link and expire in " << expireTimer.total_seconds() << std::endl;
 
+        if (expireTimer.total_seconds() == 0) {
+            // Expire now
+            PRINTLN(RoutingProtocol::expireLink: Expiring a link tuple)
+            mMtxLinkExpire.lock();
+            mState.cleanNeighborTuple(vLinkTuple->neighborIfaceAddr);
+            mState.cleanLinkTuple(*vLinkTuple);
+            mMtxLinkExpire.unlock();
+            mIo->stop();
+            PRINTLN(Cleaning up timer)
+            delete vRepeatingTimer;
+            delete mIo;
+            return;
         }
         vRepeatingTimer->cancel();
         vRepeatingTimer->expires_from_now(pt::seconds(expireTimer.total_seconds()));
