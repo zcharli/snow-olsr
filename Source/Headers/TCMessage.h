@@ -20,9 +20,9 @@ public:
 
 	uint16_t getAnsn();
 	std::vector<MACAddress> mNeighborAddresses;
-
+    uint16_t ansn;
 private:
-	uint16_t ansn;
+
 };
 
 #endif // TC_MESSAGE_H

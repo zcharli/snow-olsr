@@ -74,8 +74,7 @@ public:
 
 private:
     RoutingProtocol () {
-        mHelloSequenceNumber = 0;
-        mTCSequenceNumber = 0;
+        mSequenceNumber = 0;
     };
     /// Internal state with all needed data structs.
     std::map<MACAddress, RoutingTableEntry> mTable;
@@ -84,10 +83,9 @@ private:
     TCMessage mTCStateRep;
     MACAddress mPersonalAddress;
     boost::mutex mMtxState, mMtxLinkExpire, mMtxUpdateLinkTuple, mMtxRoutingTableCalc,
-                 mMtxMprUpdate, mMtxDegree, mMtxGetHello, mMtxGetTc, mMtxSystem;
+                 mMtxMprUpdate, mMtxDegree, mMtxGetHello, mMtxGetTc, mMtxSystem, mMtxGetTC;
 
-    int mHelloSequenceNumber;
-    int mTCSequenceNumber;
+    int mSequenceNumber;
 
     /* Below is protocol controlling functions */
     void handleHelloMessage(HelloMessage&, const MACAddress&, unsigned char);

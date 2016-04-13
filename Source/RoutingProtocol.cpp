@@ -41,8 +41,8 @@ int RoutingProtocol::buildHelloMessage(OLSRMessage& message) {
     memcpy(helloMessage->mMessageHeader.originatorAddress, mPersonalAddress.data, WLAN_ADDR_LEN);
     helloMessage->mMessageHeader.timeToLive = 1;
     helloMessage->mMessageHeader.hopCount = 0;
-    helloMessage->mMessageHeader.messageSequenceNumber = mHelloSequenceNumber++;
-    mHelloSequenceNumber = (mHelloSequenceNumber + 1) % 65530;
+    helloMessage->mMessageHeader.messageSequenceNumber = mSequenceNumber++;
+    mSequenceNumber = (mSequenceNumber + 1) % 65530;
     helloMessage->htime = 3 * T_HELLO_INTERVAL / 1000;
 
     for (auto& link : mLinks) {
@@ -99,15 +99,24 @@ int RoutingProtocol::buildHelloMessage(OLSRMessage& message) {
 }
 
 int RoutingProtocol::buildTCMessage(OLSRMessage& message) {
-    mMtxGetTc.lock();
-    std::vector<NeighborTuple> neighbors = mState.getNeighbors();
-    mMtxGetTc.unlock();
-    TCMessage helloMessage;
-
-    // for (auto& n : neighbors)
-    //     //helloMessage->mNeighborAddresses.push_back(n.neighborMainAddr);
-
+    mMtxGetTC.lock();
+    std::vector<MprSelectorTuple> neighbors = mState.getMprSelectors();
+    mMtxGetTC.unlock();
+    std::shared_ptr<TCMessage> tcMessage = std::make_shared<TCMessage>();
+    tcMessage->mMessageHeader.vtime = T_NEIGHB_HOLD_TIME;
+    // We can ommit message size as its calculated on serialization
+    memcpy(tcMessage->mMessageHeader.originatorAddress, mPersonalAddress.data, WLAN_ADDR_LEN);
+    tcMessage->mMessageHeader.timeToLive = 1;
+    tcMessage->mMessageHeader.hopCount = 0;
+    tcMessage->mMessageHeader.messageSequenceNumber = mSequenceNumber++;
+    mSequenceNumber = (mSequenceNumber + 1) % 65530;
+    tcMessage->ansn = mANSN;
+    for(auto& neighborMprs : neighbors) {
+        tcMessage->mNeighborAddresses.push_back(neighborMprs.mainAddr);
+    }
+    message.messages.push_back(tcMessage);
     return 0;
+
 }
 
 void RoutingProtocol::handleHelloMessage(HelloMessage& message, const MACAddress& senderHWAddr, unsigned char vtime) {
@@ -218,9 +227,9 @@ void RoutingProtocol::handleHelloMessage(HelloMessage& message, const MACAddress
 void RoutingProtocol::startTimer(int seconds, MACAddress neighborAddr) {
     std::cout << "RoutingProtocol::expireLink: A Link timer has expired, checking status of the link" << std::endl;
 
-    std::cout << "Sleeping for " << seconds <<std::endl;
+    std::cout << "Sleeping for " << seconds << std::endl;
     sleep(seconds);
-    std::cout << "Waking up to check sym times for " << neighborAddr <<std::endl;
+    std::cout << "Waking up to check sym times for " << neighborAddr << std::endl;
     pt::time_duration expireTimer;
     seconds = expireTimer.total_seconds();
     do {
@@ -275,22 +284,22 @@ void RoutingProtocol::startTimer(int seconds, MACAddress neighborAddr) {
                 return;
             }
             seconds = expireTimer.total_seconds();
-            std::cout << "Sleeping for " << seconds <<std::endl;
+            std::cout << "Sleeping for " << seconds << std::endl;
             sleep(seconds);
             PRINTLN(Woke from else if case)
-        } else {
+            } else {
             // Reschedule, timer is good
             PRINTLN(RoutingProtocol::expireLink: Rescheduling timeout for link tuple)
                 expireTimer = vLinkTuple->expirationTime < vLinkTuple->symTime ?
-                                            vLinkTuple->symTime - vLinkTuple->expirationTime
-                                            : vLinkTuple->symTime - vLinkTuple->expirationTime;
+                              vLinkTuple->symTime - vLinkTuple->expirationTime
+                              : vLinkTuple->symTime - vLinkTuple->expirationTime;
 
             seconds = expireTimer.total_seconds();
-            std::cout << "Sleeping for " << seconds <<std::endl;
+            std::cout << "Sleeping for " << seconds << std::endl;
             sleep(seconds);
             PRINTLN(Woke from else case)
-        }
-    } while(seconds > 0);
+            }
+    } while (seconds > 0);
     PRINTLN(End IO Service)
 }
 
@@ -794,15 +803,22 @@ void RoutingProtocol::routingTableComputation () {
 
     //  3.  For each node in N2, i.e., a 2-hop neighbor which is not a neighbor node or the node itself, and such that there
     std::cout << "RoutingProtocol::routingTableComputation: Check the two hop neighbors if it is not a neighbor or itself" << std::endl;
+    mMtxRoutingTableCalc.lock();
     const std::vector<TwoHopNeighborTuple> &twoHopNeighbors = mState.getTwoHopNeighbors();
+    mMtxRoutingTableCalc.unlock();
     for (std::vector<TwoHopNeighborTuple>::const_iterator twoHopNb_it = twoHopNeighbors.begin(); twoHopNb_it != twoHopNeighbors.end(); twoHopNb_it++)
     {
         const TwoHopNeighborTuple &neighbor2HopTuple = *twoHopNb_it;
-        if (!mState.findNeighborTuple(neighbor2HopTuple.twoHopNeighborAddr) || neighbor2HopTuple.twoHopNeighborAddr != mPersonalAddress) {
+        mMtxRoutingTableCalc.lock();
+        bool found = mState.findNeighborTuple(neighbor2HopTuple.twoHopNeighborAddr);
+        mMtxRoutingTableCalc.unlock();
+        if (!found|| neighbor2HopTuple.twoHopNeighborAddr != mPersonalAddress) {
             //  exist at least one entry in the 2-hop neighbor set where N_neighbor_main_addr correspond to a neighbor node with
             //  willingness different of WILL_NEVER, one selects one 2-hop tuple and creates one entry in the routing table with:
             bool nb2hopOk = false;
+            mMtxRoutingTableCalc.lock();
             const std::vector<NeighborTuple> &neighborSet = mState.getNeighbors();
+            mMtxRoutingTableCalc.unlock();
             for (std::vector<NeighborTuple>::const_iterator neighbor_it = neighborSet.begin(); neighbor_it != neighborSet.end(); neighbor_it++)
             {
                 if (neighbor_it->neighborMainAddr == neighbor2HopTuple.twoHopNeighborAddr && neighbor_it->willingness == W_WILL_NEVER)
@@ -843,7 +859,9 @@ void RoutingProtocol::routingTableComputation () {
         //  MUST be executed for each value of h, starting with h=2 and incrementing it by 1 each time. The execution will stop if
         //  no new entry is recorded in an iteration.
         bool added = false;
+        mMtxRoutingTableCalc.lock();
         const std::vector<TopologyTuple> &topology = mState.getTopologySet();
+        mMtxRoutingTableCalc.unlock();
         for (std::vector<TopologyTuple>::const_iterator it = topology.begin(); it != topology.end(); it++)
         {
             const TopologyTuple &topologyTuple = *it;
