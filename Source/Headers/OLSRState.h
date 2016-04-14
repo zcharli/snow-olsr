@@ -10,7 +10,7 @@
 #include "Resources/Types.h"
 #include "MACAddress.h"
 
-//using namespace std;
+namespace pt = boost::posix_time;
 
 /*
  * State inspired from NS3 OLSR Routing
@@ -23,13 +23,13 @@ public:
     OLSRState();
     bool mIsMPR;
 
-    std::set<MACAddress>                       mMprSet;                     ///< MPR Set type.
+    std::set<MACAddress>                        mMprSet;                     ///< MPR Set type.
     std::vector<MprSelectorTuple>               mMprSelectorSet;             ///< MPR Selector Set type.
     std::vector<LinkTuple>                      mLinkSet;                    ///< Link Set type.
     std::vector<NeighborTuple>                  mNeighborSet;                ///< Neighbor Set type.
     std::vector<TwoHopNeighborTuple>            mTwoHopNeighborSet;          ///< 2-hop Neighbor Set type.
     std::vector<TopologyTuple>                  mTopologySet;                ///< Topology Set type.
-    std::vector<InterfaceAssociationTuple>      mInterfaceAssociationSet;    ///< Interface Association Set type.
+    std::vector<DuplicateTuple>                 mDuplicateSet;               ///< Duplicate Set type.
 
     // getter:
     std::vector<MprSelectorTuple>& getMprSelectors ()             { return mMprSelectorSet;            }
@@ -37,7 +37,7 @@ public:
     std::vector<NeighborTuple>& getNeighbors ()                   { return mNeighborSet;               }
     std::vector<TwoHopNeighborTuple>& getTwoHopNeighbors ()       { return mTwoHopNeighborSet;         }
     std::vector<TopologyTuple>& getTopologySet ()                 { return mTopologySet;               }
-    std::vector<InterfaceAssociationTuple>& getIfaceAssocSet ()   { return mInterfaceAssociationSet;   }
+    std::vector<DuplicateTuple>& getDuplicateSet ()               { return mDuplicateSet;   }
 
     // MPR
     bool findMprAddress (const MACAddress  &address);
@@ -52,7 +52,7 @@ public:
 
     // Link
     LinkTuple* findLinkTuple (const MACAddress &ifaceAddr);
-    LinkTuple* findSymLinkTuple (const MACAddress &ifaceAddr);
+    LinkTuple* findSymLinkTuple (const MACAddress &ifaceAddr, pt::ptime);
     void cleanLinkTuple (const LinkTuple &tuple);
     LinkTuple& insertLinkTuple (const LinkTuple &tuple);
 
@@ -79,10 +79,9 @@ public:
     void insertTopologyTuple (const TopologyTuple &tuple);
 
     // Interface association
-    InterfaceAssociationTuple* findInterfaceAssociationTuple (const MACAddress &ifaceAddr);
-    const InterfaceAssociationTuple* findInterfaceAssociationTuple (const MACAddress &ifaceAddr) const;
-    void cleanInterfaceAssociationTuple (const InterfaceAssociationTuple &tuple);
-    void insertInterfaceAssociationTuple (const InterfaceAssociationTuple &tuple);
+    DuplicateTuple* findDuplicateTuple (const MACAddress &address,uint16_t sequenceNumber);
+    void eraseDuplicateTuple (const DuplicateTuple &tuple);
+    void insertDuplicateTuple (const DuplicateTuple &tuple);
 
     // Returns a std::vector of all interfaces of a given neighbor, with the
     // exception of the "main" one.

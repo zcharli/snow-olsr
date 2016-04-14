@@ -48,7 +48,9 @@ public:
         // Instantiated on first use.
         return instance;
     };
-    void updateState(std::shared_ptr<OLSRMessage> message);
+
+    RoutingProtocol& updateState(std::shared_ptr<OLSRMessage> message);
+    bool needsForwarding();
 
     // This should be private because when every times hanle message this is be called to update.
     // This need to disccuss
@@ -82,29 +84,30 @@ private:
     HelloMessage mHelloStateRep;
     TCMessage mTCStateRep;
     MACAddress mPersonalAddress;
-    boost::mutex mMtxState, mMtxLinkExpire, mMtxUpdateLinkTuple, mMtxRoutingTableCalc,
-                 mMtxMprUpdate, mMtxDegree, mMtxGetHello, mMtxGetTc, mMtxSystem, mMtxGetTC,
-                 mMtxTCExpire;
+    boost::mutex mMtxState, mMtxSystem, mMtxDuplicate, mMtxSymLink, mMtxMpr,
+          mMtxMprSelector, mMtxNeighbor, mMtxLink, mMtxTwoHopNeighbor, mMtxTopology;
 
+    bool mRequiresForwarding;
     int mSequenceNumber;
 
     /* Below is protocol controlling functions */
     void handleHelloMessage(HelloMessage&, const MACAddress&, unsigned char);
     void handleTCMessage(TCMessage&, MACAddress&);
     void handleTCMessage(std::shared_ptr<OLSRMessage> message);
+    bool determineRequiresForwarding(std::shared_ptr<OLSRMessage>, DuplicateTuple*);
 
     void updateMPRState();
     void removeCoveredTwoHopNeighbor(MACAddress, std::vector<TwoHopNeighborTuple>&);
     void populateTwoHopNeighborSet (const std::shared_ptr<OLSRMessage> &message, const HelloMessage &hello);
     int calculateNodeDegree(NeighborTuple &);
 
+    /* Below if our timers for updating the state */
     void updateLinkTuple(LinkTuple*, uint8_t);
     void expireLink(int seconds, MACAddress);
     void expireTopology(int, MACAddress destAddr, MACAddress lastAddr);
-
-    /* Below if our timers for updating the state */
-    void expireLink(const boost::system::error_code&, boost::asio::deadline_timer*, boost::asio::io_service*, MACAddress&);
-
+    void expireDuplicateTC(int, MACAddress, uint16_t);
+    void expireTwoHopNeighbor(int, MACAddress, MACAddress);
+    void expireMprSelector(int, MACAddress);
 
     /* Below is important OLSR attributes */
     // advertised neighbor set sequence number

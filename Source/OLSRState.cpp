@@ -198,11 +198,16 @@ LinkTuple* OLSRState::findLinkTuple (const MACAddress & ifaceAddr)
     return NULL;
 }
 
-LinkTuple* OLSRState::findSymLinkTuple (const MACAddress &ifaceAddr)
+LinkTuple* OLSRState::findSymLinkTuple (const MACAddress &ifaceAddr, pt::ptime now)
 {
     for (std::vector<LinkTuple> ::iterator it = mLinkSet.begin(); it != mLinkSet.end(); it++) {
         if (it->neighborIfaceAddr == ifaceAddr) {
-            return &(*it);
+            if (it->neighborIfaceAddr == ifaceAddr) {
+                if (it->symTime > now)
+                    return &(*it);
+                else
+                    break;
+            }
         }
     }
     return NULL;
@@ -273,47 +278,29 @@ void OLSRState::insertTopologyTuple (TopologyTuple const &tuple)
 }
 
 /**
-* Interface Association Set Manipulation
-*/
-InterfaceAssociationTuple* OLSRState::findInterfaceAssociationTuple (const MACAddress &ifaceAddr)
-{
-    for (std::vector<InterfaceAssociationTuple>::iterator it = mInterfaceAssociationSet.begin(); it != mInterfaceAssociationSet.end(); it++) {
-        if (it->ifaceAddr == ifaceAddr)
+ * Duplicate Set Manipulation
+ */
+
+DuplicateTuple* OLSRState::findDuplicateTuple (MACAddress const &addr, uint16_t sequenceNumber) {
+    for (std::vector<DuplicateTuple>::iterator it = mDuplicateSet.begin ();
+            it != mDuplicateSet.end(); it++) {
+        if (it->address == addr && it->sequenceNumber == sequenceNumber)
             return &(*it);
     }
     return NULL;
 }
 
-const InterfaceAssociationTuple* OLSRState::findInterfaceAssociationTuple (const MACAddress &ifaceAddr) const
-{
-    for (std::vector<InterfaceAssociationTuple>::const_iterator it = mInterfaceAssociationSet.begin(); it != mInterfaceAssociationSet.end(); it++) {
-        if (it->ifaceAddr == ifaceAddr)
-            return &(*it);
-    }
-    return NULL;
-}
-
-void OLSRState::cleanInterfaceAssociationTuple (const InterfaceAssociationTuple &tuple)
-{
-    for (std::vector<InterfaceAssociationTuple>::iterator it = mInterfaceAssociationSet.begin(); it != mInterfaceAssociationSet.end(); it++) {
-        if (*it == tuple) {
-            mInterfaceAssociationSet.erase(it);
+void OLSRState::eraseDuplicateTuple (const DuplicateTuple &tuple) {
+    for (std::vector<DuplicateTuple>::iterator it = mDuplicateSet.begin ();
+            it != mDuplicateSet.end (); it++) {
+        if (*it == tuple)
+        {
+            mDuplicateSet.erase (it);
             break;
         }
     }
 }
 
-void OLSRState::insertInterfaceAssociationTuple (const InterfaceAssociationTuple &tuple)
-{
-    mInterfaceAssociationSet.push_back(tuple);
-}
-
-std::vector<MACAddress> OLSRState::findNeighborInterfaces (const MACAddress &neighborMainAddr) const
-{
-    std::vector<MACAddress> retval;
-    for (std::vector<InterfaceAssociationTuple>::const_iterator it = mInterfaceAssociationSet.begin(); it != mInterfaceAssociationSet.end(); it++) {
-        if (it->mainAddr == neighborMainAddr)
-            retval.push_back (it->ifaceAddr);
-    }
-    return retval;
+void OLSRState::insertDuplicateTuple (DuplicateTuple const &tuple) {
+    mDuplicateSet.push_back (tuple);
 }

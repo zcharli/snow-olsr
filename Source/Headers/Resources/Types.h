@@ -181,6 +181,28 @@ static inline bool  operator == (const InterfaceAssociationTuple &a, const Inter
     return (a.ifaceAddr == b.ifaceAddr && a.mainAddr == b.mainAddr);
 }
 
+/// A Duplicate Tuple
+struct DuplicateTuple
+{
+  /// Originator address of the message.
+  MACAddress address;
+  /// Message sequence number.
+  uint16_t sequenceNumber;
+  /// Indicates whether the message has been retransmitted or not.
+  bool retransmitted;
+  /// List of interfaces which the message has been received on.
+  std::vector<MACAddress> ifaceList;
+  /// Time at which this tuple expires and must be removed.
+  boost::posix_time::ptime expirationTime;
+};
+
+static inline bool
+operator == (const DuplicateTuple &a, const DuplicateTuple &b)
+{
+  return (a.address == b.address
+          && a.sequenceNumber == b.sequenceNumber);
+}
+
 // static inline std::ostream& operator << (std::ostream &os, const InterfaceAssociationTuple &tuple)
 // {
 //     os  << "InterfaceAssociationTuple(ifaceAddr=" << tuple.ifaceAddr

@@ -28,14 +28,14 @@ int NetworkTrafficManager::sendMsg(OLSRMessage& messageToSend) {
 }
 
 int NetworkTrafficManager::enqueMsgForProcessing(std::shared_ptr<Packet> packet) {
-    mMtxEnqueue.lock();
+    mMtxMessageList.lock();
     mReceivedMsgsQ.push(packet);
 
     if(mReceivedMsgsQ.size() == 1) {
         mSemConsumer->post();
         //PRINTLN(Posted)
     }
-    mMtxEnqueue.unlock();
+    mMtxMessageList.unlock();
     return 1;
 }
 
@@ -49,15 +49,15 @@ std::shared_ptr<Packet> NetworkTrafficManager::getMessage() {
         mSemConsumer->wait();
         //PRINTLN(Been posted)
     }
-    mMtxGetMessage.lock();
+    mMtxMessageList.lock();
     if(mReceivedMsgsQ.size() == 0) {
         PRINTLN(Returned null msg)
-        mMtxGetMessage.unlock();
+        mMtxMessageList.unlock();
         return nullptr;
     }
     std::shared_ptr<Packet> vMessage = mReceivedMsgsQ.front();
     mReceivedMsgsQ.pop();
-    mMtxGetMessage.unlock();
+    mMtxMessageList.unlock();
     //mListener->notifyProducerReady();
     PRINTLN(Returned good msg)
     return vMessage;
@@ -100,7 +100,7 @@ void NetworkTCMessageThread::startBroadcastTCMessages() {
         mSocketMutex.lock();
         OLSRMessage message;
         if(RoutingProtocol::getInstance().buildTCMessage(message) == 0) {
-            std::cout << "Error when building hello message" << std::endl;
+            std::cout << "Error when building TV message" << std::endl;
         }
         mSocketMutex.unlock();
         char* vBuffer = message.serialize().getData();

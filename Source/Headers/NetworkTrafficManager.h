@@ -35,7 +35,7 @@ private:
     void send();
     std::unique_ptr<NetworkPacketListener> mListener;
     std::shared_ptr<WLAN> mSendSocket;
-    boost::mutex mMtxMessageList, mMtxEnqueue, mMtxGetMessage;
+    boost::mutex mMtxMessageList;
     std::queue<std::shared_ptr<Packet>> mReceivedMsgsQ;
     std::string mWirelessInterfaceName;
     std::unique_ptr<NetworkTCMessageThread> mTCThread;

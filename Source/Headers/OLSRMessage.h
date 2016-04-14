@@ -33,14 +33,14 @@ public:
     std::vector<std::shared_ptr<Message>> messages;
     MACAddress mSenderHWAddr; // The last hop sender addr from, may NOT be the originating addr
     MACAddress mRecvedHWAddr; // The Interface addr receieved from (we only have 1 as of now)
-
+    uint16_t mPacketLength;
+    uint16_t mPacketSequenceNumber;
 
 private:
     void deserializePacketBuffer(char*);
     char* mSerializedData;
     // Unique OLSRPacket Attributes
-    uint16_t mPacketLength;
-    uint16_t mPacketSequenceNumber;
+
 };
 
 #endif // OLSR_MESSAGE_H
