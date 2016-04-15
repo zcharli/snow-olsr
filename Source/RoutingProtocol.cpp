@@ -258,6 +258,7 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
         mMtxLink.lock();
         vLinkEdge = &mState.insertLinkTuple(newNeighbor);
         mMtxLink.unlock();
+        std::cout << "RoutingProtocol::handleHelloMessage: Added a new link into our state" << std::endl;
         create = true;
     } else {
         PRINTLN(RoutingProtocol::handleHelloMessage: Recv a hello from an existing neighbor)
@@ -597,7 +598,7 @@ void RoutingProtocol::handleTCMessage(TCMessage & message, MACAddress & senderHW
     mMtxSymLink.unlock();
     if (linkTuple == NULL)
     {
-        std::cout << "RoutingProtocol::handleTCMessage: The link tuple is not exist and discard this message" << std::endl;
+        std::cout << "RoutingProtocol::handleTCMessage: The link for this TC message was not found from sender: " << senderHWAddr << std::endl;
         return;
     }
 
@@ -697,7 +698,7 @@ void RoutingProtocol::expireTopology(int seconds, MACAddress destAddr, MACAddres
 }
 
 void RoutingProtocol::updateLinkTuple(LinkTuple * vLinkEdge, uint8_t willingness) {
-    std::cout << "RoutingProtocol::updateLinkTuple: Update the link tuple" << std::endl;
+    std::cout << "RoutingProtocol::updateLinkTuple: Update the link with neighbor" << std::endl;
     pt::ptime now = pt::second_clock::local_time();
     mMtxNeighbor.lock();
     NeighborTuple* vNeighbor = mState.findNeighborTuple(vLinkEdge->neighborIfaceAddr);
@@ -706,7 +707,7 @@ void RoutingProtocol::updateLinkTuple(LinkTuple * vLinkEdge, uint8_t willingness
         // Add advertised neighbor
         NeighborTuple vNewNeighbor;
         vNewNeighbor.neighborMainAddr = vLinkEdge->neighborIfaceAddr;
-        vNewNeighbor.willingness = willingness;
+        vNewNeighbor.willingness = W_WILL_ALWAYS;
         if (vLinkEdge->symTime >= now) {
             vNewNeighbor.status = NeighborTuple::STATUS_SYM;
         } else {
@@ -716,18 +717,20 @@ void RoutingProtocol::updateLinkTuple(LinkTuple * vLinkEdge, uint8_t willingness
         mState.insertNeighborTuple(vNewNeighbor);
         // Increment advertised neighbor set sequence number
         mMtxNeighbor.unlock();
+        std::cout << "RoutingProtocol::updateLinkTuple: insert new neighbor found" << std::endl;
+        vNeighbor = &vNewNeighbor;
         mANSN = (mANSN + 1) % (S_MAX_SEQ_NUM + 1);
         PRINTLN(RoutingProtocol::updateLinkTuple: Inserted a new neighbor)
-    } else {
-        // Reset the symTime for this link me -> neighbor
-        if (vLinkEdge->symTime >= now) {
-            vNeighbor->status = NeighborTuple::STATUS_SYM;
-            std::cout << "RoutingProtocol::updateLinkTuple: Reset sym time to sym for neighbor" << std::endl;
-        } else {
-            vNeighbor->status = NeighborTuple::STATUS_NOT_SYM;
-            std::cout << "RoutingProtocol::updateLinkTuple: Reset sym time to not sym for neighbor)" << std::endl;
-        }
     }
+    // Reset the symTime for this link me -> neighbor
+    if (vLinkEdge->symTime >= now) {
+        vNeighbor->status = NeighborTuple::STATUS_SYM;
+        std::cout << "RoutingProtocol::updateLinkTuple: Reset sym time to sym for neighbor" << std::endl;
+    } else {
+        vNeighbor->status = NeighborTuple::STATUS_NOT_SYM;
+        std::cout << "RoutingProtocol::updateLinkTuple: Reset sym time to not sym for neighbor" << std::endl;
+    }
+
 }
 
 void RoutingProtocol::updateMPRState() {
