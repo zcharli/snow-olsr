@@ -15,9 +15,9 @@ Packet::Packet() {
 
 Packet::~Packet() {
     //PRINTLN(Destroying a packet does not destroy buffer.);
-    if(mAddress != NULL)
-        delete mAddress;
-    delete mBuffer;
+    // if(mAddress != NULL)
+    //     delete mAddress;
+    // delete mBuffer;
 }
 
 MACAddress& Packet::getSource(){

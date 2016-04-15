@@ -156,8 +156,9 @@ int RoutingProtocol::buildHelloMessage(OLSRMessage & message) {
     memcpy(helloMessage->mMessageHeader.originatorAddress, mPersonalAddress.data, WLAN_ADDR_LEN);
     helloMessage->mMessageHeader.timeToLive = 1;
     helloMessage->mMessageHeader.hopCount = 0;
-    helloMessage->mMessageHeader.messageSequenceNumber = mSequenceNumber++;
     mSequenceNumber = (mSequenceNumber + 1) % 65530;
+    message.mPacketSequenceNumber = mSequenceNumber;
+    helloMessage->mMessageHeader.messageSequenceNumber = mSequenceNumber;
     helloMessage->htime = 3 * T_HELLO_INTERVAL / 1000;
 
     for (auto& link : mLinks) {
@@ -229,8 +230,10 @@ int RoutingProtocol::buildTCMessage(OLSRMessage & message) {
     memcpy(tcMessage->mMessageHeader.originatorAddress, mPersonalAddress.data, WLAN_ADDR_LEN);
     tcMessage->mMessageHeader.timeToLive = 255;
     tcMessage->mMessageHeader.hopCount = 0;
-    tcMessage->mMessageHeader.messageSequenceNumber = mSequenceNumber++;
     mSequenceNumber = (mSequenceNumber + 1) % 65530;
+    message.mPacketSequenceNumber = mSequenceNumber;
+    tcMessage->mMessageHeader.messageSequenceNumber = mSequenceNumber;
+
     tcMessage->ansn = mANSN;
     for (auto& neighborMprs : neighbors) {
         tcMessage->mNeighborAddresses.push_back(neighborMprs.mainAddr);

@@ -15,7 +15,7 @@ OLSRMessage::~OLSRMessage() {
     //std::cout << "OLSRMessage destructor" << std::endl;
 
     if (mSerializedData != NULL) {
-        delete [] mSerializedData;
+        //delete [] mSerializedData;
     }
 }
 
@@ -23,7 +23,7 @@ OLSRMessage& OLSRMessage::serialize() {
     //std::cout << "Seralizing hello message" << std::endl;
     if (mSerializedData != NULL) {
         std::cout << "OLSR serialize was called for the second time" <<std::endl;
-        delete [] mSerializedData;
+        //delete [] mSerializedData;
     }
     mPacketLength = 4;
     for (std::shared_ptr<Message>& msg : messages) {

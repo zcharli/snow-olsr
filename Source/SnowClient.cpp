@@ -23,7 +23,7 @@ int SnowClient::start() {
         if (vPacket != nullptr) {
             //std::cout << "First packet " << vPacket->getSource() << std::endl;
             if (vPacket->getSource()!= vNetworkManager->getPersonalAddress()) {
-               std::cout << "Handle packet from " << vPacket->getSource() << std::endl;
+                std::cout << "Handle packet from " << vPacket->getSource() << std::endl;
 
                 shared_ptr<OLSRMessage> vMessage = make_shared<OLSRMessage>(vPacket);
                 std::cout << "Handle packet from " << vPacket->getSource() << std::endl;
