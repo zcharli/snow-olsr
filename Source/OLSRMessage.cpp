@@ -75,7 +75,6 @@ void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
         // Process every message
         // Get the message type
         uint8_t vMessageType = (*(uint8_t*) vBuffer);
-        std::cout <<" wile " << vBytesLeftToProccess << " shit " << vMessageType << std::endl;
         switch (vMessageType) {
         case M_HELLO_MESSAGE:
         {

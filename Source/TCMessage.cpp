@@ -20,7 +20,6 @@ void TCMessage::deserialize(char* buffer) {
     mMessageHeader.type = (*(uint8_t*) buffer);
     buffer++;
     type = mMessageHeader.type;
-    std::cout << "This type deserialize " << type << std::endl;
     // VTime
     mMessageHeader.vtime = (*(uint8_t*) buffer);
     buffer++;
