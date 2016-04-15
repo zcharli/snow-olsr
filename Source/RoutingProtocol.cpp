@@ -286,7 +286,9 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
 
     std::cout << "RoutingProtocol::handleHelloMessage: Update the expire time of the link soon if asymTime is greater" << std::endl;
     // Will expire this link soon if asymTime is greater
+    PRINTLN(EXPIRES SEG)
     vLinkEdge->expirationTime = std::max(vLinkEdge->expirationTime, vLinkEdge->asymTime);
+    PRINTLN(AFTER)
     // Update the changes we made on this edge
     if (update) {
         std::cout << "RoutingProtocol::handleHelloMessage: Update the link to the link tuple set" << std::endl;
