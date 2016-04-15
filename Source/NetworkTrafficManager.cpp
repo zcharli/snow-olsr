@@ -17,8 +17,8 @@ void NetworkTrafficManager::init() {
     // Only create TC thread if this client is an MPR, lets test anyways
     mTCThread = std::make_unique<NetworkTCMessageThread>(mSendSocket);
     mHelloThread = std::make_unique<NetworkHelloMessageThread>(mSendSocket);
-    //mTCThread->run();
-    //mHelloThread->run();
+    mTCThread->run();
+    mHelloThread->run();
     PRINTLN(Traffic manager has been initialized);
 }
 
