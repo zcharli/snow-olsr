@@ -144,6 +144,7 @@ bool WLAN::send(char address[], char* msg_buffer, int size) {
     int sentlen = sendto(
                       ifconfig.sockid, msg_buffer, size, 0,
                       (sockaddr *) &to, sizeof(to));
+    //std::cout << "Send: " <<sentlen <<" " << daddr << std::endl;
     // Check errors
     if (sentlen == -1 ) {
         std::cerr << "WLAN::sendto() failed: " << strerror(errno) << "\n";
@@ -176,7 +177,7 @@ void WLAN::parseReceivedFrame(std::shared_ptr<Packet> inPacket) {
         if (aHandler != 0) {
             // call the handler for processing that frame
             //printf("%d\n", strlen(buff));
-            aHandler->handle(src, dst, inPacket->getBuffer() + sizeof(WLANHeader));
+            //aHandler->handle(src, dst, inPacket->getBuffer() + sizeof(WLANHeader));
         }
     } else {
         std::cout << "Destination is not WLAN broadcast: " << src << std::endl;

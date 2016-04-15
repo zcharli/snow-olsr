@@ -17,20 +17,17 @@ void NetworkTrafficManager::init() {
     // Only create TC thread if this client is an MPR, lets test anyways
     mTCThread = std::make_unique<NetworkTCMessageThread>(mSendSocket);
     mHelloThread = std::make_unique<NetworkHelloMessageThread>(mSendSocket);
-    mTCThread->run();
-    mHelloThread->run();
+    //mTCThread->run();
+    //mHelloThread->run();
     PRINTLN(Traffic manager has been initialized);
 }
 
 int NetworkTrafficManager::sendMsg(OLSRMessage& message) {
     char a[] = "ff:ff:ff:ff:ff:ff";
     PRINTLN(Forwarding TC message)
-    mSocketMutex.lock();
-    OLSRMessage message;
     if (RoutingProtocol::getInstance().buildTCMessage(message) == 0) {
         std::cout << "Error when building TV message" << std::endl;
     }
-    mSocketMutex.unlock();
     char* vBuffer = message.serialize().getData();
     //char a[]="1c:bd:b9:7e:b5:d4"; // unicast address
     //char f[] = "Hello!"; // data
@@ -38,7 +35,7 @@ int NetworkTrafficManager::sendMsg(OLSRMessage& message) {
     char* buffer = new char[size];
     memmove(buffer + WLAN_HEADER_LEN, vBuffer, message.getPacketSize());
     //buffer[message.getPacketSize() + 14] = '\0';
-    mSocket->send(a, buffer, size);
+    mSendSocket->send(a, buffer, size);
     //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
     usleep(1000 * (T_TC_INTERVAL + NetworkTrafficManager::generateRandomJitter()));
     delete [] buffer;
@@ -77,7 +74,6 @@ std::shared_ptr<Packet> NetworkTrafficManager::getMessage() {
     mReceivedMsgsQ.pop();
     mMtxMessageList.unlock();
     //mListener->notifyProducerReady();
-    PRINTLN(Returned good msg)
     return vMessage;
 }
 

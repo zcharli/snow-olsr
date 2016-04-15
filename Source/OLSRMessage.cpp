@@ -71,9 +71,11 @@ void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
 
     int vBytesLeftToProccess = mPacketLength - 4;
     while (vBytesLeftToProccess > 0) {
+
         // Process every message
         // Get the message type
         uint8_t vMessageType = (*(uint8_t*) vBuffer);
+        std::cout <<" wile " << vBytesLeftToProccess << " shit " << vMessageType << std::endl;
         switch (vMessageType) {
         case M_HELLO_MESSAGE:
         {
@@ -90,8 +92,18 @@ void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
             break;
         }
         case M_TC_MESSAGE:
+        {
+            uint16_t vMessageSizeTC = ntohs(*(uint16_t*) (vBuffer + 2));
+            vMessageSizeTC += HELLO_MSG_HEADER;
+            char* vTCMessageBuffer = new char[vMessageSizeTC];
+            memcpy ( vTCMessageBuffer, vBuffer, vMessageSizeTC);
 
+            std::shared_ptr<TCMessage> vTCMessage = std::make_shared<TCMessage>(vTCMessageBuffer);
+            messages.push_back(vTCMessage);
+            vBytesLeftToProccess -= vMessageSizeTC;
+            delete [] vTCMessageBuffer;
             break;
+        }
         case M_MID_MESSAGE:
             // Not implemented
             break;

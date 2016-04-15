@@ -9,9 +9,11 @@ RoutingProtocol& RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> messa
         std::cerr << "Oh no! A message was null!" << std::endl;
         return getInstance();
     }
+    std::cout << "Got a message of type " << message->messages[0]->mMessageHeader.type << std::endl;
     mMtxDuplicate.lock();
     DuplicateTuple* vDuplicate = mState.findDuplicateTuple(message->mSenderHWAddr, message->mPacketSequenceNumber);
     mMtxDuplicate.unlock();
+
     if (vDuplicate == NULL) {
         // Here we want to handle the message
         for (std::vector<std::shared_ptr<Message>>::iterator it = message->messages.begin();
@@ -193,7 +195,7 @@ int RoutingProtocol::buildHelloMessage(OLSRMessage & message) {
                     else if (neighbor.status == NeighborTuple::STATUS_NOT_SYM) {
                         neighborType = N_NOT_NEIGH;
                         std::cout << "Creating hello msg and setting " << link.neighborIfaceAddr
-                                  << " as not a neighbor" << std::endl;
+                                  << " as not a bidirectional neighbor" << std::endl;
                     }
                     else {
                         PRINTLN(Unable to find a neighbor)
@@ -220,6 +222,7 @@ int RoutingProtocol::buildTCMessage(OLSRMessage & message) {
     std::vector<MprSelectorTuple> neighbors = mState.getMprSelectors();
     mMtxMprSelector.unlock();
     std::shared_ptr<TCMessage> tcMessage = std::make_shared<TCMessage>();
+
     tcMessage->mMessageHeader.vtime = T_NEIGHB_HOLD_TIME;
     // We can ommit message size as its calculated on serialization
     memcpy(tcMessage->mMessageHeader.originatorAddress, mPersonalAddress.data, WLAN_ADDR_LEN);

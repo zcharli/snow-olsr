@@ -1,9 +1,13 @@
 #include "Headers/TCMessage.h"
 
-TCMessage::TCMessage() {}
-TCMessage::~TCMessage() {}
+TCMessage::TCMessage() {
+    mMessageHeader.type = M_TC_MESSAGE;
+}
+TCMessage::~TCMessage() {
+}
 
 TCMessage::TCMessage(char* buffer) {
+    mMessageHeader.type = M_TC_MESSAGE;
     deserialize(buffer);
 }
 
@@ -16,7 +20,7 @@ void TCMessage::deserialize(char* buffer) {
     mMessageHeader.type = (*(uint8_t*) buffer);
     buffer++;
     type = mMessageHeader.type;
-
+    std::cout << "This type deserialize " << type << std::endl;
     // VTime
     mMessageHeader.vtime = (*(uint8_t*) buffer);
     buffer++;
