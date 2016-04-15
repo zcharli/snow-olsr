@@ -65,6 +65,7 @@ bool RoutingProtocol::determineRequiresForwarding(std::shared_ptr<OLSRMessage> m
     mMtxSymLink.unlock();
     // If the sender cannot be reached, ie, link not symteric, then return now
     if (vLinkTuple == NULL) {
+        std::cout << "Link to forward TC message was not found." <<std::endl;
         return false;
     }
     // If we have forward this message already, then we will make sure stop do not forward it twice
@@ -656,7 +657,7 @@ void RoutingProtocol::handleTCMessage(TCMessage & message, MACAddress & senderHW
             topologyTuple.destAddr = addr;
             topologyTuple.lastAddr = lastAddr;
             topologyTuple.sequenceNumber = ansn;
-            topologyTuple.expirationTime = vTopologyTuple->expirationTime + pt::seconds(T_TOP_HOLD_TIME);
+            topologyTuple.expirationTime = now + pt::seconds(T_TOP_HOLD_TIME);
             mMtxTopology.lock();
             mState.insertTopologyTuple(topologyTuple);
             mMtxTopology.unlock();

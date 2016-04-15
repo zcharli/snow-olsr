@@ -203,10 +203,10 @@ LinkTuple* OLSRState::findSymLinkTuple (const MACAddress &ifaceAddr, pt::ptime n
     for (std::vector<LinkTuple> ::iterator it = mLinkSet.begin(); it != mLinkSet.end(); it++) {
         if (it->neighborIfaceAddr == ifaceAddr) {
             if (it->neighborIfaceAddr == ifaceAddr) {
-                if (it->symTime > now)
+               // if (it->symTime > now)
                     return &(*it);
-                else
-                    break;
+                // else
+                //     break;
             }
         }
     }
