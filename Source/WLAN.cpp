@@ -126,7 +126,7 @@ void WLAN::setToAddress(MACAddress *daddr, struct sockaddr_ll *to) {
 }
 
 // Send
-bool WLAN::send(char address[], char* msg_buffer) {
+bool WLAN::send(char address[], char* msg_buffer, int size) {
     // send buffer
     //char buff[WLAN_HEADER_LEN+strlen(message)];
     // destination address
@@ -142,7 +142,7 @@ bool WLAN::send(char address[], char* msg_buffer) {
     setToAddress(&daddr, &to);
     // send a frame
     int sentlen = sendto(
-                      ifconfig.sockid, msg_buffer, 34, 0,
+                      ifconfig.sockid, msg_buffer, size, 0,
                       (sockaddr *) &to, sizeof(to));
     // Check errors
     if (sentlen == -1 ) {

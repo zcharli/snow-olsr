@@ -25,7 +25,7 @@
 #define T_SECOND 1 // 1 second
 #define T_HELLO_INTERVAL 2000 // uisng milliseconds
 #define T_REFRESH_INTERVAL 2
-#define T_TC_INTERVAL 5
+#define T_TC_INTERVAL 5000
 #define T_MID_INTERVAL 5
 #define T_HNA_INTERVAL 5
 #define T_NEIGHB_HOLD_TIME 6

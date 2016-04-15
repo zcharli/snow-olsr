@@ -23,16 +23,16 @@ int SnowClient::start() {
 
         shared_ptr<Packet> vPacket = vNetworkManager->getMessage();
         if (vPacket != nullptr) {
-            std::cout << "First packet " << vPacket->getSource() << std::endl;
+            //std::cout << "First packet " << vPacket->getSource() << std::endl;
             if (vPacket->getSource()!= vNetworkManager->getPersonalAddress()) {
                 shared_ptr<OLSRMessage> vMessage = make_shared<OLSRMessage>(vPacket);
                 RoutingProtocol::getInstance().lockForUpdate();
                 if(RoutingProtocol::getInstance().updateState(vMessage).needsForwarding()) {
-
+                    vNetworkManager->sendMsg(vMessage);
                 }
                 RoutingProtocol::getInstance().unLockAfterUpdate();
             } else {
-                std::cout << "Got a packet from my self lulz" << std::endl;
+                //std::cout << "Got a packet from my self lulz" << std::endl;
             }
         }
     }

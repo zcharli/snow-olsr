@@ -40,7 +40,7 @@ public:
    // Initialize
    bool init();
    // Send a frame
-   bool send(char address[], char message[]);
+   bool send(char address[], char message[], int);
    // Set a handler
    void setHandler(Handler* aHandler);
    // Receive a frame
