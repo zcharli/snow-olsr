@@ -11,7 +11,7 @@ RoutingProtocol& RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> messa
     }
     std::cout << "Got a message of type " << message->messages[0]->mMessageHeader.type << std::endl;
     mMtxDuplicate.lock();
-    DuplicateTuple* vDuplicate = mState.findDuplicateTuple(message->mSenderHWAddr, message->mPacketSequenceNumber);
+    DuplicateTuple* vDuplicate = mState.findDuplicateTuple(*(message->mOriginatorAddress), message->mPacketSequenceNumber);
     mMtxDuplicate.unlock();
 
     if (vDuplicate == NULL) {

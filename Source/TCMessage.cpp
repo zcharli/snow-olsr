@@ -62,6 +62,7 @@ void TCMessage::deserialize(char* buffer) {
         mNeighborAddresses.push_back(vAdvertisedNeighborInterfaceAddr);
         buffer += WLAN_ADDR_LEN;
         vTotalMsgSize -= WLAN_ADDR_LEN;
+        std::cout << "del [] buffer tc vAdvertisedNeighborInterfaceAddrBuffer" << std::endl;
         delete [] vAdvertisedNeighborInterfaceAddrBuffer;
     }
 
@@ -71,6 +72,7 @@ void TCMessage::serialize() {
     if (mSerializedData != NULL) {
         std::cout << "Found a non null serialize data, deleting it" << std::endl;
         delete [] mSerializedData;
+        mSerializedData = NULL;
     }
     int vCurrentIndex = 0;
     mSerializedDataSize = HELLO_MSG_HEADER + 4; // With olsr header

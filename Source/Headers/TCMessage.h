@@ -12,15 +12,15 @@
 class TCMessage : public Message
 {
 public:
-	TCMessage();
+    TCMessage();
     TCMessage(char*);
-	virtual ~TCMessage();
+    virtual ~TCMessage();
 
-	virtual void serialize();
+    virtual void serialize();
     virtual void deserialize(char*);
 
-	uint16_t getAnsn();
-	std::vector<MACAddress> mNeighborAddresses;
+    uint16_t getAnsn();
+    std::vector<MACAddress> mNeighborAddresses;
     uint16_t ansn;
 private:
 

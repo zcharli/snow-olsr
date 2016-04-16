@@ -15,14 +15,16 @@ OLSRMessage::~OLSRMessage() {
     //std::cout << "OLSRMessage destructor" << std::endl;
 
     if (mSerializedData != NULL) {
-        //delete [] mSerializedData;
+        std::cout << "del [] OLSRMessage" << std::endl;
+        delete [] mSerializedData;
+        mSerializedData = NULL;
     }
 }
 
 OLSRMessage& OLSRMessage::serialize() {
     //std::cout << "Seralizing hello message" << std::endl;
     if (mSerializedData != NULL) {
-        std::cout << "OLSR serialize was called for the second time" <<std::endl;
+        std::cout << "OLSR serialize was called for the second time" << std::endl;
         delete [] mSerializedData;
         mSerializedData = NULL;
     }
@@ -32,9 +34,8 @@ OLSRMessage& OLSRMessage::serialize() {
         mPacketLength += msg->mSerializedDataSize;
         // std::cout << "Serialized a ms with datasize " << msg->mSerializedDataSize << std::endl;
     }
-    std::cout << "Memory corrupt?" << std::endl;
+    std::cout << "mSerializedData = new char[mPacketLength];" << std::endl;
     mSerializedData = new char[mPacketLength];
-    std::cout << "no. corrupt?" << std::endl;
     int vCurrentIndex = 0;
 
     // Packet lenght
@@ -89,6 +90,8 @@ void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
             std::shared_ptr<HelloMessage> vHelloMessage = std::make_shared<HelloMessage>(vHelloMessageBuffer);
             messages.push_back(vHelloMessage);
             vBytesLeftToProccess -= vMessageSize;
+            mOriginatorAddress = vHelloMessage->getOriginatorAddress();
+            std::cout << "delete [] vHelloMessageBuffer" << std::endl;
             delete [] vHelloMessageBuffer;
             break;
         }
@@ -102,6 +105,8 @@ void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
             std::shared_ptr<TCMessage> vTCMessage = std::make_shared<TCMessage>(vTCMessageBuffer);
             messages.push_back(vTCMessage);
             vBytesLeftToProccess -= vMessageSizeTC;
+            mOriginatorAddress = vTCMessage->getOriginatorAddress();
+            std::cout << "delete [] vTCMessageBuffer" << std::endl;
             delete [] vTCMessageBuffer;
             break;
         }

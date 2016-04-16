@@ -28,6 +28,7 @@ int NetworkTrafficManager::sendMsg(OLSRMessage& message) {
     if (RoutingProtocol::getInstance().buildTCMessage(message) == 0) {
         std::cout << "Error when building TV message" << std::endl;
     }
+    std::cout << "Message serialize twice?" << std::endl;
     char* vBuffer = message.serialize().getData();
     //char a[]="1c:bd:b9:7e:b5:d4"; // unicast address
     //char f[] = "Hello!"; // data
@@ -38,6 +39,7 @@ int NetworkTrafficManager::sendMsg(OLSRMessage& message) {
     mSendSocket->send(a, buffer, size);
     //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
     usleep(1000 * (T_TC_INTERVAL + NetworkTrafficManager::generateRandomJitter()));
+    std::cout << "del [] buffer sen msg" << std::endl;
     delete [] buffer;
     return 0;
 }
@@ -128,6 +130,7 @@ void NetworkTCMessageThread::startBroadcastTCMessages() {
         PRINTLN(Sent a TC message)
         //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
         usleep(1000 * (T_TC_INTERVAL + NetworkTrafficManager::generateRandomJitter()));
+        std::cout << "del [] buffer tc" << std::endl;
         delete [] buffer;
     }
     PRINTLN(TC message thread closed down);
@@ -170,6 +173,7 @@ void NetworkHelloMessageThread::startBroadcastHelloMessages() {
         PRINTLN(Sent a hello message)
         //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
         usleep(1000 * (T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()));
+        std::cout << "del [] buffer hello" << std::endl;
         delete [] buffer;
     }
     PRINTLN(Hello message thread closed down);
