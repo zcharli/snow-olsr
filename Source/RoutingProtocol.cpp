@@ -65,7 +65,7 @@ bool RoutingProtocol::determineRequiresForwarding(std::shared_ptr<OLSRMessage> m
     mMtxSymLink.unlock();
     // If the sender cannot be reached, ie, link not symteric, then return now
     if (vLinkTuple == NULL) {
-        std::cout << "Link to forward TC message was not found." <<std::endl;
+        std::cout << "Link to forward TC message was not found." << std::endl;
         return false;
     }
     // If we have forward this message already, then we will make sure stop do not forward it twice
@@ -122,10 +122,10 @@ void RoutingProtocol::expireDuplicateTC(int seconds, MACAddress address, uint16_
             return;
         }
         if (tuple->expirationTime < now) {
+            std::cout << "30 second passed, clearing record of TC" << std::endl;
             mMtxDuplicate.lock();
             mState.eraseDuplicateTuple(*tuple);
             mMtxDuplicate.unlock();
-            std::cout << "30 second passed, clearing record of TC" << std::endl;
             return;
         }
         else {
@@ -135,6 +135,9 @@ void RoutingProtocol::expireDuplicateTC(int seconds, MACAddress address, uint16_
                 sleep(expireTimer.total_seconds());
             } else {
                 std::cout << "30 second passed, clearing record of TC" << std::endl;
+                mMtxDuplicate.lock();
+                mState.eraseDuplicateTuple(*tuple);
+                mMtxDuplicate.unlock();
                 return;
             }
         }
@@ -467,11 +470,11 @@ void RoutingProtocol::expireMprSelector(int seconds, MACAddress addressSelector)
             return;
         }
         if (vMprSelector->expirationTime < now) {
+            std::cout << "MPR selector " << addressSelector << " is expired." << std::endl;
             mMtxMprSelector.lock();
             mState.cleanMprSelectorTuple(*vMprSelector);
             mMtxMprSelector.unlock();
             mANSN = (mANSN + 1) % (S_MAX_SEQ_NUM + 1);
-            std::cout << "MPR selector " << addressSelector << " is expired." << std::endl;
             return;
         } else {
             std::cout << "MPR selector " << addressSelector << " time got a refresh for " << seconds << std::endl;
@@ -493,11 +496,11 @@ void RoutingProtocol::expireTwoHopNeighbor(int seconds, MACAddress neighborAddr,
             return;
         }
         if (twoHopTuple->expirationTime < now) {
+            std::cout << "TwoHopNeighbor " << twoHopNeighbor << " is expired." << std::endl;
             mMtxTwoHopNeighbor.lock();
             mState.cleanTwoHopNeighborTuple (*twoHopTuple);
             mMtxTwoHopNeighbor.unlock();
             mANSN = (mANSN + 1) % (S_MAX_SEQ_NUM + 1);
-            std::cout << "TwoHopNeighbor " << twoHopNeighbor << " is expired." << std::endl;
             return;
         } else {
             pt::time_duration expireTimer = twoHopTuple->expirationTime - now;
@@ -533,13 +536,13 @@ void RoutingProtocol::expireLink(int seconds, MACAddress neighborAddr) {
         if (vLinkTuple->expirationTime < now) {
             // Remove this link
             PRINTLN(RoutingProtocol::expireLink: Expiring a link tuple)
+            std::cout << "Link with " << neighborAddr << " is expired." << std::endl;
             mMtxNeighbor.lock();
             mState.cleanNeighborTuple(vLinkTuple->neighborIfaceAddr);
             mMtxNeighbor.unlock();
             mMtxLink.lock();
             mState.cleanLinkTuple(*vLinkTuple);
             mMtxLink.unlock();
-            std::cout << "Link with " << neighborAddr << " is expired." << std::endl;
             return;
 
         } else if (vLinkTuple->symTime < now) {
@@ -549,6 +552,7 @@ void RoutingProtocol::expireLink(int seconds, MACAddress neighborAddr) {
             NeighborTuple* vNeighbor = mState.findNeighborTuple(vLinkTuple->neighborIfaceAddr);
             mMtxNeighbor.unlock();
             if (vNeighbor == NULL) {
+                std::cout << "Link with " << neighborAddr << " is expired because neighbor is null." << std::endl;
                 updateLinkTuple(vLinkTuple, W_WILL_ALWAYS);
                 mMtxTwoHopNeighbor.lock();
                 mState.cleanTwoHopNeighborTuples(vLinkTuple->neighborIfaceAddr);
@@ -557,20 +561,19 @@ void RoutingProtocol::expireLink(int seconds, MACAddress neighborAddr) {
                 mState.cleanMprSelectorTuples(vLinkTuple->neighborIfaceAddr);
                 mMtxMprSelector.unlock();
                 updateMPRState();
-                routingTableComputation();
+                //routingTableComputation();
             }
             expireTimer = vLinkTuple->expirationTime - now;
 
             if (expireTimer.total_seconds() <= 0) {
                 // Expire now
-                PRINTLN(RoutingProtocol::expireLink: Expiring a link tuple)
+                std::cout << "Link with " << neighborAddr << " is expired because timer < 0." << std::endl;
                 mMtxNeighbor.lock();
                 mState.cleanNeighborTuple(vLinkTuple->neighborIfaceAddr);
                 mMtxNeighbor.unlock();
                 mMtxLink.lock();
                 mState.cleanLinkTuple(*vLinkTuple);
                 mMtxLink.unlock();
-                std::cout << "Link with " << neighborAddr << " is expired." << std::endl;
                 return;
             }
             seconds = expireTimer.total_seconds();
@@ -673,36 +676,6 @@ void RoutingProtocol::handleTCMessage(TCMessage & message, MACAddress & senderHW
     }
 }
 
-void RoutingProtocol::expireTopology(int seconds, MACAddress destAddr, MACAddress lastAddr) {
-    std::cout << "TC expire timer started with " << seconds << " seconds" << std::endl;
-
-    do {
-        sleep(seconds);
-        pt::ptime now = pt::second_clock::local_time();
-
-        mMtxTopology.lock();
-        TopologyTuple* vTopologyTuple = mState.findTopologyTuple(destAddr, lastAddr);
-        mMtxTopology.unlock();
-        if (vTopologyTuple == NULL) {
-            std::cout << "TC lost contact with a node " << vTopologyTuple->destAddr << " from neighbor "
-                      << vTopologyTuple->lastAddr << std::endl;
-            return;
-        }
-        pt::time_duration expireTimer = vTopologyTuple->expirationTime - now;
-        seconds = expireTimer.total_seconds();
-        if (vTopologyTuple->expirationTime < now) {
-            mMtxTopology.lock();
-            mState.cleanTopologyTuple(*vTopologyTuple);
-            mMtxTopology.unlock();
-            std::cout << "TC lost contact with node " << vTopologyTuple->destAddr << " from neighbor "
-                      << vTopologyTuple->lastAddr << std::endl;
-            return;
-        }
-        std::cout << "TC has a live link with node " << vTopologyTuple->destAddr << " from neighbor "
-                  << vTopologyTuple->lastAddr << std::endl;
-    } while (seconds > 0);
-}
-
 void RoutingProtocol::updateLinkTuple(LinkTuple * vLinkEdge, uint8_t willingness) {
     std::cout << "RoutingProtocol::updateLinkTuple: Update the link with neighbor" << std::endl;
     pt::ptime now = pt::second_clock::local_time();
@@ -719,12 +692,12 @@ void RoutingProtocol::updateLinkTuple(LinkTuple * vLinkEdge, uint8_t willingness
         } else {
             vNewNeighbor.status = NeighborTuple::STATUS_NOT_SYM;
         }
+        std::cout << "RoutingProtocol::updateLinkTuple: insert new neighbor found" << std::endl;
         mMtxNeighbor.lock();
         mState.insertNeighborTuple(vNewNeighbor);
-        // Increment advertised neighbor set sequence number
         mMtxNeighbor.unlock();
-        std::cout << "RoutingProtocol::updateLinkTuple: insert new neighbor found" << std::endl;
         vNeighbor = &vNewNeighbor;
+        // Increment advertised neighbor set sequence number
         mANSN = (mANSN + 1) % (S_MAX_SEQ_NUM + 1);
         PRINTLN(RoutingProtocol::updateLinkTuple: Inserted a new neighbor)
     }
@@ -1192,4 +1165,35 @@ int RoutingProtocol::calculateNodeDegree (NeighborTuple & tuple)
         }
     }
     return degree;
+}
+
+
+void RoutingProtocol::expireTopology(int seconds, MACAddress destAddr, MACAddress lastAddr) {
+    std::cout << "TC expire timer started with " << seconds << " seconds" << std::endl;
+
+    do {
+        sleep(seconds);
+        pt::ptime now = pt::second_clock::local_time();
+
+        mMtxTopology.lock();
+        TopologyTuple* vTopologyTuple = mState.findTopologyTuple(destAddr, lastAddr);
+        mMtxTopology.unlock();
+        if (vTopologyTuple == NULL) {
+            std::cout << "TC lost contact with a node " << vTopologyTuple->destAddr << " from neighbor "
+                      << vTopologyTuple->lastAddr << std::endl;
+            return;
+        }
+        pt::time_duration expireTimer = vTopologyTuple->expirationTime - now;
+        seconds = expireTimer.total_seconds();
+        if (vTopologyTuple->expirationTime < now) {
+            mMtxTopology.lock();
+            mState.cleanTopologyTuple(*vTopologyTuple);
+            mMtxTopology.unlock();
+            std::cout << "TC lost contact with node " << vTopologyTuple->destAddr << " from neighbor "
+                      << vTopologyTuple->lastAddr << std::endl;
+            return;
+        }
+        std::cout << "TC has a live link with node " << vTopologyTuple->destAddr << " from neighbor "
+                  << vTopologyTuple->lastAddr << std::endl;
+    } while (seconds > 0);
 }
