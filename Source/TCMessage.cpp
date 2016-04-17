@@ -1,12 +1,12 @@
 #include "Headers/TCMessage.h"
 
-TCMessage::TCMessage() {
+TCMessage::TCMessage() : mSerializedData(nullptr) {
     mMessageHeader.type = M_TC_MESSAGE;
 }
 TCMessage::~TCMessage() {
 }
 
-TCMessage::TCMessage(char* buffer) {
+TCMessage::TCMessage(char* buffer) : mSerializedData(nullptr) {
     mMessageHeader.type = M_TC_MESSAGE;
     deserialize(buffer);
 }
@@ -62,23 +62,25 @@ void TCMessage::deserialize(char* buffer) {
         mNeighborAddresses.push_back(vAdvertisedNeighborInterfaceAddr);
         buffer += WLAN_ADDR_LEN;
         vTotalMsgSize -= WLAN_ADDR_LEN;
-        std::cout << "del [] buffer tc vAdvertisedNeighborInterfaceAddrBuffer" << std::endl;
+        std::cout << "del [] buffer tc vAdvertisedNeighborInterfaceAddrBuffer: " << vAdvertisedNeighborInterfaceAddr << std::endl;
         delete [] vAdvertisedNeighborInterfaceAddrBuffer;
     }
 
 }
 
 void TCMessage::serialize() {
-    if (mSerializedData != NULL) {
-        std::cout << "Found a non null serialize data, deleting it" << std::endl;
+    if (mSerializedData != nullptr) {
+        std::cout << "Found a non nullptr serialize data, deleting it" << std::endl;
         delete [] mSerializedData;
-        mSerializedData = NULL;
+        mSerializedData = nullptr;
+        mSerializedDataSize = 0;
     }
     int vCurrentIndex = 0;
     mSerializedDataSize = HELLO_MSG_HEADER + 4; // With olsr header
 
-    mSerializedDataSize += 4;
+    mSerializedDataSize += 4; // ANSN + reserved
     mSerializedDataSize += mNeighborAddresses.size() * WLAN_ADDR_LEN;
+    std::cout << "This is the neighbor addr size" << mNeighborAddresses.size() * WLAN_ADDR_LEN << std::endl;
 
     mSerializedData = new char[mSerializedDataSize];
 
@@ -91,9 +93,10 @@ void TCMessage::serialize() {
 
     // MessageSize
     *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(mSerializedDataSize - HELLO_MSG_HEADER); // 22 is header size
+
     // Test
-    //uint16_t test = ntohs((*(uint16_t*) (mSerializedData + vCurrentIndex)));
-    // std::cout << test << std::endl;
+    uint16_t test = ntohs((*(uint16_t*) (mSerializedData + vCurrentIndex)));
+    std::cout << "This is the size of the tc message" << test << std::endl;
     vCurrentIndex += 2;
 
     // Originator address

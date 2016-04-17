@@ -1,23 +1,32 @@
 #include "Headers/Message.h"
 
-Message::Message() : mSerializedData(NULL), mOriginatorAddress(NULL) {
+Message::Message() : mSerializedData(nullptr), mOriginatorAddress(nullptr) {
 }
 
 Message::~Message() {
     //std::cout << "Message destructor" << std::endl;
-    if (mSerializedData != NULL) {
-        std::cout << "del [] mSerializedData" << std::endl;
+    if (mSerializedData != nullptr && mSerializedDataSize != 0) {
+        std::cout << "del [] message size" << mSerializedDataSize << std::endl;
+
+        // Make header
+        // MsgType
+        uint8_t d = (*(uint8_t*) mSerializedData);
+        std::cout << (int)d << " lol" << std::endl;
+        uint16_t s = ntohs((*(uint16_t*) (mSerializedData + 2)));
+        std::cout << (int)s << " size of msg" << std::endl;
+
         delete [] mSerializedData;
-        mSerializedData = NULL;
+        std::cout << "deleted mSerializedData Successfully" << std::endl;
+        mSerializedData = nullptr;
     }
 }
 
 std::shared_ptr<MACAddress> Message::getOriginatorAddress() {
-    if (mOriginatorAddress != NULL) {
+    if (mOriginatorAddress != nullptr) {
         return mOriginatorAddress;
     }
     std::cout << "Implementation for getOriginatorAddress missing" << std::endl;
-    return NULL;
+    return nullptr;
 }
 
 unsigned char Message::getType() {

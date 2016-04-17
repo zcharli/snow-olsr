@@ -25,10 +25,9 @@ void NetworkTrafficManager::init() {
 int NetworkTrafficManager::sendMsg(OLSRMessage& message) {
     char a[] = "ff:ff:ff:ff:ff:ff";
     PRINTLN(Forwarding TC message)
-    if (RoutingProtocol::getInstance().buildTCMessage(message) == 0) {
-        std::cout << "Error when building TV message" << std::endl;
-    }
-    std::cout << "Message serialize twice?" << std::endl;
+    // if (RoutingProtocol::getInstance().buildTCMessage(message) == 0) {
+    //     std::cout << "Error when building TV message" << std::endl;
+    // }
     char* vBuffer = message.serialize().getData();
     //char a[]="1c:bd:b9:7e:b5:d4"; // unicast address
     //char f[] = "Hello!"; // data
@@ -37,6 +36,7 @@ int NetworkTrafficManager::sendMsg(OLSRMessage& message) {
     memmove(buffer + WLAN_HEADER_LEN, vBuffer, message.getPacketSize());
     //buffer[message.getPacketSize() + 14] = '\0';
     mSendSocket->send(a, buffer, size);
+    std::cout << "TC message forwarding was successful" << std::endl;
     //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
     usleep(1000 * (T_TC_INTERVAL + NetworkTrafficManager::generateRandomJitter()));
     std::cout << "del [] buffer sen msg" << std::endl;

@@ -9,7 +9,7 @@ RoutingProtocol& RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> messa
         std::cerr << "Oh no! A message was null!" << std::endl;
         return getInstance();
     }
-    std::cout << "Got a message of type " << message->messages[0]->mMessageHeader.type << std::endl;
+    std::cout << "Got a message of type " << (int)message->messages[0]->mMessageHeader.type << std::endl;
     mMtxDuplicate.lock();
     DuplicateTuple* vDuplicate = mState.findDuplicateTuple(*(message->mOriginatorAddress), message->mPacketSequenceNumber);
     mMtxDuplicate.unlock();
@@ -24,11 +24,13 @@ RoutingProtocol& RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> messa
                 // Dereferenced HelloMsg from the address of the dereference iterator msg
                 PRINTLN(Handling hello msg)
                 handleHelloMessage(*((HelloMessage*) & (**it)), message->mSenderHWAddr, (*it)->mMessageHeader.vtime);
+                std::cout << "RoutingProtocol::updateState finished handling hello" << std::endl;
                 break;
             case M_TC_MESSAGE:
                 // Handle a TC
                 PRINTLN(Handling tc msg)
                 handleTCMessage(*((TCMessage*) & (**it)), message->mSenderHWAddr);
+                std::cout << "RoutingProtocol::updateState finished handling tc" << std::endl;
                 vTryForward = true;
                 break;
             case M_MID_MESSAGE:
@@ -50,6 +52,7 @@ RoutingProtocol& RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> messa
     }
     if (vTryForward) {
         mRequiresForwarding = determineRequiresForwarding(message, vDuplicate);
+        std::cout << "RoutingProtocol::updateState forward message? " << mRequiresForwarding << std::endl;
     }
     return getInstance();
 }
@@ -174,11 +177,9 @@ int RoutingProtocol::buildHelloMessage(OLSRMessage & message) {
         // Establishes link type
         if (link.symTime >= now) {
             linkType = L_SYM_LINK;
-        }
-        else if (link.asymTime >= now) {
+        } else if (link.asymTime >= now) {
             linkType = L_ASYM_LINK;
-        }
-        else {
+        } else {
             linkType = L_LOST_LINK;
         }
         mMtxMpr.lock();
@@ -186,9 +187,8 @@ int RoutingProtocol::buildHelloMessage(OLSRMessage & message) {
         mMtxMpr.unlock();
         if (found) {
             neighborType = N_MPR_NEIGH;
-            std::cout << "Creating hello msg and setting " << link.neighborIfaceAddr << " as my MPR" << std::endl;
-        }
-        else {
+            std::cout << "Creating hello msg and setting " << link.neighborIfaceAddr << " who choose me as a MPR candidate" << std::endl;
+        } else {
             bool ok = false;
             for (auto& neighbor : neighbors) {
                 if (neighbor.neighborMainAddr == link.neighborIfaceAddr) {
@@ -289,9 +289,9 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
 
     std::cout << "RoutingProtocol::handleHelloMessage: Update the expire time of the link soon if asymTime is greater" << std::endl;
     // Will expire this link soon if asymTime is greater
-    PRINTLN(EXPIRES SEG)
     vLinkEdge->expirationTime = std::max(vLinkEdge->expirationTime, vLinkEdge->asymTime);
-    PRINTLN(AFTER)
+     pt::time_duration eTimer = now - vLinkEdge->expirationTime;
+    std::cout << "RoutingProtocol::handleHelloMessage the sender's expiration time is " << eTimer.total_seconds() << std::endl;
     // Update the changes we made on this edge
     if (update) {
         std::cout << "RoutingProtocol::handleHelloMessage: Update the link to the link tuple set" << std::endl;
@@ -305,6 +305,7 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
                                         : vLinkEdge->expirationTime - vLinkEdge->symTime ;
         std::cout << "RoutingProtocol::handleHelloMessage: Schedule a " << expireTimer.total_seconds() << " seconds to do expire this link" << std::endl;
         boost::thread vExpiryThread = boost::thread(boost::bind(&RoutingProtocol::expireLink, this, expireTimer.total_seconds(), vLinkEdge->neighborIfaceAddr));
+        std::cout << "Link expiry thread has started" << std::endl;
 
     }
 
@@ -314,12 +315,12 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
             linkNeighbrs != message.mLinkMessages.end(); linkNeighbrs++ ) {
         int linkType = linkNeighbrs->linkCode & 0x03; // ^C Terminiation
         int neighborType = (linkNeighbrs->linkCode >> 2) & 0x03;
-        std::cout << "RoutingProtocol::handleHelloMessage: Hello msg with Link Type: " << linkType << " and Neighbor Type: " << neighborType << std::endl;
+        std::cout << "RoutingProtocol::handle HelloMessage: Hello msg with Link Type: " << linkType << " and Neighbor Type: " << neighborType << std::endl;
         // Skip invalid link and neightbor codes RFC 6.1.1
         if ((linkType == L_SYM_LINK && neighborType == N_NOT_NEIGH) ||
                 (neighborType != N_SYM_NEIGH && neighborType != N_MPR_NEIGH
-                 && neighborType != N_NOT_NEIGH))
-        {
+                 && neighborType != N_NOT_NEIGH)) {
+            // Possible two hop neigher addrs or totally invalid
             PRINTLN(RoutingProtocol::handleHelloMessage: Found invalid link type and skipping)
             continue;
         }
@@ -360,15 +361,15 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
 
         if (link.neighborIfaceAddr != *(message.getOriginatorAddress())) {
             std::cout << "RoutingProtocol::handleHelloMessage determined " << link.neighborIfaceAddr
-                      << " as not a two hop neightbor of " << message.getOriginatorAddress() << std::endl;
+                      << " as not a two hop neightbor of " << *(message.getOriginatorAddress()) << std::endl;
             continue;
         }
 
-        if (link.symTime < now) {
-            PRINTLN(Found an expired link tuple while trying to update the two hop neighbors)
-                continue;
-        }
-
+        // if (link.symTime < now) {
+        //     PRINTLN(Found an expired link tuple while trying to update the two hop neighbors)
+        //         continue;
+        // }
+        std::cout<< "RoutingProtocol::handleHelloMessage number of links on this message from "<< *(message.getOriginatorAddress()) <<"is " << message.mLinkMessages.size();
         for (auto& linkMessage : message.mLinkMessages) {
             int neighborType = (linkMessage.linkCode >> 2) & 0x3;
             std::cout << "Link message has neighbor type " << neighborType << std::endl;
@@ -423,6 +424,8 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
     }
     updateMPRState();
     // Add our MPR selectors after we update the MPR state
+    std::cout << "RoutingProtocol::handleHelloMessage message link msg size "
+        << message.mLinkMessages.size() << std::endl;
     for (auto& linkMessage : message.mLinkMessages) {
         int linkCode = linkMessage.linkCode >> 2;
         std::cout << "Link message has link type " << linkCode << std::endl;
@@ -600,7 +603,7 @@ void RoutingProtocol::handleTCMessage(TCMessage & message, MACAddress & senderHW
 
     //  1.  If the sender interface (NB: not originator) of this message is not in the symmetric 1-hotp neighborhodd
     //  of this node, the message MUST be discarded.
-    std::cout << "RoutingProtocol::handleTCMessage: Check the neighbor of this message discard if it is not originator" << std::endl;
+    std::cout << "RoutingProtocol::handleTCMessage: Check the neighbor of this message if it is not originator else discard" << std::endl;
     pt::ptime now = pt::second_clock::local_time();
     mMtxSymLink.lock();
     LinkTuple* linkTuple = mState.findSymLinkTuple(senderHWAddr, now);
@@ -640,8 +643,7 @@ void RoutingProtocol::handleTCMessage(TCMessage & message, MACAddress & senderHW
     //  4.  For each of the advertised neighbor main address received in the TC message:
     //  Process the advertised neighbors
     std::cout << "RoutingProtocol::handleTCMessage: Process the advertised neighbors" << std::endl;
-    for (std::vector<MACAddress>::const_iterator it = message.mNeighborAddresses.begin(); it != message.mNeighborAddresses.end(); it++)
-    {
+    for (std::vector<MACAddress>::const_iterator it = message.mNeighborAddresses.begin(); it != message.mNeighborAddresses.end(); it++) {
         //      4.1 If there exist some tuple in the topology set where:
         //                  T_dest_addr == advertised neighbor main address, AND
         //                  T_last_addr == originator address,
@@ -689,8 +691,10 @@ void RoutingProtocol::updateLinkTuple(LinkTuple * vLinkEdge, uint8_t willingness
         vNewNeighbor.willingness = W_WILL_ALWAYS;
         if (vLinkEdge->symTime >= now) {
             vNewNeighbor.status = NeighborTuple::STATUS_SYM;
+            std::cout << "RoutingProtocol::updateState determined neighbor is symetric bidirecitonal" << std::endl;
         } else {
             vNewNeighbor.status = NeighborTuple::STATUS_NOT_SYM;
+            std::cout << "RoutingProtocol::updateState determined neighbor is asymetric direcitonal" << std::endl;
         }
         std::cout << "RoutingProtocol::updateLinkTuple: insert new neighbor found" << std::endl;
         mMtxNeighbor.lock();
@@ -909,6 +913,7 @@ void RoutingProtocol::updateMPRState() {
             for (std::vector<TwoHopNeighborTuple>::iterator twoHopNeigh = N2.begin ();
                     twoHopNeigh != N2.end (); ) {
                 if (twoHopNeigh->neighborMainAddr == vMaxRechabilityNeighbor->neighborMainAddr) {
+                    std::cout << "RoutingProtocol::updateMPRState removed a N2 neightbor caused by non-reachbility"
                     twoHopNeigh = N2.erase (twoHopNeigh);
                 }
                 else {
@@ -933,7 +938,7 @@ void RoutingProtocol::updateMPRState() {
 
 void RoutingProtocol::removeCoveredTwoHopNeighbor(MACAddress addr, std::vector<TwoHopNeighborTuple>& twoHopNeighbors) {
     // This function will remove all the two hop neighbors that have been covered by an MPR
-    std::cout << "RoutingProtocol::removeCoveredTwoHopNeighbor: Remove all the two hop neighbors that have been covered by an MPR" << std::endl;
+    std::cout << "RoutingProtocol::removeCoveredTwoHopNeighbor: Remove all the two hop neighbors that have been covered by an MPR of address " << addr << std::endl;
     std::set<MACAddress> uniqueRemovals;
     for (std::vector<TwoHopNeighborTuple>::iterator it = twoHopNeighbors.begin();
             it != twoHopNeighbors.end(); it++) {

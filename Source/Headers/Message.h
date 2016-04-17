@@ -7,6 +7,7 @@
 #include "MACAddress.h"
 #include "Resources/Constants.h"
 #include "Resources/Helpers.h"
+#include <netinet/in.h>
 
 
 class Message

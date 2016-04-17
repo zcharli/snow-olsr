@@ -1,12 +1,13 @@
 #include "Headers/OLSRMessage.h"
 
-OLSRMessage::OLSRMessage() : mSerializedData(NULL) {}
+OLSRMessage::OLSRMessage() : mSerializedData(nullptr) {}
 OLSRMessage::OLSRMessage(std::shared_ptr<Packet> packet)
-    : mSenderHWAddr(packet->getSource()), mRecvedHWAddr(packet->getMyAddress()) {
+    : mSenderHWAddr(packet->getSource()), mRecvedHWAddr(packet->getMyAddress()), mSerializedData(nullptr) {
+    // Initialize everything to null or fill up MAC addreses used.
     MACAddress destination(packet->getDestination());
     deserializePacketBuffer(packet->getBuffer() + WLAN_HEADER_LEN);
 }
-OLSRMessage::OLSRMessage(char* buffer) : mSerializedData(NULL) {
+OLSRMessage::OLSRMessage(char* buffer) : mSerializedData(nullptr) {
 
     deserializePacketBuffer(buffer);
 }
@@ -14,21 +15,23 @@ OLSRMessage::OLSRMessage(char* buffer) : mSerializedData(NULL) {
 OLSRMessage::~OLSRMessage() {
     //std::cout << "OLSRMessage destructor" << std::endl;
 
-    if (mSerializedData != NULL) {
+    if (mSerializedData != nullptr) {
         std::cout << "del [] OLSRMessage" << std::endl;
         delete [] mSerializedData;
-        mSerializedData = NULL;
+        std::cout << "deleted OLSRMessage Successfully" << std::endl;
+        mSerializedData = nullptr;
     }
 }
 
 OLSRMessage& OLSRMessage::serialize() {
     //std::cout << "Seralizing hello message" << std::endl;
-    if (mSerializedData != NULL) {
+    if (mSerializedData != nullptr) {
         std::cout << "OLSR serialize was called for the second time" << std::endl;
         delete [] mSerializedData;
-        mSerializedData = NULL;
+        mPacketLength = 0;
+        mSerializedData = nullptr;
     }
-    mPacketLength = 4;
+    mPacketLength = 4; // mPacketLength and mSequenceNumber
     for (std::shared_ptr<Message>& msg : messages) {
         msg->serialize();
         mPacketLength += msg->mSerializedDataSize;

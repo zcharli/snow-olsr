@@ -1,13 +1,13 @@
 #include "Headers/HelloMessage.h"
 
-HelloMessage::HelloMessage() {
+HelloMessage::HelloMessage() : mSerializedData(nullptr) {
     mMessageHeader.type = M_HELLO_MESSAGE;
 }
 HelloMessage::~HelloMessage() {
     //std::cout << "HelloMessage destructor" << std::endl;
 }
 
-HelloMessage::HelloMessage(char* buffer) {
+HelloMessage::HelloMessage(char* buffer) : mSerializedData(nullptr) {
     mMessageHeader.type = M_HELLO_MESSAGE;
     deserialize(buffer);
 }
@@ -102,9 +102,11 @@ void HelloMessage::deserialize(char* buffer) {
 
 void HelloMessage::serialize() {
     //std::cout << "Seralizing hello message" << std::endl;
-    if (mSerializedData != NULL) {
-        std::cout << "Found a non null serialize data, deleting it" << std::endl;
+    if (mSerializedData != nullptr) {
+        std::cout << "Found a non nullptr serialize data, deleting it" << std::endl;
         delete [] mSerializedData;
+        mSerializedDataSize = 0;
+        mSerializedData = nullptr;
     }
     int vCurrentIndex = 0;
     mSerializedDataSize = HELLO_MSG_HEADER + 4; // With header
