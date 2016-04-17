@@ -12,7 +12,6 @@
 
 #include "WLAN.h"
 #include "RoutingProtocol.h"
-#include "NeighborNode.h"
 #include "Resources/Constants.h"
 #include "Resources/Helpers.h"
 
@@ -23,9 +22,6 @@ class SnowClient
 {
 
 private:
-    //boost::asio::ip::udp::socket mSocket;
-    //shared_ptr<WLAN> mSocketPtr;
-    std::list<NeighborNode> mMprList;
     std::string mWirelessInterfaceName;
 
 public:
