@@ -9,7 +9,6 @@ RoutingProtocol& RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> messa
         std::cerr << "Oh no! A message was null!" << std::endl;
         return getInstance();
     }
-    std::cout << "Got a message of type " << (int)message->messages[0]->mMessageHeader.type << std::endl;
     mMtxDuplicate.lock();
     DuplicateTuple* vDuplicate = mState.findDuplicateTuple(*(message->mOriginatorAddress), message->mPacketSequenceNumber);
     mMtxDuplicate.unlock();
@@ -18,7 +17,7 @@ RoutingProtocol& RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> messa
         // Here we want to handle the message
         for (std::vector<std::shared_ptr<Message>>::iterator it = message->messages.begin();
                 it != message->messages.end(); it++) {
-            std::cout << "RoutingProtocol::updateState: got message type " << (*it)->getType() << std::endl;
+            std::cout << "RoutingProtocol::updateState: Processing message of type " << (*it)->getType() << std::endl;
             switch ((*it)->getType()) {
             case M_HELLO_MESSAGE :
                 // Dereferenced HelloMsg from the address of the dereference iterator msg
@@ -52,7 +51,7 @@ RoutingProtocol& RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> messa
     }
     if (vTryForward) {
         mRequiresForwarding = determineRequiresForwarding(message, vDuplicate);
-        std::cout << "RoutingProtocol::updateState forward message? " << mRequiresForwarding << std::endl;
+        std::cout << "RoutingProtocol::updateState forwarding TC packet: " << mRequiresForwarding << std::endl;
     }
     return getInstance();
 }
@@ -68,7 +67,7 @@ bool RoutingProtocol::determineRequiresForwarding(std::shared_ptr<OLSRMessage> m
     mMtxSymLink.unlock();
     // If the sender cannot be reached, ie, link not symteric, then return now
     if (vLinkTuple == NULL) {
-        std::cout << "Link to forward TC message was not found." << std::endl;
+        std::cout << "RoutingProtocol::determineRequiresForwarding Link to forward TC message was not found." << std::endl;
         return false;
     }
     // If we have forward this message already, then we will make sure stop do not forward it twice
@@ -113,8 +112,8 @@ bool RoutingProtocol::determineRequiresForwarding(std::shared_ptr<OLSRMessage> m
 
 void RoutingProtocol::expireDuplicateTC(int seconds, MACAddress address, uint16_t sequenceNumber) {
     sleep(seconds);
-    std::cout << "Trying to delete record of TC forwarding seqnum: " << sequenceNumber
-              << " from our interface " << address << std::endl;
+    std::cout << "RoutingProtocol::expireDuplicateTC Trying to delete record of TC forwarding seqnum: " << sequenceNumber
+              << ", address " << address << " from our interface" << std::endl;
     pt::ptime now = pt::second_clock::local_time();
     mMtxDuplicate.lock();
     DuplicateTuple *tuple = mState.findDuplicateTuple (address, sequenceNumber);
@@ -155,7 +154,6 @@ int RoutingProtocol::buildHelloMessage(OLSRMessage & message) {
     mMtxLink.lock();
     std::vector<LinkTuple> mLinks = mState.getLinks();
     mMtxLink.unlock();
-    std::cout << "make_shared RoutingProtocol hello message" << std::endl;
 
     std::shared_ptr<HelloMessage> helloMessage = std::make_shared<HelloMessage>();
     helloMessage->mMessageHeader.vtime = T_NEIGHB_HOLD_TIME;
@@ -189,19 +187,19 @@ int RoutingProtocol::buildHelloMessage(OLSRMessage & message) {
         mMtxMpr.unlock();
         if (found) {
             neighborType = N_MPR_NEIGH;
-            std::cout << "Creating hello msg and setting " << link.neighborIfaceAddr << " who choose me as a MPR candidate" << std::endl;
+            std::cout << "RoutingProtocol::buildHelloMessage Creating hello msg and setting " << link.neighborIfaceAddr << " who choose me as a MPR candidate" << std::endl;
         } else {
             bool ok = false;
             for (auto& neighbor : neighbors) {
                 if (neighbor.neighborMainAddr == link.neighborIfaceAddr) {
                     if (neighbor.status == NeighborTuple::STATUS_SYM) {
                         neighborType = N_SYM_NEIGH;
-                        std::cout << "Creating hello msg and setting " << link.neighborIfaceAddr
+                        std::cout << "RoutingProtocol::buildHelloMessage Creating hello msg and setting " << link.neighborIfaceAddr
                                   << " as a regular neighbor" << std::endl;
                     }
                     else if (neighbor.status == NeighborTuple::STATUS_NOT_SYM) {
                         neighborType = N_NOT_NEIGH;
-                        std::cout << "Creating hello msg and setting " << link.neighborIfaceAddr
+                        std::cout << "RoutingProtocol::buildHelloMessage Creating hello msg and setting " << link.neighborIfaceAddr
                                   << " as not a bidirectional neighbor" << std::endl;
                     }
                     else {
@@ -309,7 +307,6 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
                                         : vLinkEdge->expirationTime - vLinkEdge->symTime ;
         std::cout << "RoutingProtocol::handleHelloMessage: Schedule a " << expireTimer.total_seconds() << " seconds to do expire this link" << std::endl;
         boost::thread vExpiryThread = boost::thread(boost::bind(&RoutingProtocol::expireLink, this, expireTimer.total_seconds(), vLinkEdge->neighborIfaceAddr));
-        std::cout << "Link expiry thread has started" << std::endl;
 
     }
 
@@ -392,7 +389,7 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
                     // Otherwise, a 2-hop tuple is created
 
                     if (vTwoHopNeighbor == NULL) {
-                        std::cout << "Added two hop neighbor: " << message.getOriginatorAddress() << std::endl;
+                        std::cout << "RoutingProtocol::handleHelloMessage Added two hop neighbor: " << message.getOriginatorAddress() << std::endl;
                         TwoHopNeighborTuple vNewTwoHopNeighbor;
                         vNewTwoHopNeighbor.neighborMainAddr = *(message.getOriginatorAddress());
                         vNewTwoHopNeighbor.twoHopNeighborAddr = neighborMacAddr;
@@ -408,7 +405,7 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
                                 vNewTwoHopNeighbor.neighborMainAddr,
                                 vNewTwoHopNeighbor.twoHopNeighborAddr));
                     } else {
-                        PRINTLN("Updated expiry time of the two hop neighbor")
+                        PRINTLN("RoutingProtocol::handleHelloMessage Updated expiry time of the two hop neighbor")
                         vTwoHopNeighbor->expirationTime = now + pt::seconds(message.mMessageHeader.vtime);
                     }
                 } else if (neighborType == N_NOT_NEIGH) {
@@ -432,7 +429,7 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
         << message.mLinkMessages.size() << std::endl;
     for (auto& linkMessage : message.mLinkMessages) {
         int linkCode = linkMessage.linkCode >> 2;
-        std::cout << "Link message has link type " << linkCode << std::endl;
+        std::cout << "RoutingProtocol::handleHelloMessage Link message has link type " << linkCode << std::endl;
         if (linkCode == N_MPR_NEIGH) {
             std::cout << "RoutingProtocol::handleHelloMessage MPR selection begins" << std::endl;
             for (auto& neighborMacAddr : linkMessage.neighborIfAddr) {
@@ -473,18 +470,18 @@ void RoutingProtocol::expireMprSelector(int seconds, MACAddress addressSelector)
     mMtxMprSelector.unlock();
     while (1) {
         if (vMprSelector == NULL) {
-            std::cout << "MPR selector " << addressSelector << " is expired." << std::endl;
+            std::cout << "RoutingProtocol::expireMprSelector MPR selector " << addressSelector << " is expired." << std::endl;
             return;
         }
         if (vMprSelector->expirationTime < now) {
-            std::cout << "MPR selector " << addressSelector << " is expired." << std::endl;
+            std::cout << "RoutingProtocol::expireMprSelector MPR selector " << addressSelector << " is expired." << std::endl;
             mMtxMprSelector.lock();
             mState.cleanMprSelectorTuple(*vMprSelector);
             mMtxMprSelector.unlock();
             mANSN = (mANSN + 1) % (S_MAX_SEQ_NUM + 1);
             return;
         } else {
-            std::cout << "MPR selector " << addressSelector << " time got a refresh for " << seconds << std::endl;
+            std::cout << "RoutingProtocol::expireMprSelector MPR selector " << addressSelector << " time got a refresh for " << seconds << std::endl;
             pt::time_duration expireTimer = vMprSelector->expirationTime - now;
             sleep(expireTimer.total_seconds());
         }
@@ -499,11 +496,11 @@ void RoutingProtocol::expireTwoHopNeighbor(int seconds, MACAddress neighborAddr,
     mMtxTwoHopNeighbor.unlock();
     while (1) {
         if (twoHopTuple == NULL) {
-            std::cout << "TwoHopNeighbor " << twoHopNeighbor << " is expired." << std::endl;
+            std::cout << "RoutingProtocol::expireTwoHopNeighbor TwoHopNeighbor " << twoHopNeighbor << " is expired." << std::endl;
             return;
         }
         if (twoHopTuple->expirationTime < now) {
-            std::cout << "TwoHopNeighbor " << twoHopNeighbor << " is expired." << std::endl;
+            std::cout << "RoutingProtocol::expireTwoHopNeighbor TwoHopNeighbor " << twoHopNeighbor << " is expired." << std::endl;
             mMtxTwoHopNeighbor.lock();
             mState.cleanTwoHopNeighborTuple (*twoHopTuple);
             mMtxTwoHopNeighbor.unlock();
@@ -512,16 +509,14 @@ void RoutingProtocol::expireTwoHopNeighbor(int seconds, MACAddress neighborAddr,
         } else {
             pt::time_duration expireTimer = twoHopTuple->expirationTime - now;
             seconds = expireTimer.total_seconds();
-            std::cout << "TwoHopNeighbor " << twoHopNeighbor << " time got a refresh for " << seconds << std::endl;
+            std::cout << "RoutingProtocol::expireTwoHopNeighbor TwoHopNeighbor " << twoHopNeighbor << " time got a refresh for " << seconds << std::endl;
             sleep(seconds);
         }
     }
 }
 
 void RoutingProtocol::expireLink(int seconds, MACAddress neighborAddr) {
-    std::cout << "RoutingProtocol::expireLink: A Link timer has expired, checking status of the link" << std::endl;
-
-    std::cout << "Sleeping for " << seconds << std::endl;
+    std::cout << "RoutingProtocol::expireLink: A Link timer has been starteds, sleeping for " << seconds << std::endl;
     sleep(seconds);
     std::cout << "Waking up to check sym times for " << neighborAddr << std::endl;
     pt::time_duration expireTimer;
@@ -533,17 +528,17 @@ void RoutingProtocol::expireLink(int seconds, MACAddress neighborAddr) {
         mMtxLink.unlock();
         if (vLinkTuple == NULL) {
             // Maybe something else expired it already, kill the timer
-            std::cout << "Link with " << neighborAddr << " is expired." << std::endl;
+            std::cout << "RoutingProtocol::expireLink: Link with " << neighborAddr << " is expired." << std::endl;
             return;
         }
         expireTimer = vLinkTuple->expirationTime - now;
         seconds = expireTimer.total_seconds();
-        std::cout << "Link expires in " << expireTimer << std::endl;
+        std::cout << "RoutingProtocol::expireLink: Link expires in " << expireTimer << std::endl;
 
         if (vLinkTuple->expirationTime < now) {
             // Remove this link
             PRINTLN(RoutingProtocol::expireLink: Expiring a link tuple)
-            std::cout << "Link with " << neighborAddr << " is expired." << std::endl;
+            std::cout << "RoutingProtocol::expireLink: Link with " << neighborAddr << " is expired." << std::endl;
             mMtxNeighbor.lock();
             mState.cleanNeighborTuple(vLinkTuple->neighborIfaceAddr);
             mMtxNeighbor.unlock();
@@ -559,7 +554,7 @@ void RoutingProtocol::expireLink(int seconds, MACAddress neighborAddr) {
             NeighborTuple* vNeighbor = mState.findNeighborTuple(vLinkTuple->neighborIfaceAddr);
             mMtxNeighbor.unlock();
             if (vNeighbor == NULL) {
-                std::cout << "Link with " << neighborAddr << " is expired because neighbor is null." << std::endl;
+                std::cout << "RoutingProtocol::expireLink: Link with " << neighborAddr << " is expired because neighbor is null." << std::endl;
                 updateLinkTuple(vLinkTuple, W_WILL_ALWAYS);
                 mMtxTwoHopNeighbor.lock();
                 mState.cleanTwoHopNeighborTuples(vLinkTuple->neighborIfaceAddr);
@@ -574,7 +569,7 @@ void RoutingProtocol::expireLink(int seconds, MACAddress neighborAddr) {
 
             if (expireTimer.total_seconds() <= 0) {
                 // Expire now
-                std::cout << "Link with " << neighborAddr << " is expired because timer < 0." << std::endl;
+                std::cout << "RoutingProtocol::expireLink: Link with " << neighborAddr << " is expired because timer < 0." << std::endl;
                 mMtxNeighbor.lock();
                 mState.cleanNeighborTuple(vLinkTuple->neighborIfaceAddr);
                 mMtxNeighbor.unlock();
@@ -584,7 +579,7 @@ void RoutingProtocol::expireLink(int seconds, MACAddress neighborAddr) {
                 return;
             }
             seconds = expireTimer.total_seconds();
-            std::cout << "Link with " << neighborAddr << " time got a refresh for " << seconds << " (c)" << std::endl;
+            std::cout << "RoutingProtocol::expireLink: Link with " << neighborAddr << " time got a refresh for " << seconds << " (c)" << std::endl;
             sleep(seconds);
         } else {
             // Reschedule, timer is good
@@ -593,7 +588,7 @@ void RoutingProtocol::expireLink(int seconds, MACAddress neighborAddr) {
                           : vLinkTuple->symTime - vLinkTuple->expirationTime;
 
             seconds = expireTimer.total_seconds();
-            std::cout << "Link with " << neighborAddr << " time got a refresh for " << seconds << std::endl;
+            std::cout << "RoutingProtocol::expireLink: Link with " << neighborAddr << " time got a refresh for " << seconds << std::endl;
             sleep(seconds);
         }
     } while (seconds > 0);
@@ -1154,7 +1149,7 @@ void RoutingProtocol::routingTableComputation () {
     //  No needed to implement in our project
 }
 
-int RoutingProtocol::calculateNodeDegree (NeighborTuple & tuple)
+int RoutingProtocol::calculateNodeDegree(NeighborTuple & tuple)
 {
     std::cout << "RoutingProtocol::calculateNodeDegree: Calculate the degree of the node" << std::endl;
     int degree = 0;
@@ -1178,7 +1173,7 @@ int RoutingProtocol::calculateNodeDegree (NeighborTuple & tuple)
 
 
 void RoutingProtocol::expireTopology(int seconds, MACAddress destAddr, MACAddress lastAddr) {
-    std::cout << "TC expire timer started with " << seconds << " seconds" << std::endl;
+    std::cout << "RoutingProtocol::expireTopology TC expire timer started with " << seconds << " seconds" << std::endl;
 
     do {
         sleep(seconds);
@@ -1188,7 +1183,7 @@ void RoutingProtocol::expireTopology(int seconds, MACAddress destAddr, MACAddres
         TopologyTuple* vTopologyTuple = mState.findTopologyTuple(destAddr, lastAddr);
         mMtxTopology.unlock();
         if (vTopologyTuple == NULL) {
-            std::cout << "TC lost contact with a node " << vTopologyTuple->destAddr << " from neighbor "
+            std::cout << "RoutingProtocol::expireTopology TC lost contact with a node " << vTopologyTuple->destAddr << " from neighbor "
                       << vTopologyTuple->lastAddr << std::endl;
             return;
         }
@@ -1198,11 +1193,11 @@ void RoutingProtocol::expireTopology(int seconds, MACAddress destAddr, MACAddres
             mMtxTopology.lock();
             mState.cleanTopologyTuple(*vTopologyTuple);
             mMtxTopology.unlock();
-            std::cout << "TC lost contact with node " << vTopologyTuple->destAddr << " from neighbor "
+            std::cout << "RoutingProtocol::expireTopology TC lost contact with node " << vTopologyTuple->destAddr << " from neighbor "
                       << vTopologyTuple->lastAddr << std::endl;
             return;
         }
-        std::cout << "TC has a live link with node " << vTopologyTuple->destAddr << " from neighbor "
+        std::cout << "RoutingProtocol::expireTopology TC has a live link with node " << vTopologyTuple->destAddr << " from neighbor "
                   << vTopologyTuple->lastAddr << std::endl;
     } while (seconds > 0);
 }
