@@ -39,7 +39,7 @@ int NetworkTrafficManager::sendMsg(std::shared_ptr<OLSRMessage> message) {
     mSendSocket->send(a, buffer, size);
     std::cout << "TC message forwarding was successful" << std::endl;
     //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
-    std::cout << "del [] buffer sen msg of <<<<<<<<<<<<<<<<<<<<<<<<<<<< " <<  size << std::endl;
+    //std::cout << "del [] buffer sen msg of <<<<<<<<<<<<<<<<<<<<<<<<<<<< " <<  size << std::endl;
     return 0;
 }
 
@@ -74,7 +74,7 @@ std::shared_ptr<Packet> NetworkTrafficManager::getMessage() {
     std::shared_ptr<Packet> vMessage = mReceivedMsgsQ.front();
     mReceivedMsgsQ.pop();
     mMtxMessageList.unlock();
-    std::cout << "The producer has produced " << mReceivedMsgsQ.size() << " elements so far" << std::endl;
+    //std::cout << "The producer has produced " << mReceivedMsgsQ.size() << " elements so far" << std::endl;
     //mListener->notifyProducerReady();
     return vMessage;
 }
@@ -115,7 +115,7 @@ void NetworkTCMessageThread::startBroadcastTCMessages() {
         //PRINTLN(Waiting to send)
         mSocketMutex.lock();
         OLSRMessage message;
-        std::cout << "Building a tc message now" << std::endl;
+        //std::cout << "Building a tc message now" << std::endl;
         if (RoutingProtocol::getInstance().buildTCMessage(message) == 0) {
             std::cout << "Error when building TV message" << std::endl;
         }
@@ -125,14 +125,15 @@ void NetworkTCMessageThread::startBroadcastTCMessages() {
         //char f[] = "Hello!"; // data
         int size = message.getPacketSize() + WLAN_HEADER_LEN;
         char buffer[MAX_BUF];
-        std::cout << "TC message size is " << size << std::endl;
+        //std::cout << "TC message size is " << size << std::endl;
         memcpy(buffer + WLAN_HEADER_LEN, message.getData(), message.getPacketSize());
         //buffer[message.getPacketSize() + 14] = '\0';
         mSocket->send(a, buffer, size);
         PRINTLN(Sent a TC message)
         //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
         usleep(1000 * (T_TC_INTERVAL + NetworkTrafficManager::generateRandomJitter()));
-        std::cout << "del [] buffer tc" << std::endl;
+        //std::cout << "del [] buffer tc" << std::endl;
+        std::cout << "Waiting for the incoming message" << std::endl;
     }
     PRINTLN(TC message thread closed down);
 }

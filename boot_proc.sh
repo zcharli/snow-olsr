@@ -1,19 +1,19 @@
-# Get the interface name using "ifconfig", e.g., wlxf07d6813a47c, and
+# Get the interface name using "ifconfig", e.g., wlx1cbdb97eb66b, and
 # update the script.
 # For help, see "man iwconfig".
 # put the device down
-ifconfig wlxf07d6813a47c down
+ifconfig wlx1cbdb97eb66b down
 # none cell, no access point
-iwconfig wlxf07d6813a47c mode Ad-hoc
+iwconfig wlx1cbdb97eb66b mode Ad-hoc
 # cell name
-iwconfig wlxf07d6813a47c essid SnowNetwork
+iwconfig wlx1cbdb97eb66b essid SnowNetwork
 # channel
-iwconfig wlxf07d6813a47c channel 3
+iwconfig wlx1cbdb97eb66b channel 3
 # data rate
-# iwconfig wlxf07d6813a47c rate 11MB
+# iwconfig wlx1cbdb97eb66b rate 11MB
 # identity of ad hoc network cell
-iwconfig wlxf07d6813a47c ap 00:00:00:00:00:01
+iwconfig wlx1cbdb97eb66b ap 00:00:00:00:00:01
 # put the device up
-ifconfig wlxf07d6813a47c up
-iwconfig wlxf07d6813a47c
+ifconfig wlx1cbdb97eb66b up
+iwconfig wlx1cbdb97eb66b
 

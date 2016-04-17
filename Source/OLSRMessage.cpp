@@ -42,7 +42,7 @@ OLSRMessage& OLSRMessage::serialize() {
         std::cerr << "Buffer cannot hold a packet size greater than MTA (1500)" << std::endl;
     }
 
-    std::cout << "mSerializedData = new char[" <<mPacketLength <<"]; size " << mPacketLength << std::endl;
+    //std::cout << "mSerializedData = new char[" <<mPacketLength <<"]; size " << mPacketLength << std::endl;
     // mSerializedData = new char[mPacketLength];
     int vCurrentIndex = 0;
 
@@ -56,11 +56,11 @@ OLSRMessage& OLSRMessage::serialize() {
 
     // The messages
     for (std::shared_ptr<Message>& msg : messages) {
-        std::cout << "Serializing OLSR seralize" <<std::endl;
+        //std::cout << "Serializing OLSR seralize" <<std::endl;
         memcpy ( mSerializedData + vCurrentIndex, msg->mSerializedData, msg->mSerializedDataSize);
         vCurrentIndex += msg->mSerializedDataSize;
     }
-    std::cout << "Finished OLSR seralize" <<std::endl;
+    //std::cout << "Finished OLSR seralize" <<std::endl;
     return *this;
 }
 
@@ -93,11 +93,11 @@ void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
             // Reach for the message size
             uint16_t vMessageSize = ntohs(*(uint16_t*) (vBuffer + 2));
             vMessageSize += HELLO_MSG_HEADER;
-            std::cout << "char* vHelloMessageBuffer = new char["<< vMessageSize<<"];" << std::endl;
+            //std::cout << "char* vHelloMessageBuffer = new char["<< vMessageSize<<"];" << std::endl;
             //char* vHelloMessageBuffer[ = new char[vMessageSize]];
             char vHelloMessageBuffer[MAX_BUF];
             memcpy ( vHelloMessageBuffer, vBuffer, vMessageSize);
-    std::cout << "make_shared OLSRMessage hello message" << std::endl;
+            //std::cout << "make_shared OLSRMessage hello message" << std::endl;
 
             std::shared_ptr<HelloMessage> vHelloMessage = std::make_shared<HelloMessage>(vHelloMessageBuffer);
             messages.push_back(vHelloMessage);
@@ -111,11 +111,11 @@ void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
         {
             uint16_t vMessageSizeTC = ntohs(*(uint16_t*) (vBuffer + 2));
             vMessageSizeTC += HELLO_MSG_HEADER;
-            std::cout << "char* vTCMessageBuffer = new char["<< vMessageSizeTC<<"];" << std::endl;
+            //std::cout << "char* vTCMessageBuffer = new char["<< vMessageSizeTC<<"];" << std::endl;
             //char* vTCMessageBuffer = new char[vMessageSizeTC];
             char vTCMessageBuffer[MAX_BUF];
             memcpy ( vTCMessageBuffer, vBuffer, vMessageSizeTC);
-    std::cout << "make_shared OLSRMessage TC message" << std::endl;
+            //std::cout << "make_shared OLSRMessage TC message" << std::endl;
 
             std::shared_ptr<TCMessage> vTCMessage = std::make_shared<TCMessage>(vTCMessageBuffer);
             messages.push_back(vTCMessage);

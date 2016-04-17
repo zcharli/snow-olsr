@@ -33,7 +33,7 @@ void TCMessage::deserialize(char* buffer) {
     // Originator address
     memcpy(mMessageHeader.originatorAddress, buffer, WLAN_ADDR_LEN);
     buffer += WLAN_ADDR_LEN;
-    std::cout << "make_shared MACAddress TC message" << std::endl;
+    //std::cout << "make_shared MACAddress TC message" << std::endl;
 
     mOriginatorAddress = std::make_shared<MACAddress>(mMessageHeader.originatorAddress);
 
@@ -64,7 +64,7 @@ void TCMessage::deserialize(char* buffer) {
         mNeighborAddresses.push_back(vAdvertisedNeighborInterfaceAddr);
         buffer += WLAN_ADDR_LEN;
         vTotalMsgSize -= WLAN_ADDR_LEN;
-        std::cout << "del [] buffer tc vAdvertisedNeighborInterfaceAddrBuffer: " << vAdvertisedNeighborInterfaceAddr << std::endl;
+        //std::cout << "del [] buffer tc vAdvertisedNeighborInterfaceAddrBuffer: " << vAdvertisedNeighborInterfaceAddr << std::endl;
     }
 
 }
@@ -81,7 +81,7 @@ void TCMessage::serialize() {
 
     mSerializedDataSize += 4; // ANSN + reserved
     mSerializedDataSize += mNeighborAddresses.size() * WLAN_ADDR_LEN;
-    std::cout << "This is the neighbor addr size" << mNeighborAddresses.size() * WLAN_ADDR_LEN << std::endl;
+    //std::cout << "This is the neighbor addr size" << mNeighborAddresses.size() * WLAN_ADDR_LEN << std::endl;
 
     //mSerializedData = new char[mSerializedDataSize];
 
@@ -97,7 +97,7 @@ void TCMessage::serialize() {
 
     // Test
     uint16_t test = ntohs((*(uint16_t*) (mSerializedData + vCurrentIndex)));
-    std::cout << "This is the size of the tc message" << test << std::endl;
+    //std::cout << "This is the size of the tc message" << test << std::endl;
     vCurrentIndex += 2;
 
     // Originator address
