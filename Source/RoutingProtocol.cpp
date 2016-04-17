@@ -112,13 +112,13 @@ bool RoutingProtocol::determineRequiresForwarding(std::shared_ptr<OLSRMessage> m
 
 void RoutingProtocol::expireDuplicateTC(int seconds, MACAddress address, uint16_t sequenceNumber) {
     sleep(seconds);
-    std::cout << "RoutingProtocol::expireDuplicateTC Trying to delete record of TC forwarding seqnum: " << sequenceNumber
+    std::cout << "RoutingProtocol::expireDuplicateTC Expiry record started with TC forwarding seqnum: " << sequenceNumber
               << ", address " << address << " from our interface" << std::endl;
-    pt::ptime now = pt::second_clock::local_time();
-    mMtxDuplicate.lock();
-    DuplicateTuple *tuple = mState.findDuplicateTuple (address, sequenceNumber);
-    mMtxDuplicate.unlock();
     while (1) {
+        pt::ptime now = pt::second_clock::local_time();
+        mMtxDuplicate.lock();
+        DuplicateTuple *tuple = mState.findDuplicateTuple (address, sequenceNumber);
+        mMtxDuplicate.unlock();
         if (tuple == NULL) {
             std::cout << "30 second passed, clearing record of TC" << std::endl;
             return;
@@ -226,7 +226,6 @@ int RoutingProtocol::buildTCMessage(OLSRMessage & message) {
     mMtxMprSelector.lock();
     std::vector<MprSelectorTuple> neighbors = mState.getMprSelectors();
     mMtxMprSelector.unlock();
-    std::cout << "make_shared RoutingProtocol TC message" << std::endl;
 
     std::shared_ptr<TCMessage> tcMessage = std::make_shared<TCMessage>();
 
@@ -464,11 +463,11 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
 
 void RoutingProtocol::expireMprSelector(int seconds, MACAddress addressSelector) {
     sleep(seconds);
-    pt::ptime now = pt::second_clock::local_time();
-    mMtxMprSelector.lock();
-    MprSelectorTuple *vMprSelector = mState.findMprSelectorTuple (addressSelector);
-    mMtxMprSelector.unlock();
     while (1) {
+        pt::ptime now = pt::second_clock::local_time();
+        mMtxMprSelector.lock();
+        MprSelectorTuple *vMprSelector = mState.findMprSelectorTuple (addressSelector);
+        mMtxMprSelector.unlock();
         if (vMprSelector == NULL) {
             std::cout << "RoutingProtocol::expireMprSelector MPR selector " << addressSelector << " is expired." << std::endl;
             return;
@@ -490,11 +489,12 @@ void RoutingProtocol::expireMprSelector(int seconds, MACAddress addressSelector)
 
 void RoutingProtocol::expireTwoHopNeighbor(int seconds, MACAddress neighborAddr, MACAddress twoHopNeighbor) {
     sleep(seconds);
-    pt::ptime now = pt::second_clock::local_time();
-    mMtxTwoHopNeighbor.lock();
-    TwoHopNeighborTuple *twoHopTuple = mState.findTwoHopNeighborTuple(neighborAddr, twoHopNeighbor);
-    mMtxTwoHopNeighbor.unlock();
+
     while (1) {
+        pt::ptime now = pt::second_clock::local_time();
+        mMtxTwoHopNeighbor.lock();
+        TwoHopNeighborTuple *twoHopTuple = mState.findTwoHopNeighborTuple(neighborAddr, twoHopNeighbor);
+        mMtxTwoHopNeighbor.unlock();
         if (twoHopTuple == NULL) {
             std::cout << "RoutingProtocol::expireTwoHopNeighbor TwoHopNeighbor " << twoHopNeighbor << " is expired." << std::endl;
             return;
@@ -509,6 +509,10 @@ void RoutingProtocol::expireTwoHopNeighbor(int seconds, MACAddress neighborAddr,
         } else {
             pt::time_duration expireTimer = twoHopTuple->expirationTime - now;
             seconds = expireTimer.total_seconds();
+            if(seconds == 0) {
+                std::cout << "RoutingProtocol::expireTwoHopNeighbor TwoHopNeighbor " << twoHopNeighbor << " is expired." << std::endl;
+                return;
+            }
             std::cout << "RoutingProtocol::expireTwoHopNeighbor TwoHopNeighbor " << twoHopNeighbor << " time got a refresh for " << seconds << std::endl;
             sleep(seconds);
         }
