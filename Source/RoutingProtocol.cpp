@@ -1,9 +1,8 @@
 #include "Headers/RoutingProtocol.h"
 
 RoutingProtocol& RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> message) {
-    #if verbose
     std::cout << "RoutingProtocol::updateState: Received the message from " << message->mSenderHWAddr << " with originator " << *(message->mOriginatorAddress) << std::endl;
-    #endif
+
     mRequiresForwarding = false;
     bool vTryForward = false;
     // First check if this message has been handled before
