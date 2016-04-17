@@ -1,12 +1,12 @@
 #include "Headers/TCMessage.h"
 
-TCMessage::TCMessage() : mSerializedData(nullptr) {
+TCMessage::TCMessage() {
     mMessageHeader.type = M_TC_MESSAGE;
 }
 TCMessage::~TCMessage() {
 }
 
-TCMessage::TCMessage(char* buffer) : mSerializedData(nullptr) {
+TCMessage::TCMessage(char* buffer) {
     mMessageHeader.type = M_TC_MESSAGE;
     deserialize(buffer);
 }

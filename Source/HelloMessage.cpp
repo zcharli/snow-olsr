@@ -1,13 +1,13 @@
 #include "Headers/HelloMessage.h"
 
-HelloMessage::HelloMessage() : mSerializedData(nullptr) {
+HelloMessage::HelloMessage()  {
     mMessageHeader.type = M_HELLO_MESSAGE;
 }
 HelloMessage::~HelloMessage() {
     //std::cout << "HelloMessage destructor" << std::endl;
 }
 
-HelloMessage::HelloMessage(char* buffer) : mSerializedData(nullptr) {
+HelloMessage::HelloMessage(char* buffer) {
     mMessageHeader.type = M_HELLO_MESSAGE;
     deserialize(buffer);
 }

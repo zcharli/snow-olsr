@@ -913,7 +913,7 @@ void RoutingProtocol::updateMPRState() {
             for (std::vector<TwoHopNeighborTuple>::iterator twoHopNeigh = N2.begin ();
                     twoHopNeigh != N2.end (); ) {
                 if (twoHopNeigh->neighborMainAddr == vMaxRechabilityNeighbor->neighborMainAddr) {
-                    std::cout << "RoutingProtocol::updateMPRState removed a N2 neightbor caused by non-reachbility"
+                    std::cout << "RoutingProtocol::updateMPRState removed a N2 neightbor caused by non-reachbility" << std::endl;
                     twoHopNeigh = N2.erase (twoHopNeigh);
                 }
                 else {
