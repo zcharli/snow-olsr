@@ -185,17 +185,11 @@ void HelloMessage::serialize() {
 
         // Link msg size
         uint16_t msgSize = msg.neighborIfAddr.size() * WLAN_ADDR_LEN;
-<<<<<<< HEAD
         uint16_t sizeOfLinkMsg = htons(msgSize);
         memcpy(temp + vCurrentIndex, &sizeOfLinkMsg, 2);
         *(uint16_t*)(temp + vCurrentIndex) = htons(msgSize);
-
         uint16_t vLinkMessageSize = ntohs((*(uint16_t*) temp + vCurrentIndex));
-=======
-        *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(msgSize);
-        uint16_t vLinkMessageSize = ntohs((*(uint16_t*) mSerializedData + vCurrentIndex));
         #if verbose
->>>>>>> c6371fffa7cde26c2c827c9387fef9f2c99c6bad
         std::cout << "Seralized vLinkMessage: " << vLinkMessageSize << " with size of msg list is " << msg.neighborIfAddr.size() << " with msgSize " << msgSize << std::endl;
         #endif
         vCurrentIndex += 2;
