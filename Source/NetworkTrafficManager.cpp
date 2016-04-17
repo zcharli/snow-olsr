@@ -39,7 +39,7 @@ int NetworkTrafficManager::sendMsg(std::shared_ptr<OLSRMessage> message) {
     mSendSocket->send(a, buffer, size);
     std::cout << "TC message forwarding was successful" << std::endl;
     //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
-    std::cout << "del [] buffer sen msg of <<<<<<<<<<<<<<<<<<<<<<<<<<<< " <<  size << std::endl;
+    //std::cout << "del [] buffer sen msg of <<<<<<<<<<<<<<<<<<<<<<<<<<<< " <<  size << std::endl;
     return 0;
 }
 
@@ -115,9 +115,9 @@ void NetworkTCMessageThread::startBroadcastTCMessages() {
         //PRINTLN(Waiting to send)
         mSocketMutex.lock();
         OLSRMessage message;
-        std::cout << "Building a tc message now" << std::endl;
+        // std::cout << "Building a tc message now" << std::endl;
         if (RoutingProtocol::getInstance().buildTCMessage(message) == 0) {
-            std::cout << "Error when building TV message" << std::endl;
+            // std::cout << "Error when building TV message" << std::endl;
         }
         mSocketMutex.unlock();
         message.serialize();
@@ -125,14 +125,14 @@ void NetworkTCMessageThread::startBroadcastTCMessages() {
         //char f[] = "Hello!"; // data
         int size = message.getPacketSize() + WLAN_HEADER_LEN;
         char buffer[MAX_BUF];
-        std::cout << "TC message size is " << size << std::endl;
+        // std::cout << "TC message size is " << size << std::endl;
         memcpy(buffer + WLAN_HEADER_LEN, message.getData(), message.getPacketSize());
         //buffer[message.getPacketSize() + 14] = '\0';
         mSocket->send(a, buffer, size);
         PRINTLN(Sent a TC message)
         //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
         usleep(1000 * (T_TC_INTERVAL + NetworkTrafficManager::generateRandomJitter()));
-        std::cout << "del [] buffer tc" << std::endl;
+        // std::cout << "del [] buffer tc" << std::endl;
     }
     PRINTLN(TC message thread closed down);
 }
@@ -159,14 +159,14 @@ void NetworkHelloMessageThread::startBroadcastHelloMessages() {
         mSocketMutex.lock();
         OLSRMessage message;
         if (RoutingProtocol::getInstance().buildHelloMessage(message) == 0) {
-            std::cout << "Error when building hello message" << std::endl;
+            // std::cout << "Error when building hello message" << std::endl;
         }
         mSocketMutex.unlock();
         message.serialize();
         //char a[]="1c:bd:b9:7e:b5:d4"; // unicast address
         //char f[] = "Hello!"; // data
         int size = message.getPacketSize() + WLAN_HEADER_LEN;
-        std::cout << "del [] buffer hello" << std::endl;
+        //std::cout << "del [] buffer hello" << std::endl;
         char buffer[MAX_BUF];
         memcpy(buffer + WLAN_HEADER_LEN, message.getData(), message.getPacketSize());
         //buffer[message.getPacketSize() + 14] = '\0';
@@ -174,7 +174,7 @@ void NetworkHelloMessageThread::startBroadcastHelloMessages() {
         PRINTLN(Sent a hello message)
         //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
         usleep(1000 * (T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()));
-        std::cout << "del [] buffer hello" << std::endl;
+        //std::cout << "del [] buffer hello" << std::endl;
     }
     PRINTLN(Hello message thread closed down);
 }
