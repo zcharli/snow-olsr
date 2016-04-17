@@ -109,6 +109,7 @@ void HelloMessage::serialize() {
     //     mSerializedDataSize = 0;
     //     mSerializedData = nullptr;
     // }
+    char* temp = mSerializedData;
     int vCurrentIndex = 0;
     mSerializedDataSize = HELLO_MSG_HEADER + 4; // With header
     for (auto& linkMsg : mLinkMessages) {
@@ -120,66 +121,75 @@ void HelloMessage::serialize() {
 
     // Make header
     // MsgType
-    mSerializedData[vCurrentIndex++] = mMessageHeader.type;
+    temp[vCurrentIndex++] = mMessageHeader.type;
 
     // VTime
-    mSerializedData[vCurrentIndex++] = mMessageHeader.vtime;
+    temp[vCurrentIndex++] = mMessageHeader.vtime;
 
     // MessageSize
-    *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(mSerializedDataSize - HELLO_MSG_HEADER); // 22 is header size
+    *(uint16_t*)(temp + vCurrentIndex) = htons(mSerializedDataSize - HELLO_MSG_HEADER); // 22 is header size
     // Test
-    uint16_t test = ntohs((*(uint16_t*) (mSerializedData + vCurrentIndex)));
-    std::cout << test << std::endl;
+    uint16_t test = ntohs((*(uint16_t*) (temp + vCurrentIndex)));
+    std::cout << "Execpted " << mSerializedDataSize - HELLO_MSG_HEADER << " actual "  << test << std::endl;
     vCurrentIndex += 2;
 
     // Originator address
-    memcpy ( mSerializedData + vCurrentIndex, mMessageHeader.originatorAddress, WLAN_ADDR_LEN );
+    memcpy ( temp + vCurrentIndex, mMessageHeader.originatorAddress, WLAN_ADDR_LEN );
     vCurrentIndex += WLAN_ADDR_LEN;
 
     // Time to Live (Decremented!)
     // if (mMessageHeader.timeToLive - 1 == 0) {
     //     PRINTLN(Time to live for this Hello message is zero so requires attention)
     // }
-    mSerializedData[vCurrentIndex++] = mMessageHeader.timeToLive - 1;
+    temp[vCurrentIndex++] = mMessageHeader.timeToLive - 1;
 
     // Hop Count
-    mSerializedData[vCurrentIndex++] = mMessageHeader.hopCount + 1;
+    temp[vCurrentIndex++] = mMessageHeader.hopCount + 1;
+
+
+    std::cout << "Expected mMessageHeader sequence number "<< mMessageHeader.messageSequenceNumber<< " but serialized this into: " << ntohs((*(uint16_t*) temp + vCurrentIndex)) <<std::endl;
 
     // Message sequence number
-    *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(mMessageHeader.messageSequenceNumber); // 22 is header size
-    std::cout << "mMessageHeader sequence number " << ntohs((*(uint16_t*) mSerializedData + vCurrentIndex)) <<std::endl;
+    uint16_t seq = htons(mMessageHeader.messageSequenceNumber);
+    memcpy(temp + vCurrentIndex, &seq, 2);
+    *(uint16_t*)(temp + vCurrentIndex) = htons(mMessageHeader.messageSequenceNumber); // 22 is header size
+    std::cout << "Expected mMessageHeader sequence number "<< mMessageHeader.messageSequenceNumber<< " but serialized this into: " << ntohs((*(uint16_t*) temp + vCurrentIndex)) <<std::endl;
     vCurrentIndex += 2;
 
     // Make hello msg
     // Reserved section
-    mSerializedData[vCurrentIndex++] = 0;
-    mSerializedData[vCurrentIndex++] = 0;
+    temp[vCurrentIndex++] = 0;
+    temp[vCurrentIndex++] = 0;
 
     // HTime
-    mSerializedData[vCurrentIndex++]  = htime;
+    temp[vCurrentIndex++]  = htime;
 
     // Willingness
-    mSerializedData[vCurrentIndex++]  = willingness;
+    temp[vCurrentIndex++]  = willingness;
 
     for (HelloMessage::LinkMessage& msg : mLinkMessages) {
         // Link code
         PRINTLN(Seralized a link message)
-        *(mSerializedData + vCurrentIndex) = msg.linkCode;
+        *(temp + vCurrentIndex) = msg.linkCode;
         vCurrentIndex++;
 
         // Reserved
-        *(mSerializedData + vCurrentIndex) = 0;
+        *(temp + vCurrentIndex) = 0;
         vCurrentIndex++;
 
         // Link msg size
         uint16_t msgSize = msg.neighborIfAddr.size() * WLAN_ADDR_LEN;
-        *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(msgSize);
-        uint16_t vLinkMessageSize = ntohs((*(uint16_t*) mSerializedData + vCurrentIndex));
+        uint16_t sizeOfLinkMsg = htons(msgSize);
+        memcpy(temp + vCurrentIndex, &sizeOfLinkMsg, 2);
+        *(uint16_t*)(temp + vCurrentIndex) = htons(msgSize);
+
+        uint16_t vLinkMessageSize = ntohs((*(uint16_t*) temp + vCurrentIndex));
         std::cout << "Seralized vLinkMessage: " << vLinkMessageSize << " with size of msg list is " << msg.neighborIfAddr.size() << " with msgSize " << msgSize << std::endl;
         vCurrentIndex += 2;
         for (auto& addr : msg.neighborIfAddr) {
-            memcpy ( mSerializedData + vCurrentIndex, addr.data, WLAN_ADDR_LEN );
+            memcpy ( temp + vCurrentIndex, addr.data, WLAN_ADDR_LEN );
             vCurrentIndex += WLAN_ADDR_LEN;
         }
     }
+    //mSerializedData = temp;
 }
