@@ -25,9 +25,8 @@ public:
 };
 
 inline std::ostream& operator << (std::ostream& os, MACAddress const& address) {
-  char* str = new char[32];
+  char str[32];
   os << address.wlan2asc(str);
-  delete [] str;
   return os;
 }
 

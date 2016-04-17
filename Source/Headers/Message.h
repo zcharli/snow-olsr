@@ -42,7 +42,7 @@ public:
     MessageHeader mMessageHeader;
     std::shared_ptr<MACAddress> getOriginatorAddress();
     int mSerializedDataSize;
-    char* mSerializedData;
+    char mSerializedData[MAX_BUF];
     std::shared_ptr<MACAddress> mOriginatorAddress;
     unsigned char type;
     int size;

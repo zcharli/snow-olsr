@@ -103,12 +103,12 @@ void HelloMessage::deserialize(char* buffer) {
 
 void HelloMessage::serialize() {
     //std::cout << "Seralizing hello message" << std::endl;
-    if (mSerializedData != nullptr) {
-        std::cout << "Found a non nullptr serialize data, deleting it" << std::endl;
-        delete [] mSerializedData;
-        mSerializedDataSize = 0;
-        mSerializedData = nullptr;
-    }
+    // if (mSerializedData != nullptr) {
+    //     std::cout << "Found a non nullptr serialize data, deleting it" << std::endl;
+    //     delete [] mSerializedData;
+    //     mSerializedDataSize = 0;
+    //     mSerializedData = nullptr;
+    // }
     int vCurrentIndex = 0;
     mSerializedDataSize = HELLO_MSG_HEADER + 4; // With header
     for (auto& linkMsg : mLinkMessages) {
@@ -116,7 +116,7 @@ void HelloMessage::serialize() {
         mSerializedDataSize += linkMsg.neighborIfAddr.size() * WLAN_ADDR_LEN;
     }
     std::cout << "Hello message serialization news" << std::endl;
-    mSerializedData = new char[mSerializedDataSize];
+    //mSerializedData = new char[mSerializedDataSize];
 
     // Make header
     // MsgType

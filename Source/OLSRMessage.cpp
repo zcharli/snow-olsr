@@ -1,13 +1,14 @@
 #include "Headers/OLSRMessage.h"
 
-OLSRMessage::OLSRMessage() : mSerializedData(nullptr) {}
+OLSRMessage::OLSRMessage() {}
+//mSerializedData(nullptr) {}
 OLSRMessage::OLSRMessage(std::shared_ptr<Packet> packet)
-    : mSenderHWAddr(packet->getSource()), mRecvedHWAddr(packet->getMyAddress()), mSerializedData(nullptr) {
+    : mSenderHWAddr(packet->getSource()), mRecvedHWAddr(packet->getMyAddress()) {
     // Initialize everything to null or fill up MAC addreses used.
     MACAddress destination(packet->getDestination());
     deserializePacketBuffer(packet->getBuffer() + WLAN_HEADER_LEN);
 }
-OLSRMessage::OLSRMessage(char* buffer) : mSerializedData(nullptr) {
+OLSRMessage::OLSRMessage(char* buffer) {
 
     deserializePacketBuffer(buffer);
 }
@@ -15,30 +16,34 @@ OLSRMessage::OLSRMessage(char* buffer) : mSerializedData(nullptr) {
 OLSRMessage::~OLSRMessage() {
     //std::cout << "OLSRMessage destructor" << std::endl;
 
-    if (mSerializedData != nullptr) {
-        std::cout << "del [] OLSRMessage" << std::endl;
-        delete [] mSerializedData;
-        std::cout << "deleted OLSRMessage Successfully" << std::endl;
-        mSerializedData = nullptr;
-    }
+    // if (mSerializedData != nullptr) {
+    //     std::cout << "del [] OLSRMessage" << std::endl;
+    //     delete [] mSerializedData;
+    //     std::cout << "deleted OLSRMessage Successfully" << std::endl;
+    //     mSerializedData = nullptr;
+    // }
 }
 
 OLSRMessage& OLSRMessage::serialize() {
     //std::cout << "Seralizing hello message" << std::endl;
-    if (mSerializedData != nullptr) {
-        std::cout << "OLSR serialize was called for the second time" << std::endl;
-        delete [] mSerializedData;
-        mPacketLength = 0;
-        mSerializedData = nullptr;
-    }
+    // if (mSerializedData != nullptr) {
+    //     std::cout << "OLSR serialize was called for the second time" << std::endl;
+    //     delete [] mSerializedData;
+    //     mPacketLength = 0;
+    //     mSerializedData = nullptr;
+    // }
     mPacketLength = 4; // mPacketLength and mSequenceNumber
     for (std::shared_ptr<Message>& msg : messages) {
         msg->serialize();
         mPacketLength += msg->mSerializedDataSize;
         // std::cout << "Serialized a ms with datasize " << msg->mSerializedDataSize << std::endl;
     }
+    if(mPacketLength > MAX_BUF) {
+        std::cerr << "Buffer cannot hold a packet size greater than MTA (1500)" << std::endl;
+    }
+
     std::cout << "mSerializedData = new char[" <<mPacketLength <<"]; size " << mPacketLength << std::endl;
-    mSerializedData = new char[mPacketLength];
+    // mSerializedData = new char[mPacketLength];
     int vCurrentIndex = 0;
 
     // Packet lenght
@@ -89,7 +94,8 @@ void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
             uint16_t vMessageSize = ntohs(*(uint16_t*) (vBuffer + 2));
             vMessageSize += HELLO_MSG_HEADER;
             std::cout << "char* vHelloMessageBuffer = new char["<< vMessageSize<<"];" << std::endl;
-            char* vHelloMessageBuffer = new char[vMessageSize];
+            //char* vHelloMessageBuffer[ = new char[vMessageSize]];
+            char vHelloMessageBuffer[MAX_BUF];
             memcpy ( vHelloMessageBuffer, vBuffer, vMessageSize);
     std::cout << "make_shared OLSRMessage hello message" << std::endl;
 
@@ -97,8 +103,8 @@ void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
             messages.push_back(vHelloMessage);
             vBytesLeftToProccess -= vMessageSize;
             mOriginatorAddress = vHelloMessage->getOriginatorAddress();
-            std::cout << "delete [] vHelloMessageBuffer" << std::endl;
-            delete [] vHelloMessageBuffer;
+            // std::cout << "delete [] vHelloMessageBuffer" << std::endl;
+            // delete [] vHelloMessageBuffer;
             break;
         }
         case M_TC_MESSAGE:
@@ -106,7 +112,8 @@ void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
             uint16_t vMessageSizeTC = ntohs(*(uint16_t*) (vBuffer + 2));
             vMessageSizeTC += HELLO_MSG_HEADER;
             std::cout << "char* vTCMessageBuffer = new char["<< vMessageSizeTC<<"];" << std::endl;
-            char* vTCMessageBuffer = new char[vMessageSizeTC];
+            //char* vTCMessageBuffer = new char[vMessageSizeTC];
+            char vTCMessageBuffer[MAX_BUF];
             memcpy ( vTCMessageBuffer, vBuffer, vMessageSizeTC);
     std::cout << "make_shared OLSRMessage TC message" << std::endl;
 
@@ -114,8 +121,8 @@ void OLSRMessage::deserializePacketBuffer(char* vBuffer) {
             messages.push_back(vTCMessage);
             vBytesLeftToProccess -= vMessageSizeTC;
             mOriginatorAddress = vTCMessage->getOriginatorAddress();
-            std::cout << "delete [] vTCMessageBuffer" << std::endl;
-            delete [] vTCMessageBuffer;
+            // std::cout << "delete [] vTCMessageBuffer" << std::endl;
+            // delete [] vTCMessageBuffer;
             break;
         }
         case M_MID_MESSAGE:

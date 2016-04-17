@@ -70,12 +70,12 @@ void TCMessage::deserialize(char* buffer) {
 }
 
 void TCMessage::serialize() {
-    if (mSerializedData != nullptr) {
-        std::cout << "Found a non nullptr serialize data, deleting it" << std::endl;
-        delete [] mSerializedData;
-        mSerializedData = nullptr;
-        mSerializedDataSize = 0;
-    }
+    // if (mSerializedData != nullptr) {
+    //     std::cout << "Found a non nullptr serialize data, deleting it" << std::endl;
+    //     delete [] mSerializedData;
+    //     mSerializedData = nullptr;
+    //     mSerializedDataSize = 0;
+    // }
     int vCurrentIndex = 0;
     mSerializedDataSize = HELLO_MSG_HEADER;
 
@@ -83,7 +83,7 @@ void TCMessage::serialize() {
     mSerializedDataSize += mNeighborAddresses.size() * WLAN_ADDR_LEN;
     std::cout << "This is the neighbor addr size" << mNeighborAddresses.size() * WLAN_ADDR_LEN << std::endl;
 
-    mSerializedData = new char[mSerializedDataSize];
+    //mSerializedData = new char[mSerializedDataSize];
 
     // Make header
     // MsgType

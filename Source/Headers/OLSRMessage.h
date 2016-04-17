@@ -39,7 +39,7 @@ public:
 
 private:
     void deserializePacketBuffer(char*);
-    char* mSerializedData;
+    char mSerializedData[MAX_BUF];
     // Unique OLSRPacket Attributes
 
 };

@@ -10,7 +10,7 @@ WLAN::WLAN(std::string interface) {
     // Set device name
     device = new char[interface.length() + 1];
     device[interface.length()] = 0;
-    memcpy(device, interface.c_str(), interface.length());
+    memmove(device, interface.c_str(), interface.length());
 }
 
 // Set message handler
@@ -52,7 +52,7 @@ bool WLAN::fetchHardwareAddress() {
         return false;
     }
     std::cout << "real hardware address " << ifr.ifr_hwaddr.sa_data << std::endl;
-    memcpy(&ifconfig.hwaddr.data, &ifr.ifr_hwaddr.sa_data, WLAN_ADDR_LEN);
+    memmove(&ifconfig.hwaddr.data, &ifr.ifr_hwaddr.sa_data, WLAN_ADDR_LEN);
     char * addr = new char[32];
     std::cerr << "hardware address is: " << ifconfig.hwaddr.wlan2asc(addr) << "\n";
     delete addr;
@@ -110,9 +110,9 @@ void WLAN::buildHeader(char address[], MACAddress *daddr) {
     // conversion of  destination address from ASCII to binary
     daddr->str2wlan(address);
     // store the destination address
-    memcpy(&hdr.destAddr, daddr->data, WLAN_ADDR_LEN);
+    memmove(&hdr.destAddr, daddr->data, WLAN_ADDR_LEN);
     // store the source address
-    memcpy(&hdr.srcAddr, ifconfig.hwaddr.data, WLAN_ADDR_LEN);
+    memmove(&hdr.srcAddr, ifconfig.hwaddr.data, WLAN_ADDR_LEN);
     // set the type field
     hdr.type = htons(IP_TYPE);
 }
@@ -121,7 +121,7 @@ void WLAN::buildHeader(char address[], MACAddress *daddr) {
 void WLAN::setToAddress(MACAddress *daddr, struct sockaddr_ll *to) {
     to->sll_family = AF_PACKET;
     to->sll_ifindex = ifconfig.ifindex;
-    memcpy(&(to->sll_addr), daddr->data, WLAN_ADDR_LEN);
+    memmove(&(to->sll_addr), daddr->data, WLAN_ADDR_LEN);
     to->sll_halen = 6;
 }
 
@@ -134,9 +134,9 @@ bool WLAN::send(char address[], char* msg_buffer, int size) {
     // build the header
     buildHeader(address, &daddr);
     // store the header into the frame
-    memcpy(msg_buffer, &hdr, WLAN_HEADER_LEN);
+    memmove(msg_buffer, &hdr, WLAN_HEADER_LEN);
     // encapsulate the message into the frame
-    //memcpy(buff+WLAN_HEADER_LEN, message, strlen(message));
+    //memmove(buff+WLAN_HEADER_LEN, message, strlen(message));
     // set the "to address"
     struct sockaddr_ll to = {0};
     setToAddress(&daddr, &to);

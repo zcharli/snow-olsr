@@ -1,24 +1,25 @@
 #include "Headers/Message.h"
 
-Message::Message() : mSerializedData(nullptr), mOriginatorAddress(nullptr) {
-}
+Message::Message() {}
+// : mSerializedData(nullptr), mOriginatorAddress(nullptr) {
+// }
 
 Message::~Message() {
     //std::cout << "Message destructor" << std::endl;
-    if (mSerializedData != nullptr && mSerializedDataSize != 0) {
-        std::cout << "del [] message size" << mSerializedDataSize << std::endl;
+    // if (mSerializedData != nullptr && mSerializedDataSize != 0) {
+    //     std::cout << "del [] message size" << mSerializedDataSize << std::endl;
 
-        // Make header
-        // MsgType
-        uint8_t d = (*(uint8_t*) mSerializedData);
-        std::cout << (int)d << " lol" << std::endl;
-        uint16_t s = ntohs((*(uint16_t*) (mSerializedData + 2)));
-        std::cout << (int)s << " size of msg" << std::endl;
+    //     // Make header
+    //     // MsgType
+    //     uint8_t d = (*(uint8_t*) mSerializedData);
+    //     std::cout << (int)d << " lol" << std::endl;
+    //     uint16_t s = ntohs((*(uint16_t*) (mSerializedData + 2)));
+    //     std::cout << (int)s << " size of msg" << std::endl;
 
-        delete [] mSerializedData;
-        std::cout << "deleted mSerializedData Successfully" << std::endl;
-        mSerializedData = nullptr;
-    }
+    //     delete [] mSerializedData;
+    //     std::cout << "deleted mSerializedData Successfully" << std::endl;
+    //     mSerializedData = nullptr;
+    // }
 }
 
 std::shared_ptr<MACAddress> Message::getOriginatorAddress() {
