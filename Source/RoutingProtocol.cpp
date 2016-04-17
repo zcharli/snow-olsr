@@ -1,7 +1,7 @@
 #include "Headers/RoutingProtocol.h"
 
 RoutingProtocol& RoutingProtocol::updateState(std::shared_ptr<OLSRMessage> message) {
-    std::cout << "RoutingProtocol::updateState: Received the message" << std::endl;
+    std::cout << "RoutingProtocol::updateState: Received the message from " << message->mSenderHWAddr << " with originator " << *(message->mOriginatorAddress) << std::endl;
     mRequiresForwarding = false;
     bool vTryForward = false;
     // First check if this message has been handled before
@@ -291,7 +291,7 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
     std::cout << "RoutingProtocol::handleHelloMessage: Update the expire time of the link soon if asymTime is greater" << std::endl;
     // Will expire this link soon if asymTime is greater
     vLinkEdge->expirationTime = std::max(vLinkEdge->expirationTime, vLinkEdge->asymTime);
-     pt::time_duration eTimer = now - vLinkEdge->expirationTime;
+     pt::time_duration eTimer = vLinkEdge->expirationTime - now;
     std::cout << "RoutingProtocol::handleHelloMessage the sender's expiration time is " << eTimer.total_seconds() << std::endl;
     // Update the changes we made on this edge
     if (update) {
