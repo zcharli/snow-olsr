@@ -60,8 +60,12 @@ int Message::MessageHeader::copyConstructor(Message& msg) {
 }
 
 void Message::serialize() {
+    #if verbose
     PRINTLN(Dam im the base class)
+    #endif
 }
 void Message::deserialize(char* buffer) {
+    #if verbose
         PRINTLN(Dam im the base class)
+        #endif
 }

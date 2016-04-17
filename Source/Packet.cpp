@@ -7,7 +7,9 @@
 Packet::Packet(char* src, char* dst, char* messageBuffer, int header_offset = 0)
     : mSource(src), mDestination(dst), mBuffer(messageBuffer), offset(header_offset) {
     mAddress = NULL;
+    #if verbose
     PRINTLN(Initialized a packet.)
+    #endif
 }
 
 Packet::Packet() {

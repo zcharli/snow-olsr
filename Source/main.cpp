@@ -13,7 +13,9 @@ using namespace std;
 int main(int argc, char* argv[])
 {
     SnowClient snow;
+    #if verbose
     PRINTLN(SnowClient has started.);
+    #endif
     snow.start();
 
     return 0;

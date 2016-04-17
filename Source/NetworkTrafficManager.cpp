@@ -19,12 +19,16 @@ void NetworkTrafficManager::init() {
     mHelloThread = std::make_unique<NetworkHelloMessageThread>(mSendSocket);
     mTCThread->run();
     mHelloThread->run();
+    #if verbose
     PRINTLN(Traffic manager has been initialized);
+    #endif
 }
 
 int NetworkTrafficManager::sendMsg(std::shared_ptr<OLSRMessage> message) {
     char a[] = "ff:ff:ff:ff:ff:ff";
+    #if verbose
     PRINTLN(Forwarding TC message)
+    #endif
     // if (RoutingProtocol::getInstance().buildTCMessage(message) == 0) {
     //     std::cout << "Error when building TV message" << std::endl;
     // }
@@ -37,7 +41,9 @@ int NetworkTrafficManager::sendMsg(std::shared_ptr<OLSRMessage> message) {
     memcpy(buffer + WLAN_HEADER_LEN, message->getData(), message->getPacketSize());
     //buffer[message.getPacketSize() + 14] = '\0';
     mSendSocket->send(a, buffer, size);
+    #if verbose
     PRINTLN(TC message forwarding was successful);
+    #endif
     //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
     //std::cout << "del [] buffer sen msg of <<<<<<<<<<<<<<<<<<<<<<<<<<<< " <<  size << std::endl;
     return 0;
@@ -67,7 +73,9 @@ std::shared_ptr<Packet> NetworkTrafficManager::getMessage() {
     }
     mMtxMessageList.lock();
     if (mReceivedMsgsQ.size() == 0) {
+        #if verbose
         PRINTLN(Returned null msg)
+        #endif
         mMtxMessageList.unlock();
         return nullptr;
     }
@@ -107,7 +115,9 @@ int NetworkTCMessageThread::run() {
 }
 
 void NetworkTCMessageThread::startBroadcastTCMessages() {
+    #if verbose
     PRINTLN(TC Message thread started);
+    #endif
     //int vPkgSeqNum = 1, vMsgSeqNum = 1; // Commented out cause unused atm.
     char a[] = "ff:ff:ff:ff:ff:ff";
     while (1) {
@@ -128,11 +138,15 @@ void NetworkTCMessageThread::startBroadcastTCMessages() {
         memcpy(buffer + WLAN_HEADER_LEN, message.getData(), message.getPacketSize());
         //buffer[message.getPacketSize() + 14] = '\0';
         mSocket->send(a, buffer, size);
+        #if verbose
         PRINTLN(Sent a TC message)
+        #endif
         //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
         usleep(1000 * (T_TC_INTERVAL + NetworkTrafficManager::generateRandomJitter()));
     }
+    #if verbose
     PRINTLN(TC message thread closed down);
+    #endif
 }
 
 
@@ -149,7 +163,9 @@ int NetworkHelloMessageThread::run() {
 }
 
 void NetworkHelloMessageThread::startBroadcastHelloMessages() {
+    #if verbose
     PRINTLN(Hello Message thread started)
+    #endif
     //int vPkgSeqNum = 1, vMsgSeqNum = 1; // Commented out cause unused atm.
     char a[] = "ff:ff:ff:ff:ff:ff";
     while (1) {
@@ -169,10 +185,14 @@ void NetworkHelloMessageThread::startBroadcastHelloMessages() {
         memcpy(buffer + WLAN_HEADER_LEN, message.getData(), message.getPacketSize());
         //buffer[message.getPacketSize() + 14] = '\0';
         mSocket->send(a, buffer, size);
+        #if verbose
         PRINTLN(Sent a hello message)
+        #endif
         //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
         usleep(1000 * (T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()));
         //std::cout << "del [] buffer hello" << std::endl;
     }
+    #if verbose
     PRINTLN(Hello message thread closed down);
+    #endif
 }
