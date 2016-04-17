@@ -1,4 +1,4 @@
-#define INTERFACE_NAME "wlxf07d6813a47c"
+#define INTERFACE_NAME "wlx1cbdb97eb5d4"
 // Defines the max num threads for waiting on messages
 #define MAX_SEM 25
 #define MIN_SEM 0

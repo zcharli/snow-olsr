@@ -51,7 +51,9 @@ bool WLAN::fetchHardwareAddress() {
         std::cerr << "Failed to fetch hardware address: " << strerror(errno) << "\n";
         return false;
     }
+    #if verbose
     std::cout << "real hardware address " << ifr.ifr_hwaddr.sa_data << std::endl;
+    #endif
     memmove(&ifconfig.hwaddr.data, &ifr.ifr_hwaddr.sa_data, WLAN_ADDR_LEN);
     char * addr = new char[32];
     std::cerr << "hardware address is: " << ifconfig.hwaddr.wlan2asc(addr) << "\n";
@@ -89,7 +91,9 @@ bool WLAN::bindSocketToInterface() {
 
 // Init
 bool WLAN::init() {
+    #if verbose
     std::cout << "Initializing network interface  : " << device << "\n";
+    #endif
     // create the socket
     if (!createSocket())
         return false;
@@ -180,7 +184,9 @@ void WLAN::parseReceivedFrame(std::shared_ptr<Packet> inPacket) {
             //aHandler->handle(src, dst, inPacket->getBuffer() + sizeof(WLANHeader));
         }
     } else {
+        #if verbose
         std::cout << "Destination is not WLAN broadcast: " << src << std::endl;
+        #endif
     }
 }
 
@@ -204,13 +210,13 @@ void WLAN::receive(std::shared_ptr<Packet> inPacket) {
         i = recvfrom(ifconfig.sockid, buff, ifconfig.mtu, 0,
                      (struct sockaddr *) &from, &fromlen);
 
-        // WLANHeader * wlanHdr = (WLANHeader *) (buff);
-        // // get source in ascii
-        // char *src = new char[32];
-        // wlanHdr->srcAddr.wlan2asc(src);
-        // char tw[] = "1c:bd:b9:7e:b5:d4";
-        // if(strcmp(src,tw) == 0 || i == -1){
-        if (i == -1) { // error
+        WLANHeader * wlanHdr = (WLANHeader *) (buff);
+        // get source in ascii
+        char *src = new char[32];
+        wlanHdr->srcAddr.wlan2asc(src);
+        char tw[] = "1c:bd:b9:7e:b6:6b";
+        if(strcmp(src,tw) == 0 || i == -1){
+        //if (i == -1) { // error
             std::cerr << "Cannot receive data: " << strerror(errno) << "\n";
             // sleep for 10 milliseconds and try again
             usleep(10000);

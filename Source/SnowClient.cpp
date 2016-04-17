@@ -22,9 +22,13 @@ int SnowClient::start() {
         if (vPacket != nullptr) {
             //std::cout << "First packet " << vPacket->getSource() << std::endl;
             if (vPacket->getSource()!= vNetworkManager->getPersonalAddress()) {
+                #if verbose
                 std::cout << "Malloc shared_ptr OLSR MESSAGE"<< std::endl;
+                #endif
                 shared_ptr<OLSRMessage> vMessage = make_shared<OLSRMessage>(vPacket);
+                #if verbose
                 std::cout << "OLSR Message is deserialized " << vPacket->getSource() << std::endl;
+                #endif
 
                 RoutingProtocol::getInstance().lockForUpdate();
                 if(RoutingProtocol::getInstance().updateState(vMessage).needsForwarding()) {

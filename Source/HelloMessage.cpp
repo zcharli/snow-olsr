@@ -129,7 +129,9 @@ void HelloMessage::serialize() {
     *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(mSerializedDataSize - HELLO_MSG_HEADER); // 22 is header size
     // Test
     uint16_t test = ntohs((*(uint16_t*) (mSerializedData + vCurrentIndex)));
+    #if verbose
     std::cout << test << std::endl;
+    #endif
     vCurrentIndex += 2;
 
     // Originator address
@@ -147,7 +149,9 @@ void HelloMessage::serialize() {
 
     // Message sequence number
     *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(mMessageHeader.messageSequenceNumber); // 22 is header size
+    #if verbose
     std::cout << "mMessageHeader sequence number " << ntohs((*(uint16_t*) mSerializedData + vCurrentIndex)) <<std::endl;
+    #endif
     vCurrentIndex += 2;
 
     // Make hello msg
@@ -175,7 +179,9 @@ void HelloMessage::serialize() {
         uint16_t msgSize = msg.neighborIfAddr.size() * WLAN_ADDR_LEN;
         *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(msgSize);
         uint16_t vLinkMessageSize = ntohs((*(uint16_t*) mSerializedData + vCurrentIndex));
+        #if verbose
         std::cout << "Seralized vLinkMessage: " << vLinkMessageSize << " with size of msg list is " << msg.neighborIfAddr.size() << " with msgSize " << msgSize << std::endl;
+        #endif
         vCurrentIndex += 2;
         for (auto& addr : msg.neighborIfAddr) {
             memcpy ( mSerializedData + vCurrentIndex, addr.data, WLAN_ADDR_LEN );

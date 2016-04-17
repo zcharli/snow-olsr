@@ -37,7 +37,7 @@ int NetworkTrafficManager::sendMsg(std::shared_ptr<OLSRMessage> message) {
     memcpy(buffer + WLAN_HEADER_LEN, message->getData(), message->getPacketSize());
     //buffer[message.getPacketSize() + 14] = '\0';
     mSendSocket->send(a, buffer, size);
-    std::cout << "TC message forwarding was successful" << std::endl;
+    PRINTLN(TC message forwarding was successful);
     //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
     //std::cout << "del [] buffer sen msg of <<<<<<<<<<<<<<<<<<<<<<<<<<<< " <<  size << std::endl;
     return 0;

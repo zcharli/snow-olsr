@@ -46,7 +46,9 @@ void NetworkPacketListener::listenOnInterface() {
 
 void NetworkPacketListener::handle(char src[], char dst[], char msg[]) {
     //PRINTLN(from  << src << to  << dst << :  << msg)
+    #if verbose
     std::cout << "from " << src << " to " << dst << ": " << msg << "\n";
+    #endif
 
 }
 void NetworkPacketListener::notifyProducerReady() {
