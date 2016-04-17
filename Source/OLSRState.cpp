@@ -31,7 +31,7 @@ void OLSRState::cleanMprSelectorTuple (MprSelectorTuple &tuple) {
     for (std::vector<MprSelectorTuple>::iterator it = mMprSelectorSet.begin();
             it != mMprSelectorSet.end(); it++) {
         if (*it == tuple) {
-            std::cout << "Erasing mpr selector" << std::endl;
+            // std::cout << "Erasing mpr selector" << std::endl;
             mMprSelectorSet.erase(it);
             break;
         }
@@ -43,7 +43,7 @@ void OLSRState::cleanMprSelectorTuples (const MACAddress &mainAddr)
     for (std::vector<MprSelectorTuple>::iterator it = mMprSelectorSet.begin();
             it != mMprSelectorSet.end();) {
         if (it->mainAddr == mainAddr) {
-            std::cout << "Erasing mpr selector" << std::endl;
+            // std::cout << "Erasing mpr selector" << std::endl;
             it = mMprSelectorSet.erase(it);
         } else {
             it++;
@@ -106,7 +106,7 @@ void OLSRState::cleanNeighborTuple (const NeighborTuple &tuple)
 {
     for (std::vector<NeighborTuple>::iterator it = mNeighborSet.begin(); it != mNeighborSet.end(); it++) {
         if (*it == tuple) {
-            std::cout << "Erased neigbor tuple" << std::endl;
+            // std::cout << "Erased neigbor tuple" << std::endl;
             mNeighborSet.erase(it);
             break;
         }
@@ -117,7 +117,7 @@ void OLSRState::cleanNeighborTuple (const MACAddress &mainAddr)
 {
     for (std::vector<NeighborTuple>::iterator it = mNeighborSet.begin(); it != mNeighborSet.end(); it++) {
         if (it->neighborMainAddr == mainAddr) {
-            std::cout << "Erased neigbor tuple" << std::endl;
+            // std::cout << "Erased neigbor tuple" << std::endl;
             it = mNeighborSet.erase(it);
             break;
         }
@@ -155,7 +155,7 @@ void OLSRState::cleanTwoHopNeighborTuple (const TwoHopNeighborTuple &tuple)
 {
     for (std::vector<TwoHopNeighborTuple>::iterator it = mTwoHopNeighborSet.begin(); it != mTwoHopNeighborSet.end(); it++) {
         if (*it == tuple) {
-            std::cout << "Erased two hop neigbor tuple" << std::endl;
+            // std::cout << "Erased two hop neigbor tuple" << std::endl;
             mTwoHopNeighborSet.erase(it);
             break;
         }
@@ -167,7 +167,7 @@ void OLSRState::cleanTwoHopNeighborTuples (const MACAddress &neighborMainAddr, c
     for (std::vector<TwoHopNeighborTuple>::iterator it = mTwoHopNeighborSet.begin(); it != mTwoHopNeighborSet.end();) {
         if (it->neighborMainAddr == neighborMainAddr
                 && it->twoHopNeighborAddr == twoHopNeighborAddr) {
-            std::cout << "Erased two hop neigbor tuple" << std::endl;
+            //std::cout << "Erased two hop neigbor tuple" << std::endl;
             it = mTwoHopNeighborSet.erase(it);
         } else {
             it++;
@@ -179,7 +179,7 @@ void OLSRState::cleanTwoHopNeighborTuples (const MACAddress &neighborMainAddr)
 {
     for (std::vector<TwoHopNeighborTuple>::iterator it = mTwoHopNeighborSet.begin(); it != mTwoHopNeighborSet.end();) {
         if (it->neighborMainAddr == neighborMainAddr) {
-            std::cout << "Erased two hop neigbor tuple" << std::endl;
+            //std::cout << "Erased two hop neigbor tuple" << std::endl;
             it = mTwoHopNeighborSet.erase(it);
         } else {
             it++;
@@ -224,7 +224,7 @@ void OLSRState::cleanLinkTuple (const LinkTuple &tuple)
 {
     for (std::vector<LinkTuple> ::iterator it = mLinkSet.begin(); it != mLinkSet.end(); it++) {
         if (*it == tuple) {
-            std::cout << "Erased link tuple" << std::endl;
+            //std::cout << "Erased link tuple" << std::endl;
             mLinkSet.erase(it);
             break;
         }
@@ -263,7 +263,7 @@ void OLSRState::cleanTopologyTuple(const TopologyTuple &tuple)
     for (std::vector<TopologyTuple>::iterator it = mTopologySet.begin(); it != mTopologySet.end(); it++)
     {
         if (*it == tuple) {
-            std::cout << "Erased link tuple" << std::endl;
+            //std::cout << "Erased link tuple" << std::endl;
             mTopologySet.erase(it);
             break;
         }
