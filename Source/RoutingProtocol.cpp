@@ -337,8 +337,8 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
     #endif
     // Will expire this link soon if asymTime is greater
     vLinkEdge->expirationTime = std::max(vLinkEdge->expirationTime, vLinkEdge->asymTime);
-    pt::time_duration eTimer = vLinkEdge->expirationTime - now;
     #if verbose
+    pt::time_duration eTimer = vLinkEdge->expirationTime - now;
     std::cout << "RoutingProtocol::handleHelloMessage the sender's expiration time is " << eTimer.total_seconds() << std::endl;
     #endif
     // Update the changes we made on this edge
@@ -510,8 +510,9 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
     // Add our MPR selectors after we update the MPR state
     #if verbose
     std::cout << "RoutingProtocol::handleHelloMessage message link msg size "
-    #endif
         << message.mLinkMessages.size() << std::endl;
+    #endif
+
     for (auto& linkMessage : message.mLinkMessages) {
         int linkCode = linkMessage.linkCode >> 2;
         #if verbose
@@ -582,6 +583,16 @@ void RoutingProtocol::expireMprSelector(int seconds, MACAddress addressSelector)
             std::cout << "RoutingProtocol::expireMprSelector MPR selector " << addressSelector << " time got a refresh for " << seconds << std::endl;
             #endif
             pt::time_duration expireTimer = vMprSelector->expirationTime - now;
+            if(expireTimer.total_seconds() == 0) {
+                #if verbose
+                std::cout << "RoutingProtocol::expireMprSelector MPR selector " << addressSelector << " is expired." << std::endl;
+                #endif
+                mMtxMprSelector.lock();
+                mState.cleanMprSelectorTuple(*vMprSelector);
+                mMtxMprSelector.unlock();
+                mANSN = (mANSN + 1) % (S_MAX_SEQ_NUM + 1);
+                return;
+            }
             sleep(expireTimer.total_seconds());
         }
     }
@@ -617,6 +628,10 @@ void RoutingProtocol::expireTwoHopNeighbor(int seconds, MACAddress neighborAddr,
                 #if verbose
                 std::cout << "RoutingProtocol::expireTwoHopNeighbor TwoHopNeighbor " << twoHopNeighbor << " is expired." << std::endl;
                 #endif
+                 mMtxTwoHopNeighbor.lock();
+                mState.cleanTwoHopNeighborTuple (*twoHopTuple);
+                mMtxTwoHopNeighbor.unlock();
+                mANSN = (mANSN + 1) % (S_MAX_SEQ_NUM + 1);
                 return;
             }
             #if verbose
@@ -1388,8 +1403,8 @@ void RoutingProtocol::expireTopology(int seconds, MACAddress destAddr, MACAddres
         if (vTopologyTuple == NULL) {
             #if verbose
             std::cout << "RoutingProtocol::expireTopology TC lost contact with a node " << vTopologyTuple->destAddr << " from neighbor "
-            #endif
                       << vTopologyTuple->lastAddr << std::endl;
+             #endif
             return;
         }
         pt::time_duration expireTimer = vTopologyTuple->expirationTime - now;
