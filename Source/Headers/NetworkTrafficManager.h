@@ -45,7 +45,7 @@ private:
 public:
     NetworkTrafficManager(std::string interface);
     ~NetworkTrafficManager();
-    int sendMsg(OLSRMessage& message);
+    int sendMsg(std::shared_ptr<OLSRMessage> message);
     void init();
     int enqueMsgForProcessing(std::shared_ptr<Packet> );
     void notifyConsumerReady();

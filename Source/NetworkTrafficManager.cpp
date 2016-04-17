@@ -22,25 +22,24 @@ void NetworkTrafficManager::init() {
     PRINTLN(Traffic manager has been initialized);
 }
 
-int NetworkTrafficManager::sendMsg(OLSRMessage& message) {
+int NetworkTrafficManager::sendMsg(std::shared_ptr<OLSRMessage> message) {
     char a[] = "ff:ff:ff:ff:ff:ff";
     PRINTLN(Forwarding TC message)
     // if (RoutingProtocol::getInstance().buildTCMessage(message) == 0) {
     //     std::cout << "Error when building TV message" << std::endl;
     // }
-    char* vBuffer = message.serialize().getData();
+    message->serialize();
     //char a[]="1c:bd:b9:7e:b5:d4"; // unicast address
     //char f[] = "Hello!"; // data
-    int size = message.getPacketSize() + WLAN_HEADER_LEN;
-    char* buffer = new char[size];
-    memmove(buffer + WLAN_HEADER_LEN, vBuffer, message.getPacketSize());
+    int size = message->getPacketSize() + WLAN_HEADER_LEN;
+    char buffer[MAX_BUF];
+
+    memcpy(buffer + WLAN_HEADER_LEN, message->getData(), message->getPacketSize());
     //buffer[message.getPacketSize() + 14] = '\0';
     mSendSocket->send(a, buffer, size);
     std::cout << "TC message forwarding was successful" << std::endl;
     //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
-    usleep(1000 * (T_TC_INTERVAL + NetworkTrafficManager::generateRandomJitter()));
-    std::cout << "del [] buffer sen msg" << std::endl;
-    delete [] buffer;
+    std::cout << "del [] buffer sen msg of <<<<<<<<<<<<<<<<<<<<<<<<<<<< " <<  size << std::endl;
     return 0;
 }
 
@@ -75,6 +74,7 @@ std::shared_ptr<Packet> NetworkTrafficManager::getMessage() {
     std::shared_ptr<Packet> vMessage = mReceivedMsgsQ.front();
     mReceivedMsgsQ.pop();
     mMtxMessageList.unlock();
+    std::cout << "The producer has produced " << mReceivedMsgsQ.size() << " elements so far" << std::endl;
     //mListener->notifyProducerReady();
     return vMessage;
 }
@@ -109,29 +109,30 @@ int NetworkTCMessageThread::run() {
 void NetworkTCMessageThread::startBroadcastTCMessages() {
     PRINTLN(TC Message thread started);
     //int vPkgSeqNum = 1, vMsgSeqNum = 1; // Commented out cause unused atm.
-
+    char a[] = "ff:ff:ff:ff:ff:ff";
     while (1) {
-        char a[] = "ff:ff:ff:ff:ff:ff";
+
         //PRINTLN(Waiting to send)
         mSocketMutex.lock();
         OLSRMessage message;
+        std::cout << "Building a tc message now" << std::endl;
         if (RoutingProtocol::getInstance().buildTCMessage(message) == 0) {
             std::cout << "Error when building TV message" << std::endl;
         }
         mSocketMutex.unlock();
-        char* vBuffer = message.serialize().getData();
+        message.serialize();
         //char a[]="1c:bd:b9:7e:b5:d4"; // unicast address
         //char f[] = "Hello!"; // data
         int size = message.getPacketSize() + WLAN_HEADER_LEN;
-        char* buffer = new char[size];
-        memmove(buffer + WLAN_HEADER_LEN, vBuffer, message.getPacketSize());
+        char buffer[MAX_BUF];
+        std::cout << "TC message size is " << size << std::endl;
+        memcpy(buffer + WLAN_HEADER_LEN, message.getData(), message.getPacketSize());
         //buffer[message.getPacketSize() + 14] = '\0';
         mSocket->send(a, buffer, size);
         PRINTLN(Sent a TC message)
         //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
         usleep(1000 * (T_TC_INTERVAL + NetworkTrafficManager::generateRandomJitter()));
         std::cout << "del [] buffer tc" << std::endl;
-        delete [] buffer;
     }
     PRINTLN(TC message thread closed down);
 }
@@ -152,9 +153,8 @@ int NetworkHelloMessageThread::run() {
 void NetworkHelloMessageThread::startBroadcastHelloMessages() {
     PRINTLN(Hello Message thread started)
     //int vPkgSeqNum = 1, vMsgSeqNum = 1; // Commented out cause unused atm.
-
+    char a[] = "ff:ff:ff:ff:ff:ff";
     while (1) {
-        char a[] = "ff:ff:ff:ff:ff:ff";
         //PRINTLN(Waiting to send)
         mSocketMutex.lock();
         OLSRMessage message;
@@ -162,19 +162,19 @@ void NetworkHelloMessageThread::startBroadcastHelloMessages() {
             std::cout << "Error when building hello message" << std::endl;
         }
         mSocketMutex.unlock();
-        char* vBuffer = message.serialize().getData();
+        message.serialize();
         //char a[]="1c:bd:b9:7e:b5:d4"; // unicast address
         //char f[] = "Hello!"; // data
         int size = message.getPacketSize() + WLAN_HEADER_LEN;
-        char* buffer = new char[size];
-        memmove(buffer + WLAN_HEADER_LEN, vBuffer, message.getPacketSize());
+        std::cout << "del [] buffer hello" << std::endl;
+        char buffer[MAX_BUF];
+        memcpy(buffer + WLAN_HEADER_LEN, message.getData(), message.getPacketSize());
         //buffer[message.getPacketSize() + 14] = '\0';
         mSocket->send(a, buffer, size);
         PRINTLN(Sent a hello message)
         //std::cout << "Sleeping for " << 1000*(T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()) << std::endl;
         usleep(1000 * (T_HELLO_INTERVAL + NetworkTrafficManager::generateRandomJitter()));
         std::cout << "del [] buffer hello" << std::endl;
-        delete [] buffer;
     }
     PRINTLN(Hello message thread closed down);
 }

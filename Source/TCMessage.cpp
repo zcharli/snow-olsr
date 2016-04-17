@@ -33,6 +33,8 @@ void TCMessage::deserialize(char* buffer) {
     // Originator address
     memcpy(mMessageHeader.originatorAddress, buffer, WLAN_ADDR_LEN);
     buffer += WLAN_ADDR_LEN;
+    std::cout << "make_shared MACAddress TC message" << std::endl;
+
     mOriginatorAddress = std::make_shared<MACAddress>(mMessageHeader.originatorAddress);
 
     // Time to Live
@@ -56,14 +58,13 @@ void TCMessage::deserialize(char* buffer) {
     buffer += 2;
 
     while (vTotalMsgSize > 0) {
-        char* vAdvertisedNeighborInterfaceAddrBuffer = new char[WLAN_ADDR_LEN];
+        char vAdvertisedNeighborInterfaceAddrBuffer[WLAN_ADDR_LEN];
         memcpy(vAdvertisedNeighborInterfaceAddrBuffer, buffer, WLAN_ADDR_LEN);
         MACAddress vAdvertisedNeighborInterfaceAddr(vAdvertisedNeighborInterfaceAddrBuffer);
         mNeighborAddresses.push_back(vAdvertisedNeighborInterfaceAddr);
         buffer += WLAN_ADDR_LEN;
         vTotalMsgSize -= WLAN_ADDR_LEN;
         std::cout << "del [] buffer tc vAdvertisedNeighborInterfaceAddrBuffer: " << vAdvertisedNeighborInterfaceAddr << std::endl;
-        delete [] vAdvertisedNeighborInterfaceAddrBuffer;
     }
 
 }
@@ -76,7 +77,7 @@ void TCMessage::serialize() {
         mSerializedDataSize = 0;
     }
     int vCurrentIndex = 0;
-    mSerializedDataSize = HELLO_MSG_HEADER + 4; // With olsr header
+    mSerializedDataSize = HELLO_MSG_HEADER;
 
     mSerializedDataSize += 4; // ANSN + reserved
     mSerializedDataSize += mNeighborAddresses.size() * WLAN_ADDR_LEN;

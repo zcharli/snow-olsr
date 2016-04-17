@@ -24,6 +24,8 @@ void NetworkPacketListener::listenOnInterface() {
     while(1){
         //PRINTLN(Semaphore wait)
         //mSemProducer->wait(); // Wait for the signal from Manager class
+    std::cout << "make_shared PAcket message" << std::endl;
+
         std::shared_ptr<Packet> vPacket = std::make_shared<Packet>();
         mRecvSocket->receive(vPacket);
         // Received a packet.  Now fucking make me a message

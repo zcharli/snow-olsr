@@ -155,6 +155,8 @@ int RoutingProtocol::buildHelloMessage(OLSRMessage & message) {
     mMtxLink.lock();
     std::vector<LinkTuple> mLinks = mState.getLinks();
     mMtxLink.unlock();
+    std::cout << "make_shared RoutingProtocol hello message" << std::endl;
+
     std::shared_ptr<HelloMessage> helloMessage = std::make_shared<HelloMessage>();
     helloMessage->mMessageHeader.vtime = T_NEIGHB_HOLD_TIME;
     // We can ommit message size as its calculated on serialization
@@ -226,6 +228,8 @@ int RoutingProtocol::buildTCMessage(OLSRMessage & message) {
     mMtxMprSelector.lock();
     std::vector<MprSelectorTuple> neighbors = mState.getMprSelectors();
     mMtxMprSelector.unlock();
+    std::cout << "make_shared RoutingProtocol TC message" << std::endl;
+
     std::shared_ptr<TCMessage> tcMessage = std::make_shared<TCMessage>();
 
     tcMessage->mMessageHeader.vtime = T_NEIGHB_HOLD_TIME;

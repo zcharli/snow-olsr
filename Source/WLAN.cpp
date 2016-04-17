@@ -110,9 +110,9 @@ void WLAN::buildHeader(char address[], MACAddress *daddr) {
     // conversion of  destination address from ASCII to binary
     daddr->str2wlan(address);
     // store the destination address
-    memmove(&hdr.destAddr, daddr->data, WLAN_ADDR_LEN);
+    memcpy(&hdr.destAddr, daddr->data, WLAN_ADDR_LEN);
     // store the source address
-    memmove(&hdr.srcAddr, ifconfig.hwaddr.data, WLAN_ADDR_LEN);
+    memcpy(&hdr.srcAddr, ifconfig.hwaddr.data, WLAN_ADDR_LEN);
     // set the type field
     hdr.type = htons(IP_TYPE);
 }
@@ -121,7 +121,7 @@ void WLAN::buildHeader(char address[], MACAddress *daddr) {
 void WLAN::setToAddress(MACAddress *daddr, struct sockaddr_ll *to) {
     to->sll_family = AF_PACKET;
     to->sll_ifindex = ifconfig.ifindex;
-    memmove(&(to->sll_addr), daddr->data, WLAN_ADDR_LEN);
+    memcpy(&(to->sll_addr), daddr->data, WLAN_ADDR_LEN);
     to->sll_halen = 6;
 }
 
@@ -134,9 +134,9 @@ bool WLAN::send(char address[], char* msg_buffer, int size) {
     // build the header
     buildHeader(address, &daddr);
     // store the header into the frame
-    memmove(msg_buffer, &hdr, WLAN_HEADER_LEN);
+    memcpy(msg_buffer, &hdr, WLAN_HEADER_LEN);
     // encapsulate the message into the frame
-    //memmove(buff+WLAN_HEADER_LEN, message, strlen(message));
+    //memcpy(buff+WLAN_HEADER_LEN, message, strlen(message));
     // set the "to address"
     struct sockaddr_ll to = {0};
     setToAddress(&daddr, &to);
