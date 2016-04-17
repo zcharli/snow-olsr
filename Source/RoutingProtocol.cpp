@@ -195,7 +195,9 @@ int RoutingProtocol::buildHelloMessage(OLSRMessage & message) {
     for (auto& link : mLinks) {
         // If they are not supposed to link to me
         if (!(link.localIfaceAddr == mPersonalAddress && link.expirationTime >= now)) {
+            #if verbose
             PRINTLN(Skipped a host when making a hello msg)
+            #endif
             continue;
         }
         uint8_t linkType, neighborType = 0xff;
@@ -294,7 +296,9 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
     std::cout << "RoutingProtocol::handleHelloMessage: Check the neighbor from coming hello message" << std::endl;
     #endif
     if (vLinkEdge == NULL) {
+        #if verbose
         PRINTLN(RoutingProtocol::handleHelloMessage: Found a new neighbor from hello msg)
+        #endif
         LinkTuple newNeighbor;
         newNeighbor.neighborIfaceAddr = senderHWAddr;
         newNeighbor.localIfaceAddr = mPersonalAddress;
@@ -495,7 +499,9 @@ void RoutingProtocol::handleHelloMessage(HelloMessage & message, const MACAddres
                     // tuples where: N_neighbor_main_addr == Originator
                     // Address AND N_2hop_addr == main address of the
                     // 2-hop neighbor are deleted.
+                    #if verbose
                     PRINTLN(Neighbor type not a neighbor now removing the instance)
+                    #endif
                     mMtxTwoHopNeighbor.lock();
                     mState.cleanTwoHopNeighborTuples(*(message.getOriginatorAddress()), neighborMacAddr);
                     mMtxTwoHopNeighbor.unlock();
@@ -657,8 +663,8 @@ void RoutingProtocol::expireLink(int seconds, MACAddress neighborAddr) {
 
         if (vLinkTuple->expirationTime < now) {
             // Remove this link
-            PRINTLN(RoutingProtocol::expireLink: Expiring a link tuple)
             #if verbose
+            PRINTLN(RoutingProtocol::expireLink: Expiring a link tuple)
             std::cout << "RoutingProtocol::expireLink: Link with " << neighborAddr << " is expired." << std::endl;
             #endif
             mMtxNeighbor.lock();
@@ -860,7 +866,9 @@ void RoutingProtocol::updateLinkTuple(LinkTuple * vLinkEdge, uint8_t willingness
         vNeighbor = &vNewNeighbor;
         // Increment advertised neighbor set sequence number
         mANSN = (mANSN + 1) % (S_MAX_SEQ_NUM + 1);
+        #if verbose
         PRINTLN(RoutingProtocol::updateLinkTuple: Inserted a new neighbor)
+        #endif
     }
     // Reset the symTime for this link me -> neighbor
     if (vLinkEdge->symTime >= now) {
@@ -1013,7 +1021,9 @@ void RoutingProtocol::updateMPRState() {
     for (std::vector<TwoHopNeighborTuple>::iterator it = N2.begin(); it != N2.end(); ) {
         if (vCoveredTwoHopNeighbors.find(it->twoHopNeighborAddr) != vCoveredTwoHopNeighbors.end()) {
             N2.erase(it);
+            #if verbose
             PRINTLN(RoutingProtocol::updateMPRState: Removed a 2 hop neighbor that was already covered by the mpr we just selected)
+            #endif
         } else {
             it++;
         }
@@ -1038,7 +1048,9 @@ void RoutingProtocol::updateMPRState() {
                     it2hop != N2.end(); it2hop++) {
                 if (it->neighborMainAddr == it2hop->neighborMainAddr) {
                     key++;
+                    #if verbose
                     PRINTLN(RoutingProtocol::updateMPRState: Found a reachable 2 hop neighbor when calculate its reachability)
+                    #endif
                 }
             }
             vNeighborRechabilityKeys.insert(key);
@@ -1098,8 +1110,9 @@ void RoutingProtocol::updateMPRState() {
             }
         }
     }
+    #if verbose
     PRINTLN(RoutingProtocol::updateMPRState: Finish selecting MPR for reachable 2 hop neighbors)
-
+    #endif
         //      5    A node's MPR set is generated from the union of the MPR sets
         //           for each interface.  As an optimization, process each node, y,
         //           in the MPR set in increasing order of N_willingness.  If all
@@ -1335,7 +1348,9 @@ void RoutingProtocol::routingTableComputation () {
         }
 
     }
+    #if verbose
     PRINTLN(Done computing routing table)
+    #endif
     //  4.  For each entry in the multiple interface association base where there exists a routing entry such that:
     //              R_dest_addr     == I_main_addr (of the multiple interface association entry)
     //  And there is no routing entry such that:

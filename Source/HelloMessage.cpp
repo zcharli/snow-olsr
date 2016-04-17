@@ -175,7 +175,9 @@ void HelloMessage::serialize() {
 
     for (HelloMessage::LinkMessage& msg : mLinkMessages) {
         // Link code
+        #if verbose
         PRINTLN(Seralized a link message)
+        #endif
         *(temp + vCurrentIndex) = msg.linkCode;
         vCurrentIndex++;
 
