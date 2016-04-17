@@ -26,7 +26,7 @@ std::shared_ptr<MACAddress> Message::getOriginatorAddress() {
     if (mOriginatorAddress != nullptr) {
         return mOriginatorAddress;
     }
-    std::cout << "Implementation for getOriginatorAddress missing" << std::endl;
+    // std::cout << "Implementation for getOriginatorAddress missing" << std::endl;
     return nullptr;
 }
 
@@ -40,7 +40,7 @@ int Message::getSize() {
 
 uint8_t Message::getVTime() {
     // temporary function, in fact we need away to extract vtime from msg header
-    std::cout << "Message::getVTime is not yet implemented" << std::endl;
+    // std::cout << "Message::getVTime is not yet implemented" << std::endl;
     return 0;
 }
 

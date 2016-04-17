@@ -20,11 +20,11 @@ int NetworkPacketListener::run() {
 }
 
 void NetworkPacketListener::listenOnInterface() {
-    std::cout << "Network Packet Listener thread started" << std::endl;
+    // std::cout << "Network Packet Listener thread started" << std::endl;
     while(1){
         //PRINTLN(Semaphore wait)
         //mSemProducer->wait(); // Wait for the signal from Manager class
-    std::cout << "make_shared PAcket message" << std::endl;
+    // std::cout << "make_shared PAcket message" << std::endl;
 
         std::shared_ptr<Packet> vPacket = std::make_shared<Packet>();
         mRecvSocket->receive(vPacket);

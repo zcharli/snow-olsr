@@ -96,7 +96,6 @@ void TCMessage::serialize() {
     *(uint16_t*)(mSerializedData + vCurrentIndex) = htons(mSerializedDataSize - HELLO_MSG_HEADER); // 22 is header size
 
     // Test
-    uint16_t test = ntohs((*(uint16_t*) (mSerializedData + vCurrentIndex)));
     //std::cout << "This is the size of the tc message" << test << std::endl;
     vCurrentIndex += 2;
 

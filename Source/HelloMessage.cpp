@@ -13,7 +13,7 @@ HelloMessage::HelloMessage(char* buffer) {
 }
 
 uint8_t HelloMessage::getWillingness() {
-    std::cout << "HelloMessage::getWillingness not yet implemented" << std::endl;
+    // std::cout << "HelloMessage::getWillingness not yet implemented" << std::endl;
     return 0;
 }
 
@@ -40,7 +40,7 @@ void HelloMessage::deserialize(char* buffer) {
     // Originator address
     memcpy(mMessageHeader.originatorAddress, buffer, WLAN_ADDR_LEN);
     buffer += WLAN_ADDR_LEN;
-    std::cout << "make_shared MACAddress hello message" << std::endl;
+    // std::cout << "make_shared MACAddress hello message" << std::endl;
     mOriginatorAddress = std::make_shared<MACAddress>(mMessageHeader.originatorAddress);
 
     // Time to Live
@@ -94,7 +94,7 @@ void HelloMessage::deserialize(char* buffer) {
             vLink.neighborIfAddr.push_back(vAdvertisedNeighborInterfaceAddr);
             buffer += WLAN_ADDR_LEN;
             vTotalMsgSize -= WLAN_ADDR_LEN;
-            std::cout << "Hello msg deserialization " << std::endl;
+            // std::cout << "Hello msg deserialization " << std::endl;
         }
         mLinkMessages.push_back(vLink);
     }
@@ -115,7 +115,7 @@ void HelloMessage::serialize() {
         mSerializedDataSize += 4;
         mSerializedDataSize += linkMsg.neighborIfAddr.size() * WLAN_ADDR_LEN;
     }
-    std::cout << "Hello message serialization news" << std::endl;
+    // std::cout << "Hello message serialization news" << std::endl;
     //mSerializedData = new char[mSerializedDataSize];
 
     // Make header
